@@ -1,6 +1,7 @@
 using System.Windows;
 using Machine.PickAndPlace.ViewModels;
 using Machine.PickAndPlace.Views;
+using NAutoSuite.UI.Controls.Dialogs;
 
 namespace Machine.PickAndPlace;
 
@@ -54,11 +55,11 @@ public partial class MainWindow : Window
 
     private void HeaderControl_CloseClicked(object sender, RoutedEventArgs e)
     {
-        var result = MessageBox.Show(
+        var result = ModernMessageBox.Show(
             "Are you sure you want to exit?",
             "Confirm Exit",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+            ModernMessageBox.MessageBoxType.Question,
+            ModernMessageBox.MessageBoxButtons.YesNo);
 
         if (result == MessageBoxResult.Yes)
         {
