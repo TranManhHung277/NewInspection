@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Machine.PickAndPlace.Core\Machine.PickAndPlace.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
+    <ProjectReference Include="..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
+    <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

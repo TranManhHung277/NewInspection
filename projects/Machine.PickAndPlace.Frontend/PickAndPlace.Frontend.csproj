@@ -2,11 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Machine.PickAndPlace.Core\Machine.PickAndPlace.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
-    <ProjectReference Include="..\..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
-    <ProjectReference Include="..\..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
+    <ProjectReference Include="..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
+    <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
   </ItemGroup>
 
   <ItemGroup>
