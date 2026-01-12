@@ -2,7 +2,7 @@ using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Common;
 using Serilog;
 
-namespace Machine.PickAndPlace.Core.Stations;
+namespace PickAndPlace.Backend.Stations;
 
 /// <summary>
 /// Station responsible for placing parts

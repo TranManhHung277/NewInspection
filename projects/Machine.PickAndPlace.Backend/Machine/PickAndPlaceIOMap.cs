@@ -1,6 +1,6 @@
 using NAutoSuite.Core.IO;
 
-namespace Machine.PickAndPlace.Core;
+namespace PickAndPlace.Backend.Machine;
 
 /// <summary>
 /// IO Map for Pick and Place machine

@@ -1,4 +1,4 @@
-using Machine.PickAndPlace.Core;
+using PickAndPlace.Backend.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Hardware.Simulator;
 using Serilog;

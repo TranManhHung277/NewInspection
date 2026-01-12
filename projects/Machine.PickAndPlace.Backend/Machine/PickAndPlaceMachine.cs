@@ -3,10 +3,10 @@ using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Interlock;
 using NAutoSuite.Core.Machine;
-using Machine.PickAndPlace.Core.Manual;
+using PickAndPlace.Backend.Manual;
 using Serilog;
 
-namespace Machine.PickAndPlace.Core;
+namespace PickAndPlace.Backend.Machine;
 
 public class PickAndPlaceMachine : MachineBase
 {

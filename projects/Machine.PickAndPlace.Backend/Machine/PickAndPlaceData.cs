@@ -1,7 +1,7 @@
 using NAutoSuite.Core.Data;
 using System.Text.Json;
 
-namespace Machine.PickAndPlace.Core;
+namespace PickAndPlace.Backend.Machine;
 
 /// <summary>
 /// Machine-specific data for Pick and Place

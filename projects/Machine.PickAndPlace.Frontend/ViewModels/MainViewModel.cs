@@ -1,15 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Machine;
-using Machine.PickAndPlace.Core;
 
 namespace Machine.PickAndPlace.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly IMachine _machine;
-    private readonly PickAndPlaceMachine _pickAndPlaceMachine;
+    // Frontend is UI only - no machine logic
 
     [ObservableProperty]
     private MachineState _machineState;

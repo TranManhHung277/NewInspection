@@ -2,7 +2,7 @@ using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Common;
 using Serilog;
 
-namespace Machine.PickAndPlace.Core.Manual;
+namespace PickAndPlace.Backend.Manual;
 
 /// <summary>
 /// Manual control for Pick and Place machine

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Machine.PickAndPlace.Core;
 using Machine.PickAndPlace.ViewModels;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
@@ -29,30 +28,14 @@ public partial class App : Application
                 // Register Core Services
                 services.AddSingleton<TimeService>();
 
-                // Register Hardware (Simulator)
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("AxisX", "X Axis", Log.Logger));
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("AxisY", "Y Axis", Log.Logger));
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("AxisZ", "Z Axis", Log.Logger));
-                services.AddSingleton<IInput>(sp => new SimulatorInput("PartSensor", "Part Sensor", Log.Logger));
-                services.AddSingleton<IOutput>(sp => new SimulatorOutput("Vacuum", "Vacuum", Log.Logger));
+                // Register Hardware (Simulator) - for UI display only
+                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisX", Log.Logger));
+                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisY", Log.Logger));
+                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisZ", Log.Logger));
+                services.AddSingleton<IOutput>(sp => new SimulatorOutput("PAP001", "Vacuum", Log.Logger));
 
-                // Register Machine
-                services.AddSingleton<IMachine>(sp =>
-                {
-                    var axes = sp.GetServices<IAxis>().ToArray();
-                    var partSensor = sp.GetServices<IInput>().FirstOrDefault();
-                    var vacuum = sp.GetServices<IOutput>().FirstOrDefault();
-
-                    return new PickAndPlaceMachine(
-                        "PNP_001",
-                        "Pick and Place Machine",
-                        axes.ElementAtOrDefault(0), // X
-                        axes.ElementAtOrDefault(1), // Y
-                        axes.ElementAtOrDefault(2), // Z
-                        partSensor,
-                        vacuum,
-                        Log.Logger);
-                });
+                // NOTE: Machine logic is in Backend project
+                // Frontend is UI only
 
                 // Register ViewModels
                 services.AddSingleton<MainViewModel>();

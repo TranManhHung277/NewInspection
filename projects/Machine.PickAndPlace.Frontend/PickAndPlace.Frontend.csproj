@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Machine.PickAndPlace.Core\Machine.PickAndPlace.Core.csproj" />
     <ProjectReference Include="..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
     <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
