@@ -3,6 +3,7 @@ using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Interlock;
 using NAutoSuite.Core.Machine;
+using NAutoSuite.Hardware.Abstractions.PLC;
 using PickAndPlace.Backend.Manual;
 using Serilog;
 
@@ -16,10 +17,34 @@ public class PickAndPlaceMachine : MachineBase
     private readonly IInput? _partSensor;
     private readonly IOutput? _vacuum;
 
+    // IO Map and Data
+    private readonly PickAndPlaceIOMap _ioMap;
+    private readonly PickAndPlaceData _data;
+    private readonly IPlc? _plc;
+
+    // Common IO Handler - Tự động xử lý EMG/Start/Stop/Reset/Tower Lights
+    private CommonIOHandler? _commonIOHandler;
+
+    // Background Task Manager - Chạy nhiều tasks song song
+    private BackgroundTaskManager? _backgroundTaskManager;
+
+    // Sensor Waiter - Chờ sensor không block
+    private SensorWaiter? _sensorWaiter;
+
     /// <summary>
     /// Manual controller for manual mode operations
     /// </summary>
     public ManualController Manual { get; }
+
+    /// <summary>
+    /// IO Map - Danh sách địa chỉ IO
+    /// </summary>
+    public PickAndPlaceIOMap IOMap => _ioMap;
+
+    /// <summary>
+    /// Machine Data - Cài đặt và thông số
+    /// </summary>
+    public PickAndPlaceData Data => _data;
 
     public PickAndPlaceMachine(
         string id,
@@ -29,6 +54,7 @@ public class PickAndPlaceMachine : MachineBase
         IAxis? axisZ = null,
         IInput? partSensor = null,
         IOutput? vacuum = null,
+        IPlc? plc = null,
         ILogger? logger = null)
         : base(id, name, logger)
     {
@@ -37,12 +63,109 @@ public class PickAndPlaceMachine : MachineBase
         _axisZ = axisZ;
         _partSensor = partSensor;
         _vacuum = vacuum;
+        _plc = plc;
+
+        // Initialize IO Map and Data
+        _ioMap = new PickAndPlaceIOMap();
+        _data = new PickAndPlaceData();
 
         // Initialize manual controller
         Manual = new ManualController(_axisX, _axisY, _axisZ, _vacuum, Log.Logger);
 
         // Setup machine-specific interlocks
         SetupMachineInterlocks();
+
+        // Setup new concurrent task system
+        SetupConcurrentTasks();
+    }
+
+    /// <summary>
+    /// Setup hệ thống Concurrent Tasks (CommonIOHandler + BackgroundTaskManager + SensorWaiter)
+    /// Thay thế cho scan cycle timer cũ
+    /// </summary>
+    private void SetupConcurrentTasks()
+    {
+        // 1. Setup Common IO Handler - TỰ ĐỘNG xử lý EMG/Start/Stop/Reset/Tower Lights
+        _commonIOHandler = new CommonIOHandler(
+            machine: this,
+            ioMap: _ioMap,
+            readInputFunc: ReadInputAsync,
+            writeOutputFunc: WriteOutputAsync,
+            logger: Log.Logger
+        );
+
+        // 2. Setup Sensor Waiter - Chờ sensor không block
+        _sensorWaiter = new SensorWaiter(Log.Logger);
+
+        // 3. Setup Background Task Manager
+        _backgroundTaskManager = new BackgroundTaskManager(Log.Logger);
+
+        // Task 1: Scan Cycle - Xử lý TỰ ĐỘNG tất cả common IO (100ms)
+        _backgroundTaskManager.RegisterTask("CommonIOScan", async ct =>
+        {
+            await _commonIOHandler!.ScanAsync(ct);
+        }, intervalMs: 100);
+
+        // Task 2: Feeder Monitor - Demo background task (Optional)
+        // Uncomment để bật feeder monitor
+        // _backgroundTaskManager.RegisterTask("FeederMonitor", FeederMonitorAsync, intervalMs: 50);
+
+        Log.Logger.Information("Concurrent task system initialized");
+    }
+
+    /// <summary>
+    /// Helper: Đọc input từ PLC (dùng cho CommonIOHandler)
+    /// </summary>
+    private async Task<bool> ReadInputAsync(string address, CancellationToken ct)
+    {
+        try
+        {
+            if (_plc == null) return false;
+            var result = await _plc.ReadBitAsync(address, ct);
+            return result.IsSuccess && result.Value;
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Error(ex, "Failed to read input {Address}", address);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Helper: Ghi output ra PLC (dùng cho CommonIOHandler)
+    /// </summary>
+    private async Task WriteOutputAsync(string address, bool value, CancellationToken ct)
+    {
+        try
+        {
+            if (_plc == null) return;
+            await _plc.WriteBitAsync(address, value, ct);
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Error(ex, "Failed to write output {Address}", address);
+        }
+    }
+
+    /// <summary>
+    /// Demo: Feeder Monitor Task - Chạy song song với AUTO sequence
+    /// Task này theo dõi sensor và gạt linh kiện vào vị trí
+    /// </summary>
+    private async Task FeederMonitorAsync(CancellationToken ct)
+    {
+        // Demo: Kiểm tra sensor phát hiện linh kiện
+        // bool partDetected = await ReadInputAsync(_ioMap.MachineInputs.PartSensorAtPick, ct);
+
+        // if (partDetected)
+        // {
+        //     Log.Logger.Information("Part detected at feeder - Pushing into position");
+        //     // Gạt linh kiện vào vị trí
+        //     await pushCylinder.ExtendAsync();
+        //     await Task.Delay(500, ct);
+        //     await pushCylinder.RetractAsync();
+        // }
+
+        await Task.CompletedTask;
     }
 
     private void SetupMachineInterlocks()
@@ -75,6 +198,9 @@ public class PickAndPlaceMachine : MachineBase
         await base.OnInitializingAsync();
 
         Log.Logger.Information("Initializing Pick and Place Machine...");
+
+        // Start all background tasks (Scan Cycle + Feeder Monitor)
+        _backgroundTaskManager?.StartAll();
 
         try
         {
@@ -187,7 +313,8 @@ public class PickAndPlaceMachine : MachineBase
                 }
             }
 
-            // Wait for axes to arrive
+            // ✅ DEMO: Chờ XY đến vị trí (dùng Task.Delay thay vì Thread.Sleep để không block)
+            // Trong production: dùng SensorWaiter với real sensor
             await Task.Delay(500);
 
             // Lower Z
@@ -196,10 +323,12 @@ public class PickAndPlaceMachine : MachineBase
                 var result = await _axisZ.MoveAbsoluteAsync(10);
                 if (!result.IsSuccess)
                 {
-                    RaiseAlarm(2103, $"Axis Z down failed: {result.Message}", AlarmSeverity.Critical);
+                    RaiseAlarm(2104, $"Axis Z down failed: {result.Message}", AlarmSeverity.Critical);
                     throw new Exception(result.Message);
                 }
             }
+
+            // ✅ DEMO: Chờ Z xuống - dùng Task.Delay (không block scan cycle)
             await Task.Delay(300);
 
             // Activate vacuum
@@ -208,11 +337,25 @@ public class PickAndPlaceMachine : MachineBase
                 var result = await _vacuum.WriteAsync(true);
                 if (!result.IsSuccess)
                 {
-                    RaiseAlarm(2104, $"Vacuum activation failed: {result.Message}", AlarmSeverity.Critical);
+                    RaiseAlarm(2106, $"Vacuum activation failed: {result.Message}", AlarmSeverity.Critical);
                     throw new Exception(result.Message);
                 }
             }
-            await Task.Delay(200);
+
+            // ✅ DEMO: Chờ vacuum - SensorWaiter KHÔNG block scan cycle!
+            // Trong khi chờ 1 giây, EMG/Start/Stop/Reset vẫn hoạt động bình thường
+            bool hasVacuum = await _sensorWaiter!.WaitForSensorAsync(
+                sensorName: "Vacuum Sensor",
+                readFunc: async () => await ReadInputAsync(_ioMap.MachineInputs.VacuumSensor, default),
+                timeoutMs: 1000,
+                ct: default
+            );
+
+            if (!hasVacuum)
+            {
+                RaiseAlarm(2107, "Vacuum pressure not detected", AlarmSeverity.Critical);
+                throw new Exception("Vacuum sensor timeout");
+            }
 
             // Raise Z
             if (_axisZ != null)
@@ -220,10 +363,12 @@ public class PickAndPlaceMachine : MachineBase
                 var result = await _axisZ.MoveAbsoluteAsync(50);
                 if (!result.IsSuccess)
                 {
-                    RaiseAlarm(2105, $"Axis Z up failed: {result.Message}", AlarmSeverity.Critical);
+                    RaiseAlarm(2108, $"Axis Z up failed: {result.Message}", AlarmSeverity.Critical);
                     throw new Exception(result.Message);
                 }
             }
+
+            // ✅ DEMO: Chờ Z lên - dùng Task.Delay (không block scan cycle)
             await Task.Delay(300);
 
             Log.Logger.Information("Pick sequence completed");
