@@ -86,7 +86,7 @@ public partial class ShellHeaderControl : UserControl
 
     private void UpdateTime()
     {
-        CurrentTime.Text = DateTime.Now.ToString("HH:mm:ss");
+        CurrentTime.Text = DateTime.Now.ToString("HH:mm:ss dd/MM/yyyy");
     }
 
     private static void OnMachineNumberChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -128,13 +128,11 @@ public partial class ShellHeaderControl : UserControl
         {
             if (hasAlarm)
             {
-                control.AlarmIndicator.Fill = new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
-                control.AlarmBorder.Background = new SolidColorBrush(Color.FromArgb(40, 244, 67, 54));
+                control.AlarmIndicator.Background = new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
             }
             else
             {
-                control.AlarmIndicator.Fill = new SolidColorBrush(Color.FromRgb(128, 128, 128)); // Gray
-                control.AlarmBorder.Background = new SolidColorBrush(Color.FromRgb(37, 37, 38));
+                control.AlarmIndicator.Background = new SolidColorBrush(Color.FromRgb(128, 128, 128)); // Gray
             }
         }
     }

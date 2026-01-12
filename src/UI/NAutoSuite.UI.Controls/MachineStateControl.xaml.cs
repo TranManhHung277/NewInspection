@@ -35,7 +35,7 @@ public partial class MachineStateControl : UserControl
     {
         StateText.Text = State.ToString();
 
-        StateIndicator.Fill = State switch
+        StateIndicator.Background = State switch
         {
             MachineState.Idle => new SolidColorBrush(Color.FromRgb(33, 150, 243)), // Blue
             MachineState.Running => new SolidColorBrush(Color.FromRgb(76, 175, 80)), // Green

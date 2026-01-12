@@ -5,9 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NAutoSuite.UI.Controls"
              mc:Ignorable="d"
-             d:DesignHeight="60" d:DesignWidth="1920">
-    <Border Background="#2D2D30" BorderBrush="#3E3E42" BorderThickness="0,0,0,1">
-        <Grid Height="60">
+             d:DesignHeight="70" 
+             d:DesignWidth="1920">
+    <Border Background="#161B22"
+          BorderBrush="#21262D"
+          BorderThickness="0,0,0,1">
+        <Grid>
             <Grid.ColumnDefinitions>
                 <!-- Machine Number -->
                 <ColumnDefinition Width="Auto"/>
@@ -19,78 +22,110 @@
                 <ColumnDefinition Width="*"/>
                 <!-- Project Name (Center) -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Spacer -->
-                <ColumnDefinition Width="*"/>
                 <!-- Logo/Time -->
-                <ColumnDefinition Width="Auto"/>
-                <!-- Close Button -->
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Machine Number -->
-            <Border Grid.Column="0" Background="#1E1E1E"
-                    Height="60" MinWidth="120"
-                    BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="#" FontSize="20" FontWeight="Bold"
-                               Foreground="#2196F3" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="MachineNumber" Text="1" FontSize="20"
-                               FontWeight="Bold" Foreground="White"
-                               VerticalAlignment="Center" Margin="4,0,0,0"/>
+            <!-- Station Number (Left) -->
+            <Border Grid.Column="0"
+                    Background="#1F6FEB"
+                    Padding="25,0"
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <TextBlock x:Name="MachineNumber"
+                               Text="#1"
+                               FontSize="36"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
             <!-- Machine State -->
             <Border Grid.Column="1" Background="#1E1E1E"
-                    Height="60" MinWidth="150"
-                    BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
-                <local:MachineStateControl x:Name="StateControl"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
+                        <local:MachineStateControl x:Name="StateControl"
+                                      HorizontalAlignment="Center"
+                                      />
             </Border>
 
             <!-- Alarm Indicator -->
-            <Border Grid.Column="2" Background="#1E1E1E"
-                    Height="60" MinWidth="200"
-                    BorderBrush="#3E3E42" BorderThickness="0,0,1,0"
-                    x:Name="AlarmBorder">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse x:Name="AlarmIndicator" Width="12" Height="12"
-                             Fill="Gray" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="AlarmText" Text="No Alarm"
-                               FontSize="14" Foreground="White" Margin="8,0,0,0"
-                               VerticalAlignment="Center"/>
+            <Border Grid.Column="2"
+               x:Name="AlarmIndicator"
+               Background="DarkOrange"
+               Padding="20,0"
+                    Width="200"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <TextBlock x:Name="AlarmText"
+                          Text="EMG"
+                          FontSize="16"
+                          FontWeight="Bold"
+                          Foreground="White"
+                          VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
-            <!-- Project Name (Center) -->
-            <Border Grid.Column="4" Background="#2D2D30" Height="60">
+            <!-- Machine Name -->
+            <Border Grid.Column="3"
+                    Padding="25,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch">
                 <TextBlock x:Name="ProjectName"
-                           Text="NAutoSuite Project"
-                           FontSize="18" FontWeight="SemiBold"
+                           Text="EVI INSPECTION"
+                           FontSize="36"
+                           FontWeight="Bold"
                            Foreground="White"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
             </Border>
 
-            <!-- Logo and Time -->
-            <Border Grid.Column="6" Background="#1E1E1E"
-                    Height="60" MinWidth="120"
-                    BorderBrush="#3E3E42" BorderThickness="1,0,1,0">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <!-- Logo -->
-                    <TextBlock Text="SEMV" FontSize="16" FontWeight="Bold"
-                               Foreground="White"
-                               HorizontalAlignment="Center"/>
-                    <!-- Current Time -->
-                    <TextBlock x:Name="CurrentTime" Text="00:00:00"
-                               FontSize="11" Foreground="#B0B0B0"
-                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+            <StackPanel Grid.Column="4"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+            Margin="25,0,25,0">
+                <!-- Status -->
+                <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="0,0,0,0">
+                    <TextBlock x:Name="LogoText"
+                   Text="SEMV"
+                      FontSize="32"
+                    FontWeight="Bold"
+                    Foreground="#1F6FEB"
+                   VerticalAlignment="Center"/>
                 </StackPanel>
-            </Border>
+
+                <!-- Time & Date -->
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Left">
+                    <TextBlock x:Name="TimeText"
+                   Text="15:30:30"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   FontFamily="Consolas"
+                   Foreground="#8B949E"
+                   VerticalAlignment="Center"/>
+                    <TextBlock Text=" | "
+                   FontSize="13"
+                   Foreground="#30363D"
+                   VerticalAlignment="Center"
+                   Margin="5,0"/>
+                    <TextBlock x:Name="CurrentTime"
+                   Text="12/30/2025"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="#8B949E"
+                   VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
 
             <!-- Close Button -->
-            <Border Grid.Column="7" Background="#F44336" Height="60" Width="60">
+            <Border Grid.Column="5" Background="#F44336" Height="60" Width="60">
                 <Button Content="✕"
                         FontSize="24" FontWeight="Bold"
                         Background="Transparent"
