@@ -7,9 +7,10 @@ namespace Machine.PickAndPlace.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     // Frontend is UI only - no machine logic
+    // This is a placeholder ViewModel for UI display
 
     [ObservableProperty]
-    private MachineState _machineState;
+    private MachineState _machineState = MachineState.Idle;
 
     [ObservableProperty]
     private int _machineNumber = 1;
@@ -32,73 +33,47 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private object? _currentView;
 
-    public MainViewModel(IMachine machine)
+    public MainViewModel()
     {
-        _machine = machine;
-        _pickAndPlaceMachine = (PickAndPlaceMachine)machine;
-        _machineState = machine.State;
-
-        _machine.StateChanged += OnMachineStateChanged;
-
-        // Update cycle info periodically
-        var timer = new System.Windows.Threading.DispatcherTimer();
-        timer.Interval = TimeSpan.FromSeconds(0.5);
-        timer.Tick += (s, e) => UpdateMachineInfo();
-        timer.Start();
-    }
-
-    private void OnMachineStateChanged(object? sender, MachineState state)
-    {
-        MachineState = state;
-    }
-
-    private void UpdateMachineInfo()
-    {
-        CycleCount = _pickAndPlaceMachine.Context.CycleCount;
-        RunTime = _pickAndPlaceMachine.Context.TotalRunTime.ToString(@"hh\:mm\:ss");
-
-        if (!string.IsNullOrEmpty(_pickAndPlaceMachine.Context.LastError))
-        {
-            AlarmMessage = _pickAndPlaceMachine.Context.LastError;
-            HasAlarm = true;
-        }
-        else
-        {
-            AlarmMessage = string.Empty;
-            HasAlarm = false;
-        }
+        // UI only - no machine instance
+        // Machine logic runs in Backend project
     }
 
     [RelayCommand]
     private async Task InitializeAsync()
     {
-        await _machine.InitializeAsync();
+        // UI only - would connect to Backend via IPC/Network
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
     private async Task StartAsync()
     {
-        await _machine.StartAsync();
+        // UI only - would connect to Backend via IPC/Network
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
     private async Task StopAsync()
     {
-        await _machine.StopAsync();
+        // UI only - would connect to Backend via IPC/Network
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
     private async Task ResetAsync()
     {
-        await _machine.ResetAsync();
+        // UI only - would connect to Backend via IPC/Network
         HasAlarm = false;
         AlarmMessage = string.Empty;
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
     private async Task HomeAllAsync()
     {
-        await _pickAndPlaceMachine.HomeAllAxesAsync();
+        // UI only - would connect to Backend via IPC/Network
+        await Task.CompletedTask;
     }
 
     public void NavigateToView(object view)
