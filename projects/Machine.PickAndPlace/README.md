@@ -1,149 +1,230 @@
-# Machine Pick and Place - Example Project
+# Pick and Place Machine
 
-Đây là project ví dụ hoàn chỉnh cho NAutoSuite với UI Shell chuẩn công nghiệp.
-
-## UI Layout
-
-### Header
-- **Machine Number**: #1 (có thể thay đổi trong Settings)
-- **Machine State**: Hiển thị trạng thái realtime
-- **Alarm**: Thông báo lỗi
-- **Project Name**: Pick & Place Machine (center)
-- **Logo + Time**: Ở góc phải
-- **Close Button**: Đóng ứng dụng
-
-### Content Area
-Hiển thị view tương ứng với tab được chọn (Auto, Manual, Setting, Data, Log)
-
-### Footer Navigation
-5 tabs: **Auto** | **Manual** | **Setting** | **Data** | **Log**
-
-## Cấu trúc Project
+Dự án Pick and Place được chia thành **2 chương trình độc lập**:
 
 ```
 Machine.PickAndPlace/
-├── Machine/
-│   └── PickAndPlaceMachine.cs     # Machine logic
-├── ViewModels/
-│   └── MainViewModel.cs            # Main ViewModel
-├── Views/
-│   ├── AutoView.xaml              # Auto mode view
-│   ├── ManualView.xaml            # Manual control
-│   ├── SettingView.xaml           # Settings
-│   ├── DataView.xaml              # Production data
-│   └── LogView.xaml               # System logs
-├── App.xaml.cs                     # DI setup
-└── MainWindow.xaml                 # Shell layout
+├── PickAndPlace.Backend/       ← Chương trình xử lý LOGIC máy
+│   └── Console Application
+│
+├── PickAndPlace.Frontend/      ← Chương trình GIAO DIỆN WPF
+│   └── WPF Application
+│
+└── Machine.PickAndPlace.Core/  ← Thư viện dùng chung
+    └── Class Library
 ```
 
-## Cách chạy
+---
 
-### Đã fix tất cả lỗi
+## 1. PickAndPlace.Backend (Logic)
 
-Project đã được fix và chạy thành công. Các lỗi đã được sửa:
+### Mô tả
+Chương trình **Console Application** chạy logic điều khiển máy Pick and Place.
 
-1. **Namespace conflict**: Đổi `Machine.PickAndPlace.Machine` thành `Machine.PickAndPlace.Machines`
-2. **Logger field**: Thêm `_machineLogger` field trong PickAndPlaceMachine.cs
-3. **Context access**: Đổi `_machine.Context` thành `_pickAndPlaceMachine.Context`
-4. **Switch expression**: Thêm explicit cast `(object)` cho switch expression
-5. **StartupUri**: Remove StartupUri từ App.xaml vì dùng DI
-6. **Theme resources**: Merge Theme.Dark.xaml vào App.xaml resources
+### Chức năng
+- ✅ Khởi tạo hardware (Simulator)
+- ✅ Tạo PickAndPlaceMachine instance
+- ✅ Initialize (Home all axes)
+- ✅ Chạy AUTO sequence
+- ✅ Xử lý logic máy
 
-### Build và chạy
+### Build và Run
 
 ```bash
-cd projects/Machine.PickAndPlace
+# Build
+cd PickAndPlace.Backend
 dotnet build
+
+# Run
 dotnet run
 ```
 
-Ứng dụng sẽ khởi động và tự động initialize machine. Kiểm tra logs trong thư mục `logs/`.
-
-## Tính năng
-
-### Auto Mode
-- Hiển thị số chu kỳ đã chạy
-- Thời gian chạy
-- Visualization (placeholder)
-- Control panel: Start, Stop, Reset, Home All
-
-### Manual Mode
-- Manual control (placeholder)
-
-### Setting Mode
-- Cài đặt Machine Number
-- Cài đặt Project Name
-
-### Data Mode
-- Production statistics (placeholder)
-
-### Log Mode
-- System logs (placeholder)
-
-## Customization
-
-### Thay đổi Machine Number
-
-Trong SettingView, sửa Machine Number và nó sẽ update header ngay lập tức.
-
-### Thay đổi Theme
-
-Tạo file theme riêng trong project và merge vào `App.xaml`:
-
-```xml
-<Application.Resources>
-    <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries>
-            <ResourceDictionary Source="pack://application:,,,/NAutoSuite.UI.Themes;component/Theme.Dark.xaml"/>
-            <ResourceDictionary Source="Themes/CustomTheme.xaml"/>
-        </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
-</Application.Resources>
+### Output
+```
+=== PickAndPlace Backend Started ===
+Machine created: PickAndPlaceMachine
+Initializing machine (Homing all axes)...
+Machine initialized successfully
+Starting AUTO mode...
+Machine started - Running AUTO sequence
+Press any key to stop...
 ```
 
-### Thêm View mới
+---
 
-1. Tạo XAML trong `Views/`
-2. Thêm vào `MainWindow.xaml.cs` constructor
-3. Thêm case trong `FooterControl_TabChanged`
-4. (Optional) Thêm tab trong `ShellFooterControl`
+## 2. PickAndPlace.Frontend (Giao diện)
 
-## Mở rộng
+### Mô tả
+Chương trình **WPF Application** cung cấp giao diện điều khiển máy.
 
-### Thêm hardware thật
+### Chức năng
+- ✅ Auto View - Điều khiển AUTO mode (Start/Stop/Reset/Init)
+- ✅ Manual View - Điều khiển Manual mode (JOG, Move, Home axes)
+- ✅ Monitor View - Giám sát trạng thái máy
+- ✅ Settings View - Cấu hình máy
 
-Trong `App.xaml.cs`, thay Simulator:
+### Build và Run
 
-```csharp
-services.AddSingleton<IAxis>(sp =>
-    new LeadshineAxis("AxisX", "X Axis", cardId: 0, axisIndex: 0));
+```bash
+# Build
+cd PickAndPlace.Frontend
+dotnet build
+
+# Run (hoặc double click .exe)
+dotnet run
 ```
 
-### Thêm logic machine
+### Giao diện
+- **Shell Header**: Tiêu đề, logo, thông tin máy
+- **Auto View**: Start, Stop, Reset, Initialize, Cycle count
+- **Manual View**: JOG axes, Move to position, Home, Vacuum control
+- **Monitor View**: Real-time status, alarms
+- **Settings View**: Machine parameters
 
-Sửa `PickAndPlaceMachine.cs`:
-- `OnInitializingAsync()`: Khởi tạo
-- `OnRunningAsync()`: Chu kỳ auto
-- `PickSequenceAsync()`, `PlaceSequenceAsync()`: Custom logic
+---
 
-## Screenshot
+## 3. Machine.PickAndPlace.Core (Dùng chung)
+
+### Mô tả
+Thư viện **Class Library** chứa logic core của máy Pick and Place.
+
+### Nội dung
+- ✅ `PickAndPlaceMachine.cs` - Machine logic, AUTO sequence
+- ✅ `PickAndPlaceData.cs` - Machine data/settings
+- ✅ `PickAndPlaceIOMap.cs` - IO mapping
+- ✅ `Manual/ManualController.cs` - Manual control logic
+
+### Build
+
+```bash
+cd Machine.PickAndPlace.Core
+dotnet build
+```
+
+---
+
+## 📦 Cấu Trúc Chi Tiết
+
+### Backend (Logic)
+```
+PickAndPlace.Backend/
+├── PickAndPlace.Backend.csproj
+├── Program.cs                      ← Entry point
+└── bin/Debug/net8.0/
+    └── PickAndPlace.Backend.exe    ← Chương trình chạy
+```
+
+### Frontend (Giao diện)
+```
+PickAndPlace.Frontend/
+├── PickAndPlace.Frontend.csproj
+├── App.xaml / App.xaml.cs          ← WPF Application
+├── MainWindow.xaml                 ← Main window
+├── Views/
+│   ├── AutoView.xaml               ← Auto mode UI
+│   ├── ManualView.xaml             ← Manual mode UI
+│   ├── MonitorView.xaml            ← Monitor UI
+│   └── SettingsView.xaml           ← Settings UI
+├── ViewModels/
+│   └── MainViewModel.cs            ← Main ViewModel
+└── bin/Debug/net8.0-windows/
+    └── PickAndPlace.Frontend.exe   ← Chương trình WPF
+```
+
+### Core (Dùng chung)
+```
+Machine.PickAndPlace.Core/
+├── Machine.PickAndPlace.Core.csproj
+├── PickAndPlaceMachine.cs          ← Machine logic
+├── PickAndPlaceData.cs             ← Data/Settings
+├── PickAndPlaceIOMap.cs            ← IO Map
+└── Manual/
+    └── ManualController.cs         ← Manual control
+```
+
+---
+
+## 🔧 Dependencies
+
+### Backend depends on:
+- Machine.PickAndPlace.Core ✅
+- NAutoSuite.Core ✅
+- NAutoSuite.Hardware.Simulator ✅
+- Serilog ✅
+
+### Frontend depends on:
+- Machine.PickAndPlace.Core ✅
+- NAutoSuite.Core ✅
+- NAutoSuite.Hardware.Simulator ✅
+- NAutoSuite.UI.Infrastructure ✅
+- NAutoSuite.UI.Themes ✅
+- NAutoSuite.UI.Controls ✅
+- CommunityToolkit.Mvvm ✅
+
+### Core depends on:
+- NAutoSuite.Core ✅
+- NAutoSuite.Hardware.Abstractions ✅
+
+---
+
+## 🚀 Cách Sử Dụng
+
+### Scenario 1: Chạy Backend độc lập (Test logic)
+```bash
+cd PickAndPlace.Backend
+dotnet run
+```
+→ Máy sẽ chạy AUTO sequence và log ra console
+
+### Scenario 2: Chạy Frontend độc lập (Test UI)
+```bash
+cd PickAndPlace.Frontend
+dotnet run
+```
+→ Giao diện WPF hiển thị, điều khiển máy qua UI
+
+### Scenario 3: Chạy cả 2 (Production)
+1. Chạy Backend trên máy điều khiển (có phần cứng)
+2. Chạy Frontend trên máy khác (HMI, laptop)
+3. Frontend kết nối Backend qua network (nếu cần)
+
+---
+
+## ✅ Build Status
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ #1 │ [Running] │ [No Alarm]  Pick & Place  [LOGO]  [X] │
-│────────────────────────────────────────────────────────────│
-│                                                             │
-│                   [AUTO VIEW CONTENT]                       │
-│                                                             │
-│────────────────────────────────────────────────────────────│
-│  [▶ Auto]  [🎮 Manual]  [⚙ Setting]  [📊 Data]  [📝 Log]  │
-└─────────────────────────────────────────────────────────────┘
+✅ Machine.PickAndPlace.Core     - Build succeeded
+✅ PickAndPlace.Backend           - Build succeeded
+✅ PickAndPlace.Frontend          - Build succeeded
 ```
 
-## Next Steps
+---
 
-1. Fix các lỗi compile ở trên
-2. Build & run
-3. Test navigation giữa các tabs
-4. Customize theo nhu cầu project
-5. Thêm hardware thật khi ready
+## 📝 Lưu Ý
+
+1. **Backend và Frontend ĐỘC LẬP**
+   - Mỗi chương trình có thể build/run riêng
+   - Không phụ thuộc lẫn nhau
+
+2. **Core là thư viện dùng chung**
+   - Cả Backend và Frontend đều reference Core
+   - Logic máy nằm trong Core
+
+3. **Simulator**
+   - Backend dùng SimulatorAxis, SimulatorOutput
+   - Frontend cũng dùng Simulator (nếu chạy độc lập)
+   - Thay Simulator bằng hardware thật khi deploy
+
+4. **Logs**
+   - Backend: `PickAndPlace.Backend/logs/`
+   - Frontend: `PickAndPlace.Frontend/logs/`
+
+---
+
+## 🎯 Kết Luận
+
+- **Backend**: Xử lý logic, chạy AUTO, manual control
+- **Frontend**: Giao diện WPF, điều khiển và giám sát
+- **Core**: Logic dùng chung
+
+**Đúng theo yêu cầu: 2 chương trình độc lập trong 1 folder dự án!**

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Machine.PickAndPlace.Machines;
+using Machine.PickAndPlace.Core;
 using Machine.PickAndPlace.ViewModels;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;

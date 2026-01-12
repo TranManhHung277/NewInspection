@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Machine;
-using Machine.PickAndPlace.Machines;
+using Machine.PickAndPlace.Core;
 
 namespace Machine.PickAndPlace.ViewModels;
 

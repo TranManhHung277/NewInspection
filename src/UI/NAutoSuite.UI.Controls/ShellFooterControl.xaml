@@ -4,64 +4,64 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="70" d:DesignWidth="1920">
+             d:DesignHeight="60" d:DesignWidth="1920">
     <Border Background="#2D2D30" BorderBrush="#3E3E42" BorderThickness="0,1,0,0">
-        <UniformGrid Rows="1" Columns="5" Height="70">
+        <UniformGrid Rows="1" Columns="5" Height="60">
             <!-- Auto Tab -->
-            <Border x:Name="AutoTab" Background="#252526" BorderBrush="#3E3E42"
-                    BorderThickness="0,0,1,0" Cursor="Hand"
+            <Border x:Name="AutoTab" Background="#1E1E1E" BorderBrush="#3E3E42"
+                    BorderThickness="0,0,1,0" Cursor="Hand" Height="60"
                     MouseLeftButtonDown="Tab_Click" Tag="Auto">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="▶" FontSize="24" Foreground="#2196F3"
+                    <TextBlock Text="▶" FontSize="20" Foreground="#2196F3"
                                HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                    <TextBlock Text="Auto" FontSize="14" Foreground="White"
+                    <TextBlock Text="Auto" FontSize="13" Foreground="White" FontWeight="SemiBold"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
             <!-- Manual Tab -->
             <Border x:Name="ManualTab" Background="Transparent" BorderBrush="#3E3E42"
-                    BorderThickness="0,0,1,0" Cursor="Hand"
+                    BorderThickness="0,0,1,0" Cursor="Hand" Height="60"
                     MouseLeftButtonDown="Tab_Click" Tag="Manual">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="🎮" FontSize="24" Foreground="#B0B0B0"
+                    <TextBlock Text="🎮" FontSize="20" Foreground="#B0B0B0"
                                HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                    <TextBlock Text="Manual" FontSize="14" Foreground="#B0B0B0"
+                    <TextBlock Text="Manual" FontSize="13" Foreground="#B0B0B0"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
             <!-- Setting Tab -->
             <Border x:Name="SettingTab" Background="Transparent" BorderBrush="#3E3E42"
-                    BorderThickness="0,0,1,0" Cursor="Hand"
+                    BorderThickness="0,0,1,0" Cursor="Hand" Height="60"
                     MouseLeftButtonDown="Tab_Click" Tag="Setting">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="⚙" FontSize="24" Foreground="#B0B0B0"
+                    <TextBlock Text="⚙" FontSize="20" Foreground="#B0B0B0"
                                HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                    <TextBlock Text="Setting" FontSize="14" Foreground="#B0B0B0"
+                    <TextBlock Text="Setting" FontSize="13" Foreground="#B0B0B0"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
             <!-- Data Tab -->
             <Border x:Name="DataTab" Background="Transparent" BorderBrush="#3E3E42"
-                    BorderThickness="0,0,1,0" Cursor="Hand"
+                    BorderThickness="0,0,1,0" Cursor="Hand" Height="60"
                     MouseLeftButtonDown="Tab_Click" Tag="Data">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="📊" FontSize="24" Foreground="#B0B0B0"
+                    <TextBlock Text="📊" FontSize="20" Foreground="#B0B0B0"
                                HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                    <TextBlock Text="Data" FontSize="14" Foreground="#B0B0B0"
+                    <TextBlock Text="Data" FontSize="13" Foreground="#B0B0B0"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
             <!-- Log Tab -->
-            <Border x:Name="LogTab" Background="Transparent" Cursor="Hand"
+            <Border x:Name="LogTab" Background="Transparent" Cursor="Hand" Height="60"
                     MouseLeftButtonDown="Tab_Click" Tag="Log">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="📝" FontSize="24" Foreground="#B0B0B0"
+                    <TextBlock Text="📝" FontSize="20" Foreground="#B0B0B0"
                                HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                    <TextBlock Text="Log" FontSize="14" Foreground="#B0B0B0"
+                    <TextBlock Text="Log" FontSize="13" Foreground="#B0B0B0"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
