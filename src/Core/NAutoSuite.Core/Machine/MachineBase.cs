@@ -2,18 +2,28 @@ using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Interlock;
+using NAutoSuite.Core.IO;
 using Serilog;
 using Stateless;
 
 namespace NAutoSuite.Core.Machine;
 
 /// <summary>
-/// Base class for all machines with integrated alarm and interlock management
+/// Base class for all machines with integrated:
+/// - Alarm and interlock management
+/// - Automatic IO scan cycle (EMG, Start, Stop, Reset, Tower Lights)
+/// - Background task manager
+/// - State machine
+///
+/// NEW PROJECTS ONLY NEED TO:
+/// 1. Inherit from MachineBase
+/// 2. Override OnRunningAsync() to write AUTO logic
+/// 3. Done! All common IO, buttons, lights are handled automatically
 /// </summary>
 public abstract class MachineBase : IMachine
 {
     private readonly StateMachine<MachineState, MachineTrigger> _stateMachine;
-    private readonly ILogger _logger;
+    protected readonly ILogger _logger;
 
     public string Id { get; }
     public string Name { get; }
@@ -29,6 +39,21 @@ public abstract class MachineBase : IMachine
     /// Interlock manager for checking start conditions
     /// </summary>
     protected readonly InterlockManager InterlockManager;
+
+    /// <summary>
+    /// Background task manager - runs multiple tasks in parallel
+    /// </summary>
+    private BackgroundTaskManager? _backgroundTaskManager;
+
+    /// <summary>
+    /// Common IO handler - automatically handles EMG/Start/Stop/Reset/Tower Lights
+    /// </summary>
+    private CommonIOHandler? _commonIOHandler;
+
+    /// <summary>
+    /// Main loop cancellation token source
+    /// </summary>
+    private CancellationTokenSource? _mainLoopCts;
 
     /// <summary>
     /// Whether machine has any active alarms
@@ -121,6 +146,10 @@ public abstract class MachineBase : IMachine
         try
         {
             await _stateMachine.FireAsync(MachineTrigger.Initialize);
+
+            // Start the main loop (IO scan cycle)
+            StartMainLoop();
+
             await _stateMachine.FireAsync(MachineTrigger.Complete);
             return Result.Success("Machine initialized successfully");
         }
@@ -129,6 +158,72 @@ public abstract class MachineBase : IMachine
             _logger.Error(ex, "Failed to initialize machine {Name}", Name);
             return Result.Failure("Initialization failed", ex);
         }
+    }
+
+    /// <summary>
+    /// Start the main loop - automatically scans IO and handles buttons/lights
+    /// Called automatically in InitializeAsync()
+    /// </summary>
+    private void StartMainLoop()
+    {
+        if (_mainLoopCts != null)
+        {
+            _logger.Warning("Main loop already running");
+            return;
+        }
+
+        // Get IO Map from derived class
+        var ioMap = GetIOMap();
+        if (ioMap == null)
+        {
+            _logger.Warning("No IO Map provided - Main loop will not handle common IO");
+            return;
+        }
+
+        // Setup CommonIOHandler
+        _commonIOHandler = new CommonIOHandler(
+            machine: this,
+            ioMap: ioMap,
+            readInputFunc: OnReadInputAsync,
+            writeOutputFunc: OnWriteOutputAsync,
+            logger: _logger
+        );
+
+        // Setup BackgroundTaskManager
+        _backgroundTaskManager = new BackgroundTaskManager(_logger);
+
+        // Register CommonIOScan task (100ms cycle)
+        _backgroundTaskManager.RegisterTask("CommonIOScan", async ct =>
+        {
+            await _commonIOHandler!.ScanAsync(ct);
+        }, intervalMs: 100);
+
+        // Allow derived classes to register additional background tasks
+        OnRegisterBackgroundTasks(_backgroundTaskManager);
+
+        // Start all background tasks
+        _mainLoopCts = new CancellationTokenSource();
+        _backgroundTaskManager.StartAll();
+
+        _logger.Information("Main loop started - IO scan cycle active");
+    }
+
+    /// <summary>
+    /// Stop the main loop
+    /// Called automatically in Dispose
+    /// </summary>
+    private void StopMainLoop()
+    {
+        if (_mainLoopCts == null) return;
+
+        _logger.Information("Stopping main loop...");
+
+        _backgroundTaskManager?.StopAll();
+        _mainLoopCts?.Cancel();
+        _mainLoopCts?.Dispose();
+        _mainLoopCts = null;
+
+        _logger.Information("Main loop stopped");
     }
 
     public virtual async Task<Result> StartAsync(CancellationToken cancellationToken = default)
@@ -359,4 +454,66 @@ public abstract class MachineBase : IMachine
     {
         _logger.Information("Alarm cleared: {AlarmCode}", alarm.Code);
     }
+
+    #region Template Methods for Derived Classes
+
+    /// <summary>
+    /// Override this to provide IO Map for automatic IO scanning
+    /// Return null if you don't want automatic IO handling
+    /// </summary>
+    protected virtual IOMap? GetIOMap() => null;
+
+    /// <summary>
+    /// Override this to handle reading inputs from PLC/hardware
+    /// Called by CommonIOHandler for reading buttons and sensors
+    /// </summary>
+    protected virtual Task<bool> OnReadInputAsync(string address, CancellationToken ct) => Task.FromResult(false);
+
+    /// <summary>
+    /// Override this to handle writing outputs to PLC/hardware
+    /// Called by CommonIOHandler for controlling tower lights, buzzer, etc.
+    /// </summary>
+    protected virtual Task OnWriteOutputAsync(string address, bool value, CancellationToken ct) => Task.CompletedTask;
+
+    /// <summary>
+    /// Override this to register additional background tasks
+    /// Example: Feeder monitor, vision processing, data logging
+    /// </summary>
+    protected virtual void OnRegisterBackgroundTasks(BackgroundTaskManager taskManager)
+    {
+        // Derived classes can register custom background tasks here
+    }
+
+    /// <summary>
+    /// Override this to perform custom idle operations every scan cycle
+    /// Called when machine is in Idle state
+    /// </summary>
+    protected virtual Task OnIdleAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    #endregion
+
+    #region Cleanup
+
+    /// <summary>
+    /// Dispose machine resources
+    /// </summary>
+    public virtual async ValueTask DisposeAsync()
+    {
+        _logger.Information("Disposing machine {Name}...", Name);
+
+        // Stop main loop
+        StopMainLoop();
+
+        // Cleanup alarm manager
+        AlarmManager.AlarmRaised -= OnAlarmRaised;
+        AlarmManager.AlarmCleared -= OnAlarmCleared;
+
+        _logger.Information("Machine {Name} disposed", Name);
+        await Task.CompletedTask;
+    }
+
+    #endregion
 }

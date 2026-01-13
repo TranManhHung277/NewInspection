@@ -6,7 +6,7 @@ namespace NAutoSuite.Core.Abstractions;
 /// <summary>
 /// Base machine interface
 /// </summary>
-public interface IMachine
+public interface IMachine : IAsyncDisposable
 {
     /// <summary>
     /// Machine identifier

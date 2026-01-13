@@ -22,14 +22,8 @@ public class PickAndPlaceMachine : MachineBase
     private readonly PickAndPlaceData _data;
     private readonly IPlc? _plc;
 
-    // Common IO Handler - Tự động xử lý EMG/Start/Stop/Reset/Tower Lights
-    private CommonIOHandler? _commonIOHandler;
-
-    // Background Task Manager - Chạy nhiều tasks song song
-    private BackgroundTaskManager? _backgroundTaskManager;
-
     // Sensor Waiter - Chờ sensor không block
-    private SensorWaiter? _sensorWaiter;
+    private readonly SensorWaiter _sensorWaiter;
 
     /// <summary>
     /// Manual controller for manual mode operations
@@ -70,53 +64,27 @@ public class PickAndPlaceMachine : MachineBase
         _data = new PickAndPlaceData();
 
         // Initialize manual controller
-        Manual = new ManualController(_axisX, _axisY, _axisZ, _vacuum, Log.Logger);
+        Manual = new ManualController(_axisX, _axisY, _axisZ, _vacuum, _logger);
+
+        // Initialize Sensor Waiter
+        _sensorWaiter = new SensorWaiter(_logger);
 
         // Setup machine-specific interlocks
         SetupMachineInterlocks();
-
-        // Setup new concurrent task system
-        SetupConcurrentTasks();
     }
 
-    /// <summary>
-    /// Setup hệ thống Concurrent Tasks (CommonIOHandler + BackgroundTaskManager + SensorWaiter)
-    /// Thay thế cho scan cycle timer cũ
-    /// </summary>
-    private void SetupConcurrentTasks()
-    {
-        // 1. Setup Common IO Handler - TỰ ĐỘNG xử lý EMG/Start/Stop/Reset/Tower Lights
-        _commonIOHandler = new CommonIOHandler(
-            machine: this,
-            ioMap: _ioMap,
-            readInputFunc: ReadInputAsync,
-            writeOutputFunc: WriteOutputAsync,
-            logger: Log.Logger
-        );
-
-        // 2. Setup Sensor Waiter - Chờ sensor không block
-        _sensorWaiter = new SensorWaiter(Log.Logger);
-
-        // 3. Setup Background Task Manager
-        _backgroundTaskManager = new BackgroundTaskManager(Log.Logger);
-
-        // Task 1: Scan Cycle - Xử lý TỰ ĐỘNG tất cả common IO (100ms)
-        _backgroundTaskManager.RegisterTask("CommonIOScan", async ct =>
-        {
-            await _commonIOHandler!.ScanAsync(ct);
-        }, intervalMs: 100);
-
-        // Task 2: Feeder Monitor - Demo background task (Optional)
-        // Uncomment để bật feeder monitor
-        // _backgroundTaskManager.RegisterTask("FeederMonitor", FeederMonitorAsync, intervalMs: 50);
-
-        Log.Logger.Information("Concurrent task system initialized");
-    }
+    #region MachineBase Overrides - REQUIRED
 
     /// <summary>
-    /// Helper: Đọc input từ PLC (dùng cho CommonIOHandler)
+    /// Provide IO Map for automatic IO scanning by MachineBase
     /// </summary>
-    private async Task<bool> ReadInputAsync(string address, CancellationToken ct)
+    protected override NAutoSuite.Core.IO.IOMap? GetIOMap() => _ioMap;
+
+    /// <summary>
+    /// Handle reading inputs from PLC
+    /// Called automatically by MachineBase's CommonIOHandler
+    /// </summary>
+    protected override async Task<bool> OnReadInputAsync(string address, CancellationToken ct)
     {
         try
         {
@@ -126,15 +94,16 @@ public class PickAndPlaceMachine : MachineBase
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Failed to read input {Address}", address);
+            _logger.Error(ex, "Failed to read input {Address}", address);
             return false;
         }
     }
 
     /// <summary>
-    /// Helper: Ghi output ra PLC (dùng cho CommonIOHandler)
+    /// Handle writing outputs to PLC
+    /// Called automatically by MachineBase's CommonIOHandler
     /// </summary>
-    private async Task WriteOutputAsync(string address, bool value, CancellationToken ct)
+    protected override async Task OnWriteOutputAsync(string address, bool value, CancellationToken ct)
     {
         try
         {
@@ -143,30 +112,26 @@ public class PickAndPlaceMachine : MachineBase
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Failed to write output {Address}", address);
+            _logger.Error(ex, "Failed to write output {Address}", address);
         }
     }
 
     /// <summary>
-    /// Demo: Feeder Monitor Task - Chạy song song với AUTO sequence
-    /// Task này theo dõi sensor và gạt linh kiện vào vị trí
+    /// Register additional background tasks (optional)
+    /// Example: Feeder monitor, vision processing, etc.
     /// </summary>
-    private async Task FeederMonitorAsync(CancellationToken ct)
+    protected override void OnRegisterBackgroundTasks(BackgroundTaskManager taskManager)
     {
-        // Demo: Kiểm tra sensor phát hiện linh kiện
-        // bool partDetected = await ReadInputAsync(_ioMap.MachineInputs.PartSensorAtPick, ct);
-
-        // if (partDetected)
-        // {
-        //     Log.Logger.Information("Part detected at feeder - Pushing into position");
-        //     // Gạt linh kiện vào vị trí
-        //     await pushCylinder.ExtendAsync();
-        //     await Task.Delay(500, ct);
-        //     await pushCylinder.RetractAsync();
-        // }
-
-        await Task.CompletedTask;
+        // Example: Register feeder monitor task that runs every 50ms
+        // taskManager.RegisterTask("FeederMonitor", async ct => {
+        //     bool partDetected = await OnReadInputAsync(_ioMap.MachineInputs.PartSensorAtPick, ct);
+        //     if (partDetected) {
+        //         // Handle part detection
+        //     }
+        // }, intervalMs: 50);
     }
+
+    #endregion
 
     private void SetupMachineInterlocks()
     {
@@ -197,10 +162,7 @@ public class PickAndPlaceMachine : MachineBase
     {
         await base.OnInitializingAsync();
 
-        Log.Logger.Information("Initializing Pick and Place Machine...");
-
-        // Start all background tasks (Scan Cycle + Feeder Monitor)
-        _backgroundTaskManager?.StartAll();
+        _logger.Information("Initializing Pick and Place Machine...");
 
         try
         {
@@ -255,11 +217,11 @@ public class PickAndPlaceMachine : MachineBase
                 }
             }
 
-            Log.Logger.Information("Hardware connected successfully");
+            _logger.Information("Hardware connected successfully");
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Hardware initialization failed");
+            _logger.Error(ex, "Hardware initialization failed");
             throw;
         }
     }
@@ -268,7 +230,7 @@ public class PickAndPlaceMachine : MachineBase
     {
         await base.OnRunningAsync();
 
-        Log.Logger.Information("Starting Pick and Place cycle {CycleCount}", Context.CycleCount + 1);
+        _logger.Information("Starting Pick and Place cycle {CycleCount}", Context.CycleCount + 1);
 
         try
         {
@@ -276,11 +238,11 @@ public class PickAndPlaceMachine : MachineBase
             await PickSequenceAsync();
             await PlaceSequenceAsync();
 
-            Log.Logger.Information("Cycle {CycleCount} completed successfully", Context.CycleCount + 1);
+            _logger.Information("Cycle {CycleCount} completed successfully", Context.CycleCount + 1);
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Cycle {CycleCount} failed", Context.CycleCount + 1);
+            _logger.Error(ex, "Cycle {CycleCount} failed", Context.CycleCount + 1);
             RaiseAlarm(2001, $"Cycle failed: {ex.Message}", AlarmSeverity.Critical);
             throw;
         }
@@ -288,7 +250,7 @@ public class PickAndPlaceMachine : MachineBase
 
     private async Task PickSequenceAsync()
     {
-        Log.Logger.Information("Pick sequence started");
+        _logger.Information("Pick sequence started");
 
         try
         {
@@ -371,18 +333,18 @@ public class PickAndPlaceMachine : MachineBase
             // ✅ DEMO: Chờ Z lên - dùng Task.Delay (không block scan cycle)
             await Task.Delay(300);
 
-            Log.Logger.Information("Pick sequence completed");
+            _logger.Information("Pick sequence completed");
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Pick sequence failed");
+            _logger.Error(ex, "Pick sequence failed");
             throw;
         }
     }
 
     private async Task PlaceSequenceAsync()
     {
-        Log.Logger.Information("Place sequence started");
+        _logger.Information("Place sequence started");
 
         try
         {
@@ -463,18 +425,18 @@ public class PickAndPlaceMachine : MachineBase
                 }
             }
 
-            Log.Logger.Information("Place sequence completed");
+            _logger.Information("Place sequence completed");
         }
         catch (Exception ex)
         {
-            Log.Logger.Error(ex, "Place sequence failed");
+            _logger.Error(ex, "Place sequence failed");
             throw;
         }
     }
 
     public async Task<Result> HomeAllAxesAsync()
     {
-        Log.Logger.Information("Homing all axes...");
+        _logger.Information("Homing all axes...");
 
         if (_axisX != null && !_axisX.IsHomed)
         {
@@ -506,7 +468,7 @@ public class PickAndPlaceMachine : MachineBase
             }
         }
 
-        Log.Logger.Information("All axes homed successfully");
+        _logger.Information("All axes homed successfully");
         return Result.Success("All axes homed");
     }
 }
