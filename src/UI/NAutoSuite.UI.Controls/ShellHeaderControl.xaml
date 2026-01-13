@@ -87,6 +87,7 @@
             <StackPanel Grid.Column="4"
             VerticalAlignment="Center"
             HorizontalAlignment="Right"
+                        Width="500"
             Margin="25,0,25,0">
                 <!-- Status -->
                 <StackPanel Orientation="Horizontal"
@@ -102,13 +103,12 @@
 
                 <!-- Time & Date -->
                 <StackPanel Orientation="Horizontal" 
-                            HorizontalAlignment="Left">
+                            HorizontalAlignment="Right">
                     <TextBlock x:Name="CurrentTime"
                    Text="00:00:00 12/12/2025"
                    FontSize="16"
                    FontWeight="SemiBold"
-                   Foreground="#8B949E"
-                   VerticalAlignment="Center"/>
+                   Foreground="#8B949E"/>
                 </StackPanel>
             </StackPanel>
 

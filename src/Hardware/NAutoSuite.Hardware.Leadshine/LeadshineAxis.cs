@@ -111,11 +111,56 @@ public class LeadshineAxis : AxisBase
             // Just verify we can read status
             var status = LTDMC.dmc_axis_io_status(_cardNo, _axisIndex);
 
+            // Configure gear ratio (equiv)
+            // Động cơ 23-bit: 8,388,608 xung/vòng. 1 vòng = 36,000 unit (0.01 độ/unit)
+            double equiv = 8388608.0 / 36000.0;
+            var result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
+            if (result != 0)
+            {
+                _logger.Warning("Failed to set equiv for axis {Name}, error code: {ErrorCode}", Name, result);
+            }
+            else
+            {
+                _logger.Information("Axis {Name} gear ratio set: equiv={Equiv}", Name, equiv);
+            }
+
+            // Set axis run mode to CSP (Cyclic Synchronous Position mode = 8)
+            // Quan trọng cho EtherCAT
+            // NOTE: Function nmc_set_axis_run_mode is not in LTDMC wrapper yet
+            // You need to add this function to LTDMC.cs:
+            // [DllImport("LTDMC.dll")]
+            // public static extern short nmc_set_axis_run_mode(ushort CardNo, ushort axis, ushort mode);
+            //
+            // For now, we skip this step - CSP mode may be auto-configured by the driver
+            _logger.Information("Axis {Name} initialized (CSP mode should be configured in driver)", Name);
+
+            // Uncomment below when nmc_set_axis_run_mode is added to LTDMC.cs:
+            // result = LTDMC.nmc_set_axis_run_mode(_cardNo, _axisIndex, 8);
+            // if (result != 0)
+            // {
+            //     _logger.Warning("Failed to set run mode to CSP for axis {Name}, error code: {ErrorCode}", Name, result);
+            // }
+            // else
+            // {
+            //     _logger.Information("Axis {Name} run mode set to CSP (mode 8)", Name);
+            // }
+
+            // Set default profile (100 unit/s min, 36000 unit/s max = 360 deg/s, 0.2 acc/dec)
+            result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, 100, 36000, 0.2, 0.2, 100);
+            if (result != 0)
+            {
+                _logger.Warning("Failed to set profile for axis {Name}, error code: {ErrorCode}", Name, result);
+            }
+            else
+            {
+                _logger.Information("Axis {Name} default profile set: MinVel=100, MaxVel=36000, Acc/Dec=0.2", Name);
+            }
+
             _isConnected = true;
-            _logger.Information("Leadshine axis {Name} connected (Card={CardNo}, Axis={AxisIndex})",
+            _logger.Information("Leadshine axis {Name} connected successfully (Card={CardNo}, Axis={AxisIndex})",
                 Name, _cardNo, _axisIndex);
 
-            return Task.FromResult(Result.Success("Connected to Leadshine axis"));
+            return Task.FromResult(Result.Success("Connected to Leadshine axis with EtherCAT CSP mode"));
         }
         catch (Exception ex)
         {

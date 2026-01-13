@@ -1,9 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Machine.PickAndPlace.ViewModels;
+using PickAndPlace.Frontend.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
-using NAutoSuite.Hardware.Simulator;
+using NAutoSuite.Hardware.Leadshine;
 using Serilog;
 using System.Windows;
 
@@ -28,14 +29,34 @@ public partial class App : Application
                 // Register Core Services
                 services.AddSingleton<TimeService>();
 
-                // Register Hardware (Simulator) - for UI display only
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisX", Log.Logger));
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisY", Log.Logger));
-                services.AddSingleton<IAxis>(sp => new SimulatorAxis("PAP001", "AxisZ", Log.Logger));
-                services.AddSingleton<IOutput>(sp => new SimulatorOutput("PAP001", "Vacuum", Log.Logger));
+                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT) =====
 
-                // NOTE: Machine logic is in Backend project
-                // Frontend is UI only
+                // Register Leadshine Master (EtherCAT Card)
+                // Note: Using local connection (no IP address) - dmc_board_init()
+                services.AddSingleton<LeadshineMaster>(sp =>
+                    new LeadshineMaster(
+                        cardNo: 0,                      // Card number (0, 1, 2...)
+                        ipAddress: null,                // null = use dmc_board_init() for local connection
+                        logger: Log.Logger
+                    )
+                );
+
+                // Register Real Axis (Only 1 axis for this demo)
+                services.AddSingleton<IAxis>(sp =>
+                {
+                    var master = sp.GetRequiredService<LeadshineMaster>();
+                    return new LeadshineAxis(
+                        cardNo: 0,
+                        axisIndex: 0,           // First axis (X)
+                        id: "PAP001_X",
+                        name: "AxisX",
+                        master: master,
+                        logger: Log.Logger
+                    );
+                });
+
+                // Register PickAndPlace Machine with new logic
+                services.AddSingleton<PickAndPlaceMachineFrontend>();
 
                 // Register ViewModels
                 services.AddSingleton<MainViewModel>();
@@ -51,7 +72,7 @@ public partial class App : Application
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
-        Log.Information("Pick and Place Machine Application started");
+        Log.Information("Pick and Place Machine Application started (EtherCAT Mode)");
     }
 
     protected override async void OnExit(ExitEventArgs e)

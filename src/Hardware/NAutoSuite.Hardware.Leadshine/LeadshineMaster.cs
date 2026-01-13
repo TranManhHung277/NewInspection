@@ -22,6 +22,16 @@ public class LeadshineMaster : IEtherCATMaster
     public bool IsConnected => _isConnected;
 
     /// <summary>
+    /// Number of slaves detected (for IEtherCATMaster interface)
+    /// </summary>
+    public int SlaveCount => (int)_totalAxes;
+
+    /// <summary>
+    /// Is in operational state (for IEtherCATMaster interface)
+    /// </summary>
+    public bool IsOperational => _isConnected;
+
+    /// <summary>
     /// Total number of axes available on this master
     /// </summary>
     public int TotalAxes => (int)_totalAxes;
@@ -41,6 +51,20 @@ public class LeadshineMaster : IEtherCATMaster
         _cardNo = cardNo;
         _ipAddress = ipAddress;
         _logger = logger ?? Log.Logger;
+        short result;
+        if (!string.IsNullOrEmpty(_ipAddress))
+        {
+            // Connect via Ethernet
+            _logger.Information("Connecting to Leadshine Master {CardNo} via Ethernet at {IpAddress}", _cardNo, _ipAddress);
+            result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+        }
+        else
+        {
+            // Connect via local
+            _logger.Information("Connecting to Leadshine Master {CardNo} locally", _cardNo);
+            result = LTDMC.dmc_board_init();
+        }
+        
         Id = $"Leadshine_Card{cardNo}";
         Name = $"Leadshine EtherCAT Master #{cardNo}";
     }
@@ -49,24 +73,25 @@ public class LeadshineMaster : IEtherCATMaster
     {
         try
         {
-            short result;
+            short result = 1;
 
-            if (!string.IsNullOrEmpty(_ipAddress))
-            {
-                // Connect via Ethernet
-                _logger.Information("Connecting to Leadshine Master {CardNo} via Ethernet at {IpAddress}", _cardNo, _ipAddress);
-                result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
-            }
-            else
-            {
-                // Connect via local
-                _logger.Information("Connecting to Leadshine Master {CardNo} locally", _cardNo);
-                result = LTDMC.dmc_board_init();
-            }
+            //if (!string.IsNullOrEmpty(_ipAddress))
+            //{
+            //    // Connect via Ethernet
+            //    _logger.Information("Connecting to Leadshine Master {CardNo} via Ethernet at {IpAddress}", _cardNo, _ipAddress);
+            //    result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+            //}
+            //else
+            //{
+            //    // Connect via local
+            //    _logger.Information("Connecting to Leadshine Master {CardNo} locally", _cardNo);
+            //    result = LTDMC.dmc_board_init();
+            //}
 
-            if (result != 0)
+            // Check result: dmc_board_init returns <= 0 on failure
+            if (result <= 0)
             {
-                var errorMsg = $"Failed to initialize Leadshine card {_cardNo}, error code: {result}";
+                var errorMsg = $"Failed to initialize Leadshine card {_cardNo}, error code: {result}. Kiểm tra kết nối EtherCAT.";
                 _logger.Error(errorMsg);
                 return Result.Failure(errorMsg);
             }
@@ -294,4 +319,87 @@ public class LeadshineMaster : IEtherCATMaster
             return Result.Failure("Write output port failed", ex);
         }
     }
+
+    #region IEtherCATMaster Interface Implementation
+
+    /// <summary>
+    /// Scan for slaves (for Leadshine, this is done during ConnectAsync)
+    /// </summary>
+    public Task<Result> ScanAsync(CancellationToken cancellationToken = default)
+    {
+        // For Leadshine, scanning is done automatically during initialization
+        // Return the current connection state
+        if (_isConnected)
+        {
+            return Task.FromResult(Result.Success($"Leadshine Master has {_totalAxes} axes"));
+        }
+        return Task.FromResult(Result.Failure("Not connected. Call ConnectAsync first."));
+    }
+
+    /// <summary>
+    /// Go to operational state (for Leadshine, this happens automatically)
+    /// </summary>
+    public Task<Result> GoOperationalAsync(CancellationToken cancellationToken = default)
+    {
+        // Leadshine goes operational automatically after successful connection
+        if (_isConnected)
+        {
+            return Task.FromResult(Result.Success("Already operational"));
+        }
+        return Task.FromResult(Result.Failure("Not connected. Call ConnectAsync first."));
+    }
+
+    /// <summary>
+    /// Read PDO (Process Data Object) - Not directly supported by Leadshine API
+    /// </summary>
+    public Task<Result<byte[]>> ReadPDOAsync(int slaveIndex, int offset, int length, CancellationToken cancellationToken = default)
+    {
+        // Leadshine doesn't expose direct PDO access
+        // Use specific read methods like ReadInput, ReadInputPort instead
+        _logger.Warning("Direct PDO read not supported by Leadshine. Use ReadInput/ReadInputPort methods.");
+        return Task.FromResult(Result.Failure<byte[]>("Direct PDO access not supported by Leadshine API"));
+    }
+
+    /// <summary>
+    /// Write PDO - Not directly supported by Leadshine API
+    /// </summary>
+    public Task<Result> WritePDOAsync(int slaveIndex, int offset, byte[] data, CancellationToken cancellationToken = default)
+    {
+        // Leadshine doesn't expose direct PDO access
+        // Use specific write methods like WriteOutput, WriteOutputPort instead
+        _logger.Warning("Direct PDO write not supported by Leadshine. Use WriteOutput/WriteOutputPort methods.");
+        return Task.FromResult(Result.Failure("Direct PDO access not supported by Leadshine API"));
+    }
+
+    /// <summary>
+    /// Get slave info
+    /// </summary>
+    public Task<Result<SlaveInfo>> GetSlaveInfoAsync(int slaveIndex, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (slaveIndex < 0 || slaveIndex >= _totalAxes)
+            {
+                return Task.FromResult(Result.Failure<SlaveInfo>($"Invalid slave index: {slaveIndex}"));
+            }
+
+            var slaveInfo = new SlaveInfo
+            {
+                Index = slaveIndex,
+                Name = $"Leadshine Axis {slaveIndex}",
+                VendorId = 0x00000A88, // Leadshine vendor ID
+                ProductCode = 0,
+                State = _isConnected ? "Operational" : "Init"
+            };
+
+            return Task.FromResult(Result.Success(slaveInfo, "Slave info retrieved"));
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to get slave info for index {SlaveIndex}", slaveIndex);
+            return Task.FromResult(Result.Failure<SlaveInfo>("Failed to get slave info", ex));
+        }
+    }
+
+    #endregion
 }

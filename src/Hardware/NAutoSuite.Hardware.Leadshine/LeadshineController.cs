@@ -34,7 +34,7 @@ public class LeadshineController : IMotionController
         // Create axes
         for (int i = 0; i < axisCount; i++)
         {
-            _axes.Add(new LeadshineAxis($"Axis{i}", $"Axis {i}", _cardId, i, _logger));
+            _axes.Add(new LeadshineAxis((ushort)_cardId, (ushort)i, $"Axis{i}", $"Axis {i}", null, _logger));
         }
     }
 
