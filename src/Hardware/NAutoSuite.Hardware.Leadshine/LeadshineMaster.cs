@@ -46,59 +46,63 @@ public class LeadshineMaster : IEtherCATMaster
     /// </summary>
     public int TotalOutputs => _totalOutputs;
 
+    private bool _boardInitialized = false;
+
     public LeadshineMaster(ushort cardNo, string? ipAddress = null, ILogger? logger = null)
     {
         _cardNo = cardNo;
         _ipAddress = ipAddress;
         _logger = logger ?? Log.Logger;
-        short result;
-        if (!string.IsNullOrEmpty(_ipAddress))
-        {
-            // Connect via Ethernet
-            _logger.Information("Connecting to Leadshine Master {CardNo} via Ethernet at {IpAddress}", _cardNo, _ipAddress);
-            result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
-        }
-        else
-        {
-            // Connect via local
-            _logger.Information("Connecting to Leadshine Master {CardNo} locally", _cardNo);
-            result = LTDMC.dmc_board_init();
-        }
-        
         Id = $"Leadshine_Card{cardNo}";
         Name = $"Leadshine EtherCAT Master #{cardNo}";
+
+        // Do NOT initialize board in constructor
+        // Board initialization will be done in ConnectAsync() when user is ready
+        _logger.Information("LeadshineMaster instance created (Card {CardNo}). Board will be initialized when ConnectAsync is called.", _cardNo);
     }
 
     public async Task<Result> ConnectAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            short result = 1;
-
-            //if (!string.IsNullOrEmpty(_ipAddress))
-            //{
-            //    // Connect via Ethernet
-            //    _logger.Information("Connecting to Leadshine Master {CardNo} via Ethernet at {IpAddress}", _cardNo, _ipAddress);
-            //    result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
-            //}
-            //else
-            //{
-            //    // Connect via local
-            //    _logger.Information("Connecting to Leadshine Master {CardNo} locally", _cardNo);
-            //    result = LTDMC.dmc_board_init();
-            //}
-
-            // Check result: dmc_board_init returns <= 0 on failure
-            if (result <= 0)
+            // Step 1: Initialize board (only once)
+            if (!_boardInitialized)
             {
-                var errorMsg = $"Failed to initialize Leadshine card {_cardNo}, error code: {result}. Kiểm tra kết nối EtherCAT.";
-                _logger.Error(errorMsg);
-                return Result.Failure(errorMsg);
+                _logger.Information("Initializing Leadshine board (Card {CardNo})...", _cardNo);
+
+                short initResult;
+                if (!string.IsNullOrEmpty(_ipAddress))
+                {
+                    // Connect via Ethernet
+                    _logger.Information("Initializing via Ethernet at {IpAddress}", _ipAddress);
+                    initResult = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+                }
+                else
+                {
+                    // Connect via local
+                    _logger.Information("Initializing locally (dmc_board_init)");
+                    initResult = LTDMC.dmc_board_init();
+                }
+
+                // Check initialization result: dmc_board_init returns <= 0 on failure
+                if (initResult <= 0)
+                {
+                    var errorMsg = $"Failed to initialize Leadshine card {_cardNo}, error code: {initResult}. Kiểm tra kết nối EtherCAT.";
+                    _logger.Error(errorMsg);
+                    return Result.Failure(errorMsg);
+                }
+
+                _boardInitialized = true;
+                _logger.Information("Board initialized successfully (result={Result})", initResult);
+            }
+            else
+            {
+                _logger.Information("Board already initialized, skipping init");
             }
 
-            // Get card information
+            // Step 2: Get card information
             _totalAxes = 0;
-            result = LTDMC.dmc_get_total_axes(_cardNo, ref _totalAxes);
+            var result = LTDMC.dmc_get_total_axes(_cardNo, ref _totalAxes);
             if (result != 0)
             {
                 _logger.Warning("Failed to get total axes, error code: {ErrorCode}", result);
@@ -158,9 +162,10 @@ public class LeadshineMaster : IEtherCATMaster
     {
         try
         {
-            _logger.Information("Resetting Leadshine Master {CardNo}", _cardNo);
-            var result = LTDMC.dmc_board_reset();
+            _logger.Warning("Resetting Leadshine Master {CardNo} - This will reinitialize the board", _cardNo);
 
+            // Reset the board
+            var result = LTDMC.dmc_board_reset();
             if (result != 0)
             {
                 var errorMsg = $"Failed to reset Leadshine card {_cardNo}, error code: {result}";
@@ -168,8 +173,31 @@ public class LeadshineMaster : IEtherCATMaster
                 return Result.Failure(errorMsg);
             }
 
-            _logger.Information("Leadshine Master {CardNo} reset successfully", _cardNo);
-            return Result.Success("Reset complete");
+            _isConnected = false;
+            await Task.Delay(500, cancellationToken); // Wait for board to reset
+
+            // Reinitialize board after reset
+            _logger.Information("Reinitializing board after reset...");
+            if (!string.IsNullOrEmpty(_ipAddress))
+            {
+                result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+            }
+            else
+            {
+                result = LTDMC.dmc_board_init();
+            }
+
+            if (result <= 0)
+            {
+                var errorMsg = $"Failed to reinitialize board after reset, error code: {result}";
+                _logger.Error(errorMsg);
+                return Result.Failure(errorMsg);
+            }
+
+            _logger.Information("Leadshine Master {CardNo} reset and reinitialized successfully", _cardNo);
+
+            // Reconnect to get card info
+            return await ConnectAsync(cancellationToken);
         }
         catch (Exception ex)
         {

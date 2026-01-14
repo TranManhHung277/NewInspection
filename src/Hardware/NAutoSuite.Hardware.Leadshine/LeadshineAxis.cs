@@ -111,10 +111,21 @@ public class LeadshineAxis : AxisBase
             // Just verify we can read status
             var status = LTDMC.dmc_axis_io_status(_cardNo, _axisIndex);
 
+            // Enable axis immediately when connecting
+            var result = LTDMC.nmc_set_axis_enable(_cardNo, _axisIndex);
+            if (result != 0)
+            {
+                _logger.Warning("Failed to enable axis {Name}, error code: {ErrorCode}", Name, result);
+            }
+            else
+            {
+                _logger.Information("Axis {Name} enabled successfully", Name);
+            }
+
             // Configure gear ratio (equiv)
             // Động cơ 23-bit: 8,388,608 xung/vòng. 1 vòng = 36,000 unit (0.01 độ/unit)
             double equiv = 8388608.0 / 36000.0;
-            var result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
+            result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
             if (result != 0)
             {
                 _logger.Warning("Failed to set equiv for axis {Name}, error code: {ErrorCode}", Name, result);

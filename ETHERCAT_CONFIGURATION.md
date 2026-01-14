@@ -10,21 +10,79 @@ Framework đã được cập nhật để hỗ trợ cấu hình EtherCAT theo 
 
 ## ✅ Các thay đổi đã thực hiện
 
-### 1. LeadshineMaster.cs - Khởi tạo Board
+### 1. LeadshineMaster.cs - Khởi tạo Board (QUAN TRỌNG!)
 
 **File:** `src/Hardware/NAutoSuite.Hardware.Leadshine/LeadshineMaster.cs`
 
-**Thay đổi:**
-- Sửa điều kiện check lỗi từ `result != 0` thành `result <= 0`
-- Phù hợp với behavior của `dmc_board_init()` (return <= 0 = failed)
+**Thay đổi chính:**
+- ✅ **Di chuyển `dmc_board_init()` vào Constructor** - Chỉ gọi 1 lần khi khởi động chương trình
+- ✅ **ConnectAsync()** - Chỉ lấy thông tin card, không init lại board
+- ✅ **ResetAsync()** - Reset board và reinitialize khi card bị lỗi
 
+#### a) Constructor - Board Initialization (1 lần duy nhất)
 ```csharp
-// Check result: dmc_board_init returns <= 0 on failure
-if (result <= 0)
+public LeadshineMaster(ushort cardNo, string? ipAddress = null, ILogger? logger = null)
 {
-    var errorMsg = $"Failed to initialize Leadshine card {_cardNo}, error code: {result}. Kiểm tra kết nối EtherCAT.";
-    _logger.Error(errorMsg);
-    return Result.Failure(errorMsg);
+    _cardNo = cardNo;
+    _ipAddress = ipAddress;
+    _logger = logger ?? Log.Logger;
+
+    // Initialize board ONCE in constructor
+    // This should only be called once when program starts
+    short result;
+    if (!string.IsNullOrEmpty(_ipAddress))
+    {
+        result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+    }
+    else
+    {
+        result = LTDMC.dmc_board_init();
+    }
+
+    // Check initialization result: dmc_board_init returns <= 0 on failure
+    if (result <= 0)
+    {
+        throw new InvalidOperationException($"Failed to initialize card {_cardNo}");
+    }
+}
+```
+
+#### b) ConnectAsync() - Không init lại board
+```csharp
+public async Task<Result> ConnectAsync(CancellationToken ct = default)
+{
+    // Board init is done in constructor (only once)
+    // ConnectAsync just gets card information and sets connected flag
+
+    // Get card information
+    _totalAxes = 0;
+    var result = LTDMC.dmc_get_total_axes(_cardNo, ref _totalAxes);
+    // ... get IO info, version, etc.
+}
+```
+
+#### c) ResetAsync() - Reinitialize sau khi reset
+```csharp
+public async Task<Result> ResetAsync(CancellationToken ct = default)
+{
+    // Reset the board
+    var result = LTDMC.dmc_board_reset();
+
+    // Wait for board to reset
+    await Task.Delay(500, ct);
+
+    // Reinitialize board after reset
+    if (!string.IsNullOrEmpty(_ipAddress))
+    {
+        result = LTDMC.dmc_board_init_eth(_cardNo, _ipAddress);
+    }
+    else
+    {
+        result = LTDMC.dmc_board_init();
+    }
+
+    // Reconnect to get card info
+    return await ConnectAsync(ct);
 }
 ```
 
@@ -36,7 +94,25 @@ if (result <= 0)
 
 **Thêm vào ConnectAsync():**
 
-#### a) Gear Ratio (Equiv)
+#### a) Enable Axis (QUAN TRỌNG!)
+```csharp
+// Enable axis immediately when connecting
+var result = LTDMC.nmc_set_axis_enable(_cardNo, _axisIndex);
+if (result != 0)
+{
+    _logger.Warning("Failed to enable axis {Name}, error code: {ErrorCode}", Name, result);
+}
+else
+{
+    _logger.Information("Axis {Name} enabled successfully", Name);
+}
+```
+
+**Giải thích:**
+- Enable axis ngay khi connect
+- Axis phải được enable trước khi có thể move
+
+#### b) Gear Ratio (Equiv)
 ```csharp
 // Configure gear ratio (equiv)
 // Động cơ 23-bit: 8,388,608 xung/vòng. 1 vòng = 36,000 unit (0.01 độ/unit)
@@ -49,7 +125,7 @@ var result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
 - 1 revolution = 360 degrees = 36,000 units (vì 1 unit = 0.01 độ)
 - Equiv = 8,388,608 / 36,000 = 233.016 pulses/unit
 
-#### b) Motion Profile
+#### c) Motion Profile
 ```csharp
 // Set default profile (100 unit/s min, 36000 unit/s max = 360 deg/s, 0.2 acc/dec)
 result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, 100, 36000, 0.2, 0.2, 100);
@@ -62,7 +138,7 @@ result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, 100, 36000, 0.2, 0.2, 1
 - Deceleration: 0.2 (giảm tốc)
 - Start velocity: 100 unit/s
 
-#### c) CSP Mode (TODO)
+#### d) CSP Mode (TODO)
 ```csharp
 // NOTE: Function nmc_set_axis_run_mode chưa có trong LTDMC wrapper
 // Cần thêm function này vào LTDMC.cs:

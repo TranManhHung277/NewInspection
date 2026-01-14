@@ -26,16 +26,13 @@ public partial class MainWindow : Window
         _manualView = new ManualView { DataContext = _viewModel };
         _settingView = new SettingView { DataContext = _viewModel };
         _dataView = new DataView { DataContext = _viewModel };
-        _logView = new LogView { DataContext = _viewModel };
+        _logView = new LogView();
 
         // Show Auto view by default
         _viewModel.NavigateToView(_autoView);
 
-        // Auto-initialize machine
-        Loaded += async (s, e) =>
-        {
-            await _viewModel.InitializeCommand.ExecuteAsync(null);
-        };
+        // Hardware initialization is done manually via Initialize button
+        // Do NOT auto-initialize on window load
     }
 
     private void FooterControl_TabChanged(object? sender, string tabName)

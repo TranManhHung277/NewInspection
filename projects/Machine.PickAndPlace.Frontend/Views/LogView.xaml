@@ -3,19 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1920">
-    <Grid Margin="20">
-        <StackPanel>
-            <TextBlock Text="System Logs" FontSize="28" FontWeight="Bold"
-                       Foreground="White" Margin="0,0,0,20"/>
-            <Border Style="{StaticResource Card}">
-                <ScrollViewer Height="600" VerticalScrollBarVisibility="Auto">
-                    <TextBlock x:Name="LogTextBlock" Text="System logs will appear here..."
-                               FontFamily="Consolas" FontSize="12"
-                               Foreground="#B0B0B0" TextWrapping="Wrap"/>
-                </ScrollViewer>
-            </Border>
-        </StackPanel>
-    </Grid>
+
+    <!-- Use the reusable LogPanel control -->
+    <controls:LogPanel Title="Lịch sử hoạt động"/>
 </UserControl>

@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Machine.PickAndPlace.ViewModels;
+using Machine.PickAndPlace.Services;
 using PickAndPlace.Frontend.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
 using NAutoSuite.Hardware.Leadshine;
 using Serilog;
+using Serilog.Events;
 using System.Windows;
 
 namespace Machine.PickAndPlace;
@@ -18,8 +20,8 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Initialize logging
-        LogService.Initialize("logs/pickandplace-.log");
+        // Initialize logging with UI sink
+        InitializeLogging("logs/pickandplace-.log");
 
         // Build host with DI
         _host = Host.CreateDefaultBuilder()
@@ -87,5 +89,27 @@ public partial class App : Application
 
         LogService.Close();
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// Initialize Serilog with console, file, and UI sinks
+    /// </summary>
+    private void InitializeLogging(string logPath)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Is(LogEventLevel.Debug) // Show all logs including Debug
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File(
+                logPath,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 30,
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.UISink() // Forward logs to UI
+            .CreateLogger();
+
+        Log.Information("Logging initialized with UI sink");
     }
 }
