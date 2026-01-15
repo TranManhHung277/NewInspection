@@ -7,6 +7,7 @@ namespace NAutoSuite.UI.Controls.Services;
 public class UILogService
 {
     private static readonly Lazy<UILogService> _instance = new(() => new UILogService());
+
     public static UILogService Instance => _instance.Value;
 
     private readonly Queue<(DateTime, string, string, string?)> _cachedLogs = new();
@@ -50,6 +51,8 @@ public class UILogService
     /// </summary>
     public void AddLog(DateTime timestamp, string level, string message, string? exception = null)
     {
+        Action<DateTime, string, string, string?>? handler;
+
         lock (_lock)
         {
             // Cache log for future subscribers
@@ -61,8 +64,11 @@ public class UILogService
                 _cachedLogs.Dequeue();
             }
 
-            // Notify current subscribers
-            _logReceived?.Invoke(timestamp, level, message, exception);
+            // Get handler reference inside lock
+            handler = _logReceived;
         }
+
+        // Notify subscribers OUTSIDE lock to avoid deadlocks
+        handler?.Invoke(timestamp, level, message, exception);
     }
 }

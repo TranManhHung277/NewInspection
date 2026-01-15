@@ -8,5 +8,5 @@
              d:DesignHeight="800" d:DesignWidth="1920">
 
     <!-- Use the reusable LogPanel control -->
-    <controls:LogPanel Title="Lịch sử hoạt động"/>
+    <controls:LogPanel x:Name="logPanel" Title="Lịch sử hoạt động"/>
 </UserControl>

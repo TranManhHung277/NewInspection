@@ -20,45 +20,63 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Initialize logging with UI sink
+        // Initialize logging with UI sink FIRST
         InitializeLogging("logs/pickandplace-.log");
+
+        // Test logs at different levels
+        Log.Debug("App startup - Debug level test");
+        Log.Information("Pick and Place Machine Application started (EtherCAT Mode)");
+        Log.Information("Configuring dependency injection container...");
 
         // Build host with DI
         _host = Host.CreateDefaultBuilder()
-            .UseSerilog()
+            .UseSerilog() // Use the already configured Log.Logger
             .ConfigureServices((context, services) =>
             {
+                Log.Information("Registering services in DI container...");
+
                 // Register Core Services
                 services.AddSingleton<TimeService>();
 
                 // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT) =====
 
+                // Register Serilog ILogger for injection
+                services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
+
                 // Register Leadshine Master (EtherCAT Card)
                 // Note: Using local connection (no IP address) - dmc_board_init()
                 services.AddSingleton<LeadshineMaster>(sp =>
-                    new LeadshineMaster(
+                {
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new LeadshineMaster(
                         cardNo: 0,                      // Card number (0, 1, 2...)
                         ipAddress: null,                // null = use dmc_board_init() for local connection
-                        logger: Log.Logger
-                    )
-                );
+                        logger: logger
+                    );
+                });
 
                 // Register Real Axis (Only 1 axis for this demo)
                 services.AddSingleton<IAxis>(sp =>
                 {
                     var master = sp.GetRequiredService<LeadshineMaster>();
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
                     return new LeadshineAxis(
                         cardNo: 0,
                         axisIndex: 0,           // First axis (X)
                         id: "PAP001_X",
                         name: "AxisX",
                         master: master,
-                        logger: Log.Logger
+                        logger: logger
                     );
                 });
 
                 // Register PickAndPlace Machine with new logic
-                services.AddSingleton<PickAndPlaceMachineFrontend>();
+                services.AddSingleton<PickAndPlaceMachineFrontend>(sp =>
+                {
+                    var axis = sp.GetRequiredService<IAxis>();
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new PickAndPlaceMachineFrontend(axis, logger);
+                });
 
                 // Register ViewModels
                 services.AddSingleton<MainViewModel>();
@@ -68,11 +86,17 @@ public partial class App : Application
             })
             .Build();
 
+        Log.Information("DI container built successfully");
+
         await _host.StartAsync();
+
+        Log.Information("Host started, creating MainWindow...");
 
         // Show main window
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        Log.Information("MainWindow displayed. Application ready. Hardware NOT initialized yet - waiting for user to click Initialize button.");
 
         Log.Information("Pick and Place Machine Application started (EtherCAT Mode)");
     }

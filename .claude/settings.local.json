@@ -11,7 +11,9 @@
       "Bash(rd /s /q bin)",
       "Bash(powershell -Command:*)",
       "Bash(dotnet run:*)",
-      "Bash(tree /F /A \"d:\\\\3. Program\\\\C#\\\\NAutoSuite\\\\projects\")"
+      "Bash(tree /F /A \"d:\\\\3. Program\\\\C#\\\\NAutoSuite\\\\projects\")",
+      "Bash(timeout /t 5)",
+      "Bash(del \"d:\\\\Projects\\\\C#\\\\NAutoSuite\\\\projects\\\\Machine.PickAndPlace.Frontend\\\\Services\\\\LogService.cs\")"
     ]
   }
 }

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
@@ -42,8 +43,7 @@ public partial class LogPanelViewModel : ObservableObject
 
     public LogPanelViewModel()
     {
-        // Subscribe to log service
-        UILogService.Instance.LogReceived += OnLogReceived;
+        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Constructor called. Application.Current: {Application.Current != null}");
 
         // Apply filter whenever any filter property changes
         PropertyChanged += (s, e) =>
@@ -60,12 +60,35 @@ public partial class LogPanelViewModel : ObservableObject
         };
 
         // Add initial test log to verify UI is working
-        AddLog(DateTime.Now, "Information", "LogPanel initialized and ready to receive logs", null);
+        AddLogDirect(DateTime.Now, "Information", "LogPanel initialized and ready to receive logs", null);
+        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Initial log added. AllLogs count: {AllLogs.Count}, FilteredLogs count: {FilteredLogs.Count}");
+
+        // Subscribe to log service AFTER initial log
+        UILogService.Instance.LogReceived += OnLogReceived;
+        System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Subscribed to UILogService.LogReceived");
     }
 
     private void OnLogReceived(DateTime timestamp, string level, string message, string? exception)
     {
+        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] OnLogReceived: [{level}] {message}");
         AddLog(timestamp, level, message, exception);
+    }
+
+    /// <summary>
+    /// Add log directly (used for initial log before dispatcher is ready)
+    /// </summary>
+    private void AddLogDirect(DateTime timestamp, string level, string message, string? exception)
+    {
+        var entry = new LogEntry
+        {
+            Timestamp = timestamp,
+            Level = level,
+            Message = message,
+            Exception = exception
+        };
+
+        AllLogs.Add(entry);
+        FilteredLogs.Add(entry);
     }
 
     /// <summary>
@@ -73,27 +96,99 @@ public partial class LogPanelViewModel : ObservableObject
     /// </summary>
     public void AddLog(DateTime timestamp, string level, string message, string? exception = null)
     {
-        Application.Current?.Dispatcher.Invoke(() =>
+        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] AddLog called: [{level}] {message}");
+
+        // Get the correct UI dispatcher - Application.Current.Dispatcher is the main UI thread
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
         {
-            var entry = new LogEntry
-            {
-                Timestamp = timestamp,
-                Level = level,
-                Message = message,
-                Exception = exception
-            };
+            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] WARNING: Application.Current.Dispatcher is null!");
+            return;
+        }
 
-            AllLogs.Add(entry);
-
-            // Keep only last 1000 entries
-            while (AllLogs.Count > MaxLogEntries)
+        // Check if we're already on UI thread
+        if (dispatcher.CheckAccess())
+        {
+            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Already on UI thread, adding directly");
+            AddLogInternal(timestamp, level, message, exception);
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Dispatching to UI thread");
+            // Use BeginInvoke for async dispatch to avoid deadlocks
+            dispatcher.BeginInvoke(() =>
             {
-                AllLogs.RemoveAt(0);
+                System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Inside dispatcher: [{level}] {message}");
+                AddLogInternal(timestamp, level, message, exception);
+            });
+        }
+    }
+
+    private void AddLogInternal(DateTime timestamp, string level, string message, string? exception)
+    {
+        var entry = new LogEntry
+        {
+            Timestamp = timestamp,
+            Level = level,
+            Message = message,
+            Exception = exception
+        };
+
+        AllLogs.Add(entry);
+        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Added to AllLogs. Count: {AllLogs.Count}");
+
+        // Keep only last 1000 entries
+        while (AllLogs.Count > MaxLogEntries)
+        {
+            AllLogs.RemoveAt(0);
+        }
+
+        // Check if entry matches current filter
+        if (MatchesFilter(entry))
+        {
+            FilteredLogs.Add(entry);
+            System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Added to FilteredLogs. Count: {FilteredLogs.Count}");
+
+            // Also trim filtered logs
+            while (FilteredLogs.Count > MaxLogEntries)
+            {
+                FilteredLogs.RemoveAt(0);
             }
+        }
+    }
 
-            // Apply filter to new entry
-            ApplyFilter();
-        });
+    /// <summary>
+    /// Check if a log entry matches current filter
+    /// </summary>
+    private bool MatchesFilter(LogEntry log)
+    {
+        // Check level filter
+        var matchesLevel = log.Level switch
+        {
+            "Debug" => ShowDebug,
+            "Information" => ShowInformation,
+            "Warning" => ShowWarning,
+            "Error" => ShowError,
+            "Fatal" => ShowFatal,
+            _ => true
+        };
+
+        if (!matchesLevel)
+            return false;
+
+        // Check search text
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var searchLower = SearchText.ToLower();
+            var matchesSearch = log.Message.ToLower().Contains(searchLower) ||
+                               log.Level.ToLower().Contains(searchLower) ||
+                               (log.Exception?.ToLower().Contains(searchLower) ?? false);
+
+            if (!matchesSearch)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
