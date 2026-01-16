@@ -84,31 +84,6 @@
 
             <!-- Action Buttons -->
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button Content="Test Log" Width="100" Height="32" Margin="0,0,10,0"
-                        Click="TestLog_Click"
-                        Background="#4CAF50" Foreground="White"
-                        BorderThickness="0" Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="4" Padding="12,6">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                            VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#66BB6A"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
                 <Button Content="Clear" Width="100" Height="32" Margin="0,0,10,0"
                         Command="{Binding ClearLogsCommand}"
                         Background="#C62828" Foreground="White"
@@ -189,9 +164,10 @@
 
                                     <!-- Level Badge -->
                                     <Border Grid.Column="1" CornerRadius="3" Padding="6,2"
-                                            Margin="0,0,10,0" Background="#555555">
+                                            Margin="0,0,10,0">
                                         <Border.Style>
                                             <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#555555"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Level}" Value="Information">
                                                         <Setter Property="Background" Value="#1976D2"/>

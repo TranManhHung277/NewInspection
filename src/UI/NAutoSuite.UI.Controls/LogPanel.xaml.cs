@@ -9,8 +9,6 @@ namespace NAutoSuite.UI.Controls;
 /// </summary>
 public partial class LogPanel : UserControl
 {
-    private int _testLogCounter = 0;
-
     public static readonly DependencyProperty TitleProperty =
         DependencyProperty.Register(
             nameof(Title),
@@ -35,16 +33,6 @@ public partial class LogPanel : UserControl
     public LogPanel()
     {
         InitializeComponent();
-    }
-
-    private void TestLog_Click(object sender, RoutedEventArgs e)
-    {
-        _testLogCounter++;
-
-        if (DataContext is LogPanelViewModel vm)
-        {
-            vm.AddLog(DateTime.Now, "Information", $"Test log message #{_testLogCounter}");
-        }
     }
 
     /// <summary>

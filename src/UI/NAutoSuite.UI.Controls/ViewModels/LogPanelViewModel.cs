@@ -2,10 +2,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Windows;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using NAutoSuite.UI.Controls.Dialogs;
 using NAutoSuite.UI.Controls.Services;
 
 namespace NAutoSuite.UI.Controls.ViewModels;
@@ -43,8 +43,6 @@ public partial class LogPanelViewModel : ObservableObject
 
     public LogPanelViewModel()
     {
-        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Constructor called. Application.Current: {Application.Current != null}");
-
         // Apply filter whenever any filter property changes
         PropertyChanged += (s, e) =>
         {
@@ -59,18 +57,15 @@ public partial class LogPanelViewModel : ObservableObject
             }
         };
 
-        // Add initial test log to verify UI is working
+        // Add initial log to confirm panel is ready
         AddLogDirect(DateTime.Now, "Information", "LogPanel initialized and ready to receive logs", null);
-        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Initial log added. AllLogs count: {AllLogs.Count}, FilteredLogs count: {FilteredLogs.Count}");
 
-        // Subscribe to log service AFTER initial log
+        // Subscribe to UILogService to receive logs from Serilog
         UILogService.Instance.LogReceived += OnLogReceived;
-        System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Subscribed to UILogService.LogReceived");
     }
 
     private void OnLogReceived(DateTime timestamp, string level, string message, string? exception)
     {
-        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] OnLogReceived: [{level}] {message}");
         AddLog(timestamp, level, message, exception);
     }
 
@@ -96,31 +91,17 @@ public partial class LogPanelViewModel : ObservableObject
     /// </summary>
     public void AddLog(DateTime timestamp, string level, string message, string? exception = null)
     {
-        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] AddLog called: [{level}] {message}");
-
-        // Get the correct UI dispatcher - Application.Current.Dispatcher is the main UI thread
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher == null)
-        {
-            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] WARNING: Application.Current.Dispatcher is null!");
             return;
-        }
 
-        // Check if we're already on UI thread
         if (dispatcher.CheckAccess())
         {
-            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Already on UI thread, adding directly");
             AddLogInternal(timestamp, level, message, exception);
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("[LogPanelViewModel] Dispatching to UI thread");
-            // Use BeginInvoke for async dispatch to avoid deadlocks
-            dispatcher.BeginInvoke(() =>
-            {
-                System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Inside dispatcher: [{level}] {message}");
-                AddLogInternal(timestamp, level, message, exception);
-            });
+            dispatcher.BeginInvoke(() => AddLogInternal(timestamp, level, message, exception));
         }
     }
 
@@ -135,7 +116,6 @@ public partial class LogPanelViewModel : ObservableObject
         };
 
         AllLogs.Add(entry);
-        System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Added to AllLogs. Count: {AllLogs.Count}");
 
         // Keep only last 1000 entries
         while (AllLogs.Count > MaxLogEntries)
@@ -147,9 +127,7 @@ public partial class LogPanelViewModel : ObservableObject
         if (MatchesFilter(entry))
         {
             FilteredLogs.Add(entry);
-            System.Diagnostics.Debug.WriteLine($"[LogPanelViewModel] Added to FilteredLogs. Count: {FilteredLogs.Count}");
 
-            // Also trim filtered logs
             while (FilteredLogs.Count > MaxLogEntries)
             {
                 FilteredLogs.RemoveAt(0);
@@ -236,11 +214,11 @@ public partial class LogPanelViewModel : ObservableObject
     [RelayCommand]
     private void ClearLogs()
     {
-        var result = MessageBox.Show(
+        var result = ModernMessageBox.Show(
             "Are you sure you want to clear all logs?",
             "Clear Logs",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+            ModernMessageBox.MessageBoxType.Question,
+            ModernMessageBox.MessageBoxButtons.YesNo);
 
         if (result == MessageBoxResult.Yes)
         {
@@ -257,11 +235,11 @@ public partial class LogPanelViewModel : ObservableObject
     {
         if (FilteredLogs.Count == 0)
         {
-            MessageBox.Show(
+            ModernMessageBox.Show(
                 "No logs to export.",
                 "Export Logs",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                ModernMessageBox.MessageBoxType.Information,
+                ModernMessageBox.MessageBoxButtons.OK);
             return;
         }
 
@@ -296,19 +274,19 @@ public partial class LogPanelViewModel : ObservableObject
 
                 File.WriteAllText(saveFileDialog.FileName, sb.ToString(), Encoding.UTF8);
 
-                MessageBox.Show(
+                ModernMessageBox.Show(
                     $"Logs exported successfully to:\n{saveFileDialog.FileName}",
                     "Export Complete",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    ModernMessageBox.MessageBoxType.Success,
+                    ModernMessageBox.MessageBoxButtons.OK);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                ModernMessageBox.Show(
                     $"Failed to export logs:\n{ex.Message}",
                     "Export Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    ModernMessageBox.MessageBoxType.Error,
+                    ModernMessageBox.MessageBoxButtons.OK);
             }
         }
     }
