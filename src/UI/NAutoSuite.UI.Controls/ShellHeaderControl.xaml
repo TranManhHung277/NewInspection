@@ -5,139 +5,149 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NAutoSuite.UI.Controls"
              mc:Ignorable="d"
-             d:DesignHeight="70"
+             d:DesignHeight="70" 
              d:DesignWidth="1920">
     <Border x:Name="MainBorder"
-            Background="#221C16"
-            BorderBrush="#21262D"
-            BorderThickness="0,0,0,1">
+            Background="#2D2D30"
+          BorderBrush="#3E3E42"
+          BorderThickness="0,0,0,1">
         <Grid>
             <Grid.ColumnDefinitions>
-                <!-- Left Content -->
-                <ColumnDefinition Width="*"/>
-                <!-- Center - Machine Name (fixed width for centering) -->
+                <!-- Machine Number -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Right Content -->
+                <!-- Status -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Alarm -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Spacer -->
                 <ColumnDefinition Width="*"/>
+                <!-- Project Name (Center) -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Logo/Time -->
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left Content -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
-                <!-- Station Number & Model Name -->
-                <Border Background="#1F6FEB"
-                        Padding="10,0"
-                        VerticalAlignment="Stretch"
-                        HorizontalAlignment="Left">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Machine Number -->
-                        <TextBlock x:Name="MachineNumber"
-                                   Text="99"
-                                   FontSize="36"
+            <!-- Station Number & Model Name (Left) -->
+            <Border Grid.Column="0"
+                    Background="#1F6FEB"
+                    Padding="10,0"
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Machine Number -->
+                    <TextBlock x:Name="MachineNumber"
+                               Text="99"
+                               FontSize="36"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Separator -->
+                    <Border Width="2" Background="#FFFFFF" Opacity="0.3"
+                            Margin="10,8" VerticalAlignment="Stretch"/>
+
+                    <!-- Model Name -->
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="MODEL"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="#B0D4FF"
+                                   Margin="0,0,0,2"/>
+                        <TextBlock x:Name="ModelName"
+                                   Text="No Model"
+                                   FontSize="18"
                                    FontWeight="Bold"
                                    Foreground="White"
-                                   VerticalAlignment="Center"/>
-
-                        <!-- Separator -->
-                        <Border Width="2" Background="#FFFFFF" Opacity="0.3"
-                                Margin="10,8" VerticalAlignment="Stretch"/>
-
-                        <!-- Model Name -->
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="MODEL"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="#B0D4FF"
-                                       Margin="0,0,0,2"/>
-                            <TextBlock x:Name="ModelName"
-                                       Text="No Model"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       VerticalAlignment="Center"
-                                       MaxWidth="200"
-                                       TextTrimming="CharacterEllipsis"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- Machine State -->
-                <Border Background="#1E1E1E"
-                        BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
-                    <local:MachineStateControl x:Name="StateControl"
-                                               HorizontalAlignment="Center"/>
-                </Border>
-            </StackPanel>
-
-            <!-- Center - Machine Name (Always Centered) -->
-            <TextBlock Grid.Column="1"
-                       x:Name="ProjectName"
-                       Text="EVI INSPECTION"
-                       FontSize="36"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
-
-            <!-- Right Content -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <StackPanel VerticalAlignment="Center"
-                            HorizontalAlignment="Right"
-                            Width="500"
-                            Margin="25,0,25,0">
-                    <!-- Logo -->
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <TextBlock x:Name="LogoText"
-                                   Text="SEMV"
-                                   FontSize="36"
-                                   FontWeight="Bold"
-                                   Foreground="#1F6FEB"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Time & Date -->
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                        <TextBlock x:Name="CurrentTime"
-                                   Text="00:00:00 12/12/2025"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="#8B949E"/>
+                                   VerticalAlignment="Center"
+                                   MaxWidth="200"
+                                   TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </StackPanel>
+            </Border>
 
-                <!-- Close Button -->
-                <Border Background="#F44336" Height="60" Width="60">
-                    <Button Content="✕"
-                            FontSize="24" FontWeight="Bold"
-                            Background="Transparent"
-                            Foreground="White"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            x:Name="CloseButton"
-                            Height="60" Width="60">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#D32F2F"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </Border>
+            <!-- Machine State -->
+            <Border Grid.Column="1" Background="#1E1E1E"
+                BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
+                        <local:MachineStateControl x:Name="StateControl"
+                                      HorizontalAlignment="Center"
+                                      />
+            </Border>
+
+
+
+            <!-- Machine Name -->
+            <Border Grid.Column="3"
+                    Padding="25,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch">
+                <TextBlock x:Name="ProjectName"
+                           Text="EVI INSPECTION"
+                           FontSize="36"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Grid.Column="4"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+                        Width="500"
+            Margin="25,0,25,0">
+                <!-- Status -->
+                <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="0,0,0,0">
+                    <TextBlock x:Name="LogoText"
+                   Text="SEMV"
+                      FontSize="36"
+                    FontWeight="Bold"
+                    Foreground="#1F6FEB"
+                   VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Time & Date -->
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Right">
+                    <TextBlock x:Name="CurrentTime"
+                   Text="00:00:00 12/12/2025"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="#8B949E"/>
+                </StackPanel>
             </StackPanel>
+
+            <!-- Close Button -->
+            <Border Grid.Column="5" Background="#F44336"  >
+                <Button Content="✕"
+                        FontSize="40" FontWeight="Bold"
+                        Background="Transparent"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        x:Name="CloseButton" Width="70"
+                       >
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#D32F2F"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Border>
         </Grid>
     </Border>
 </UserControl>

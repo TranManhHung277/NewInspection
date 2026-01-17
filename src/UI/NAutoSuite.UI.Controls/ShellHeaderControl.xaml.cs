@@ -21,7 +21,7 @@ public partial class ShellHeaderControl : UserControl
     private readonly DispatcherTimer _timer;
 
     // Background colors for each status level
-    private static readonly SolidColorBrush OkBackground = new(Color.FromRgb(0x22, 0x1C, 0x16));       // #221C16
+    private static readonly SolidColorBrush OkBackground = new(Color.FromRgb(0x2D, 0x2D, 0x30));       // #2D2D30
     private static readonly SolidColorBrush WarningBackground = new(Color.FromRgb(0xFF, 0x8C, 0x00));  // DarkOrange
     private static readonly SolidColorBrush ErrorBackground = new(Color.FromRgb(0xD3, 0x2F, 0x2F));    // Red #D32F2F
 
