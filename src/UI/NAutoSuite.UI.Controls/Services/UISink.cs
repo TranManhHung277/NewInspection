@@ -2,12 +2,12 @@ using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
-using NAutoSuite.UI.Controls.Services;
 
-namespace Machine.PickAndPlace.Services;
+namespace NAutoSuite.UI.Controls.Services;
 
 /// <summary>
-/// Custom Serilog sink that forwards log events to the UI
+/// Custom Serilog sink that forwards log events to the UI via UILogService.
+/// This sink is shared across all projects using NAutoSuite.UI.Controls.
 /// </summary>
 public class UISink : ILogEventSink
 {
@@ -31,7 +31,8 @@ public class UISink : ILogEventSink
 }
 
 /// <summary>
-/// Extension method to configure UISink
+/// Extension method to configure UISink in Serilog pipeline.
+/// Usage: .WriteTo.UISink()
 /// </summary>
 public static class UISinkExtensions
 {

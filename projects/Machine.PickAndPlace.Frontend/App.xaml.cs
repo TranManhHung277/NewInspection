@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Machine.PickAndPlace.ViewModels;
-using Machine.PickAndPlace.Services;
 using PickAndPlace.Frontend.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
 using NAutoSuite.Hardware.Leadshine;
+using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
 using System.Windows;
