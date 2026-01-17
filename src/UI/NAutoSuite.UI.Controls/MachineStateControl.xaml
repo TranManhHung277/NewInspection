@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              >
     <Border x:Name="StateIndicator" Grid.Column="1"
-           Background="#1F600F"
+           Background="Transparent"
            Padding="10"
             MinWidth="100"
 

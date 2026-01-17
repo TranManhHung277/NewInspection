@@ -60,11 +60,8 @@
                 </Border>
 
                 <!-- Machine State -->
-                <Border Background="#1E1E1E"
-                        BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
-                    <local:MachineStateControl x:Name="StateControl"
-                                               HorizontalAlignment="Center"/>
-                </Border>
+                <local:MachineStateControl x:Name="StateControl"
+                                           HorizontalAlignment="Center"/>
             </StackPanel>
 
             <!-- Center - Machine Name (Always Centered) -->
