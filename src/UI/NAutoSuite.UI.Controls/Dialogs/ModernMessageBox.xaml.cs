@@ -23,18 +23,54 @@ public partial class ModernMessageBox : Window
         YesNoCancel
     }
 
+    /// <summary>
+    /// Button style to indicate the nature/severity of the action
+    /// </summary>
+    public enum ButtonStyle
+    {
+        /// <summary>Default style - Blue for primary, Gray for secondary</summary>
+        Default,
+        /// <summary>Primary button is Blue (safe action)</summary>
+        Primary,
+        /// <summary>Primary button is Green (confirm/success action)</summary>
+        Success,
+        /// <summary>Primary button is Red (dangerous/destructive action)</summary>
+        Danger,
+        /// <summary>Primary button is Orange (warning action)</summary>
+        Warning
+    }
+
     public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
+    private ButtonStyle _primaryButtonStyle = ButtonStyle.Default;
 
     private ModernMessageBox()
     {
         InitializeComponent();
     }
 
+    /// <summary>
+    /// Show message box with default button style
+    /// </summary>
     public static MessageBoxResult Show(string message, string title = "Message",
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK)
     {
+        return Show(message, title, type, buttons, ButtonStyle.Default);
+    }
+
+    /// <summary>
+    /// Show message box with custom button style
+    /// </summary>
+    /// <param name="message">The message to display</param>
+    /// <param name="title">Dialog title</param>
+    /// <param name="type">Icon type (Information, Warning, Error, Question, Success)</param>
+    /// <param name="buttons">Which buttons to show</param>
+    /// <param name="primaryStyle">Style for the primary button (Yes/OK)</param>
+    public static MessageBoxResult Show(string message, string title,
+        MessageBoxType type, MessageBoxButtons buttons, ButtonStyle primaryStyle)
+    {
         var dialog = new ModernMessageBox();
+        dialog._primaryButtonStyle = primaryStyle;
         dialog.TitleText.Text = title;
         dialog.MessageText.Text = message;
 
@@ -110,13 +146,17 @@ public partial class ModernMessageBox : Window
 
         if (isPrimary)
         {
-            // Primary button (Blue)
-            button.Style = CreateButtonStyle(Color.FromRgb(31, 111, 235), Color.FromRgb(48, 126, 245), Color.FromRgb(22, 93, 207));
+            // Primary button color based on style
+            var (normal, hover, pressed) = GetPrimaryButtonColors();
+            button.Style = CreateButtonStyle(normal, hover, pressed);
         }
         else
         {
-            // Secondary button (Red for No/Cancel)
-            button.Style = CreateButtonStyle(Color.FromRgb(218, 54, 51), Color.FromRgb(230, 70, 67), Color.FromRgb(182, 35, 36));
+            // Secondary button (Gray - neutral)
+            button.Style = CreateButtonStyle(
+                Color.FromRgb(55, 62, 71),   // #373E47
+                Color.FromRgb(68, 76, 86),   // #444C56
+                Color.FromRgb(45, 51, 59));  // #2D333B
         }
 
         button.Click += (s, e) =>
@@ -126,6 +166,32 @@ public partial class ModernMessageBox : Window
         };
 
         ButtonPanel.Children.Add(button);
+    }
+
+    private (Color normal, Color hover, Color pressed) GetPrimaryButtonColors()
+    {
+        return _primaryButtonStyle switch
+        {
+            ButtonStyle.Danger => (
+                Color.FromRgb(218, 54, 51),   // Red - #DA3633
+                Color.FromRgb(240, 70, 67),   // Lighter red
+                Color.FromRgb(182, 35, 36)),  // Darker red
+
+            ButtonStyle.Success => (
+                Color.FromRgb(35, 134, 54),   // Green - #238636
+                Color.FromRgb(46, 160, 67),   // Lighter green
+                Color.FromRgb(28, 110, 44)),  // Darker green
+
+            ButtonStyle.Warning => (
+                Color.FromRgb(219, 154, 4),   // Orange - #DB9A04
+                Color.FromRgb(240, 175, 25),  // Lighter orange
+                Color.FromRgb(180, 125, 0)),  // Darker orange
+
+            _ => (                             // Default/Primary - Blue
+                Color.FromRgb(31, 111, 235),  // Blue - #1F6FEB
+                Color.FromRgb(48, 126, 245),  // Lighter blue
+                Color.FromRgb(22, 93, 207))   // Darker blue
+        };
     }
 
     private Style CreateButtonStyle(Color normal, Color hover, Color pressed)

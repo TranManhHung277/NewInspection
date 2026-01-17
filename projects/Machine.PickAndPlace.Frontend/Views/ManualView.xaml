@@ -222,6 +222,13 @@
                     <Button Content="⚠️ STOP ALL" Height="60" FontSize="18" Margin="0,20,0,0"
                             Style="{StaticResource ErrorButton}"
                             Command="{Binding StopAllAxesCommand}"/>
+
+                    <!-- Test Image Dialog -->
+                    <TextBlock Text="TEST DIALOGS" FontSize="14" Foreground="#B0B0B0" Margin="0,20,0,8"/>
+                    <Button x:Name="TestImageDialogButton" Content="Test Image Dialog"
+                            Height="50" FontSize="14" Margin="0,0,0,0"
+                            Style="{StaticResource OutlineButton}"
+                            Click="TestImageDialogButton_Click"/>
                 </StackPanel>
             </Border>
         </Grid>

@@ -53,10 +53,11 @@ public partial class MainWindow : Window
     private void HeaderControl_CloseClicked(object sender, RoutedEventArgs e)
     {
         var result = ModernMessageBox.Show(
-            "Are you sure you want to exit?",
-            "Confirm Exit",
+            "Bạn có chắc chắn muốn thoát chương trình không?",
+            "Xác nhận thoát ứng dụng",
             ModernMessageBox.MessageBoxType.Question,
-            ModernMessageBox.MessageBoxButtons.YesNo);
+            ModernMessageBox.MessageBoxButtons.YesNo,
+            ModernMessageBox.ButtonStyle.Danger);  // Yes button is RED (dangerous action)
 
         if (result == MessageBoxResult.Yes)
         {
