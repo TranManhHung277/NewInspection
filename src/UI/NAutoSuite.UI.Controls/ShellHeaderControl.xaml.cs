@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
 using NAutoSuite.Core.Machine;
@@ -19,6 +20,10 @@ public enum HeaderStatusLevel
 public partial class ShellHeaderControl : UserControl
 {
     private readonly DispatcherTimer _timer;
+    private SolidColorBrush _currentStatusBrush = OkBackground;
+    private bool _blinkOn;
+    private readonly Stopwatch _blinkWatch = new();
+    private static readonly TimeSpan BlinkInterval = TimeSpan.FromMilliseconds(500);
 
     // Background colors for each status level
     private static readonly SolidColorBrush OkBackground = new(Color.FromRgb(0x2D, 0x2D, 0x30));       // #2D2D30
@@ -145,12 +150,54 @@ public partial class ShellHeaderControl : UserControl
     {
         if (d is ShellHeaderControl control && e.NewValue is HeaderStatusLevel status)
         {
-            control.MainBorder.Background = status switch
-            {
-                HeaderStatusLevel.Error => ErrorBackground,
-                HeaderStatusLevel.Warning => WarningBackground,
-                _ => OkBackground
-            };
+            control.ApplyStatus(status);
         }
+    }
+
+    private void ApplyStatus(HeaderStatusLevel status)
+    {
+        _currentStatusBrush = status switch
+        {
+            HeaderStatusLevel.Error => ErrorBackground,
+            HeaderStatusLevel.Warning => WarningBackground,
+            _ => OkBackground
+        };
+
+        if (status == HeaderStatusLevel.Ok)
+        {
+            StopBlink();
+            return;
+        }
+
+        StartBlink();
+    }
+
+    private void StartBlink()
+    {
+        _blinkOn = true;
+        MainBorder.Background = _currentStatusBrush;
+        _blinkWatch.Restart();
+        CompositionTarget.Rendering -= OnBlinkRendering;
+        CompositionTarget.Rendering += OnBlinkRendering;
+    }
+
+    private void StopBlink()
+    {
+        CompositionTarget.Rendering -= OnBlinkRendering;
+        _blinkWatch.Stop();
+        _blinkOn = false;
+        MainBorder.Background = OkBackground;
+    }
+
+    private void OnBlinkRendering(object? sender, EventArgs e)
+    {
+        if (_blinkWatch.Elapsed < BlinkInterval)
+        {
+            return;
+        }
+
+        _blinkWatch.Restart();
+        _blinkOn = !_blinkOn;
+        MainBorder.Background = _blinkOn ? _currentStatusBrush : OkBackground;
     }
 }
