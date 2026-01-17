@@ -318,40 +318,30 @@ public class ModelService<TModel> where TModel : ModelBase, new()
     }
 
     /// <summary>
-    /// Load the default model (if any)
+    /// Load the most recently modified model (or first available if none modified)
     /// </summary>
-    public async Task<TModel?> LoadDefaultModelAsync()
-    {
-        var models = await GetAllModelsAsync();
-        var defaultModel = models.FirstOrDefault(m => m.IsDefault);
-
-        if (defaultModel != null)
-        {
-            CurrentModel = defaultModel;
-            _logger.Information("Default model loaded: {Name}", defaultModel.Name);
-        }
-
-        return defaultModel;
-    }
-
-    /// <summary>
-    /// Set a model as the default
-    /// </summary>
-    public async Task SetDefaultModelAsync(string modelName)
+    public async Task<TModel?> LoadMostRecentModelAsync()
     {
         var models = await GetAllModelsAsync(forceRefresh: true);
 
-        foreach (var model in models)
+        if (models.Count == 0)
         {
-            var wasDefault = model.IsDefault;
-            model.IsDefault = model.Name == modelName;
-
-            if (wasDefault != model.IsDefault)
-            {
-                await SaveModelAsync(model);
-            }
+            _logger.Information("No models found to load");
+            return null;
         }
+
+        // Get the most recently modified model
+        var recentModel = models
+            .OrderByDescending(m => m.ModifiedAt ?? m.CreatedAt)
+            .First();
+
+        CurrentModel = recentModel;
+        _logger.Information("Most recent model loaded: {Name} (Modified: {Date})",
+            recentModel.Name, recentModel.ModifiedAt ?? recentModel.CreatedAt);
+
+        return recentModel;
     }
+
 
     /// <summary>
     /// Get the models directory path

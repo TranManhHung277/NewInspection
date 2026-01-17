@@ -1,0 +1,125 @@
+<Window x:Class="NAutoSuite.UI.Controls.Dialogs.TextKeyboardDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Text Keyboard"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        AllowsTransparency="True"
+        Width="680"
+        SizeToContent="Height"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+        <Style x:Key="KeyButtonStyle" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="6,6"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Height" Value="64"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8,8,0,0" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                <Grid Margin="16,0">
+                    <TextBlock x:Name="TitleText" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <Button Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Center" Click="CancelButton_Click"
+                            Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock Text="X" FontWeight="Bold"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Display -->
+            <Border Grid.Row="1" Margin="12,10,12,6" Background="{StaticResource BackgroundBrush}" CornerRadius="6" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <TextBox x:Name="DisplayBox"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         FontSize="18"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         Padding="12,8"
+                         TextChanged="DisplayBox_TextChanged"
+                         AcceptsReturn="False"/>
+            </Border>
+
+            <!-- Keys -->
+            <StackPanel Grid.Row="2" Margin="12,6,12,10" x:Name="KeyboardPanel">
+                <UniformGrid Rows="1" Columns="10" Margin="0,0,0,6">
+                    <Button Content="1" Tag="1" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="2" Tag="2" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="3" Tag="3" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="4" Tag="4" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="5" Tag="5" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="6" Tag="6" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="7" Tag="7" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="8" Tag="8" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="9" Tag="9" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="0" Tag="0" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                </UniformGrid>
+
+                <UniformGrid Rows="1" Columns="10" Margin="0,0,0,6">
+                    <Button Content="Q" Tag="q" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="W" Tag="w" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="E" Tag="e" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="R" Tag="r" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="T" Tag="t" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="Y" Tag="y" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="U" Tag="u" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="I" Tag="i" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="O" Tag="o" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="P" Tag="p" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                </UniformGrid>
+
+                <UniformGrid Rows="1" Columns="9" Margin="0,0,0,6">
+                    <Button Content="A" Tag="a" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="S" Tag="s" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="D" Tag="d" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="F" Tag="f" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="G" Tag="g" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="H" Tag="h" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="J" Tag="j" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="K" Tag="k" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="L" Tag="l" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                </UniformGrid>
+
+                <UniformGrid Rows="1" Columns="7" Margin="0,0,0,6">
+                    <Button Content="Z" Tag="z" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="X" Tag="x" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="C" Tag="c" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="V" Tag="v" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="B" Tag="b" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="N" Tag="n" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                    <Button Content="M" Tag="m" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click"/>
+                </UniformGrid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="Caps" Style="{StaticResource KeyButtonStyle}" Click="CapsButton_Click" Width="80"/>
+                    <Button Grid.Column="1" Content="Space" Style="{StaticResource KeyButtonStyle}" Click="SpaceButton_Click" Margin="6,0" />
+                    <Button Grid.Column="2" Content="Back" Style="{StaticResource KeyButtonStyle}" Click="BackspaceButton_Click" Width="80"/>
+                    <Button Grid.Column="3" Content="Clear" Style="{StaticResource KeyButtonStyle}" Click="ClearButton_Click" Width="80" Margin="6,0,0,0"/>
+                    <Button Grid.Column="4" Content="Cancel" Style="{StaticResource ErrorButton}" Click="CancelButton_Click" Width="80" Margin="6,0,0,0"/>
+                    <Button Grid.Column="5" Content="OK" Style="{StaticResource PrimaryButton}" Click="OkButton_Click" Width="80" Margin="6,0,0,0"/>
+                </Grid>
+            </StackPanel>
+
+        </Grid>
+    </Border>
+</Window>

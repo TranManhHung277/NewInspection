@@ -6,9 +6,24 @@ using NAutoSuite.Core.Machine;
 
 namespace NAutoSuite.UI.Controls;
 
+/// <summary>
+/// Status level for header background color
+/// </summary>
+public enum HeaderStatusLevel
+{
+    Ok,
+    Warning,
+    Error
+}
+
 public partial class ShellHeaderControl : UserControl
 {
     private readonly DispatcherTimer _timer;
+
+    // Background colors for each status level
+    private static readonly SolidColorBrush OkBackground = new(Color.FromRgb(0x22, 0x1C, 0x16));       // #221C16
+    private static readonly SolidColorBrush WarningBackground = new(Color.FromRgb(0xFF, 0x8C, 0x00));  // DarkOrange
+    private static readonly SolidColorBrush ErrorBackground = new(Color.FromRgb(0xD3, 0x2F, 0x2F));    // Red #D32F2F
 
     public static readonly DependencyProperty MachineNumberProperty =
         DependencyProperty.Register(nameof(MachineNumberValue), typeof(int), typeof(ShellHeaderControl),
@@ -22,17 +37,13 @@ public partial class ShellHeaderControl : UserControl
         DependencyProperty.Register(nameof(ProjectNameValue), typeof(string), typeof(ShellHeaderControl),
             new PropertyMetadata("NAutoSuite Project", OnProjectNameChanged));
 
-    public static readonly DependencyProperty AlarmMessageProperty =
-        DependencyProperty.Register(nameof(AlarmMessage), typeof(string), typeof(ShellHeaderControl),
-            new PropertyMetadata(string.Empty, OnAlarmMessageChanged));
-
-    public static readonly DependencyProperty HasAlarmProperty =
-        DependencyProperty.Register(nameof(HasAlarm), typeof(bool), typeof(ShellHeaderControl),
-            new PropertyMetadata(false, OnHasAlarmChanged));
-
     public static readonly DependencyProperty ModelNameProperty =
         DependencyProperty.Register(nameof(ModelNameValue), typeof(string), typeof(ShellHeaderControl),
             new PropertyMetadata("No Model", OnModelNameChanged));
+
+    public static readonly DependencyProperty StatusLevelProperty =
+        DependencyProperty.Register(nameof(StatusLevel), typeof(HeaderStatusLevel), typeof(ShellHeaderControl),
+            new PropertyMetadata(HeaderStatusLevel.Ok, OnStatusLevelChanged));
 
     public int MachineNumberValue
     {
@@ -52,22 +63,20 @@ public partial class ShellHeaderControl : UserControl
         set => SetValue(ProjectNameProperty, value);
     }
 
-    public string AlarmMessage
-    {
-        get => (string)GetValue(AlarmMessageProperty);
-        set => SetValue(AlarmMessageProperty, value);
-    }
-
-    public bool HasAlarm
-    {
-        get => (bool)GetValue(HasAlarmProperty);
-        set => SetValue(HasAlarmProperty, value);
-    }
-
     public string ModelNameValue
     {
         get => (string)GetValue(ModelNameProperty);
         set => SetValue(ModelNameProperty, value);
+    }
+
+    /// <summary>
+    /// Status level that controls the header background color
+    /// Ok = #221C16, Warning = DarkOrange, Error = Red
+    /// </summary>
+    public HeaderStatusLevel StatusLevel
+    {
+        get => (HeaderStatusLevel)GetValue(StatusLevelProperty);
+        set => SetValue(StatusLevelProperty, value);
     }
 
     public event RoutedEventHandler? CloseClicked;
@@ -103,7 +112,7 @@ public partial class ShellHeaderControl : UserControl
     {
         if (d is ShellHeaderControl control)
         {
-            control.MachineNumber.Text = "#"+e.NewValue?.ToString() ?? "#1";
+            control.MachineNumber.Text = e.NewValue?.ToString() ?? "1";
         }
     }
 
@@ -123,36 +132,25 @@ public partial class ShellHeaderControl : UserControl
         }
     }
 
-    private static void OnAlarmMessageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is ShellHeaderControl control)
-        {
-            var message = e.NewValue?.ToString();
-            control.AlarmText.Text = string.IsNullOrEmpty(message) ? "No Alarm" : message;
-        }
-    }
-
-    private static void OnHasAlarmChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is ShellHeaderControl control && e.NewValue is bool hasAlarm)
-        {
-            if (hasAlarm)
-            {
-                control.AlarmIndicator.Background = new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
-            }
-            else
-            {
-                control.AlarmIndicator.Background = new SolidColorBrush(Color.FromRgb(128, 128, 128)); // Gray
-            }
-        }
-    }
-
     private static void OnModelNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ShellHeaderControl control)
         {
             var modelName = e.NewValue?.ToString();
             control.ModelName.Text = string.IsNullOrEmpty(modelName) ? "No Model" : modelName;
+        }
+    }
+
+    private static void OnStatusLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ShellHeaderControl control && e.NewValue is HeaderStatusLevel status)
+        {
+            control.MainBorder.Background = status switch
+            {
+                HeaderStatusLevel.Error => ErrorBackground,
+                HeaderStatusLevel.Warning => WarningBackground,
+                _ => OkBackground
+            };
         }
     }
 }

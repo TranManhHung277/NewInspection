@@ -3,7 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using NAutoSuite.Core.Model;
 using PickAndPlace.Model;
 using Serilog;
+using System.Windows;
+using NAutoSuite.UI.Controls.Dialogs;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Windows.Data;
 
 namespace PickAndPlace.ViewModels;
 
@@ -13,6 +17,7 @@ namespace PickAndPlace.ViewModels;
 public partial class ModelManagementViewModel : ObservableObject
 {
     private readonly ModelService<PickAndPlaceModel> _modelService;
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     #region Observable Properties
 
@@ -125,10 +130,18 @@ public partial class ModelManagementViewModel : ObservableObject
 
     partial void OnSelectedModelItemChanged(ModelListItem? value)
     {
-        if (value != null && !IsEditing)
+        if (value == null)
         {
-            _ = LoadModelAsync(value.Name);
+            return;
         }
+
+        if (CurrentModel != null && string.Equals(value.Name, CurrentModel.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            StatusMessage = $"Selected active model: {value.Name}";
+            return;
+        }
+
+        StatusMessage = $"Selected model: {value.Name}. Press Load to activate.";
     }
 
     #region Commands
@@ -136,18 +149,26 @@ public partial class ModelManagementViewModel : ObservableObject
     [RelayCommand]
     private async Task RefreshModelListAsync()
     {
+        await _refreshLock.WaitAsync();
+
         try
         {
             var models = await _modelService.GetAllModelsAsync(forceRefresh: true);
+            var uniqueModels = models
+                .GroupBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.OrderByDescending(m => m.ModifiedAt ?? m.CreatedAt).First())
+                .ToList();
+
             ModelList.Clear();
 
-            foreach (var model in models.OrderBy(m => m.Name))
+            foreach (var model in uniqueModels
+                .OrderByDescending(m => _modelService.CurrentModel?.Id == m.Id)
+                .ThenByDescending(m => m.ModifiedAt ?? m.CreatedAt))
             {
                 ModelList.Add(new ModelListItem
                 {
                     Name = model.Name,
                     Description = model.Description,
-                    IsDefault = model.IsDefault,
                     ModifiedAt = model.ModifiedAt ?? model.CreatedAt,
                     IsCurrentModel = _modelService.CurrentModel?.Id == model.Id
                 });
@@ -165,6 +186,10 @@ public partial class ModelManagementViewModel : ObservableObject
         {
             Log.Error(ex, "Failed to refresh model list");
             StatusMessage = "Failed to load models";
+        }
+        finally
+        {
+            _refreshLock.Release();
         }
     }
 
@@ -196,22 +221,77 @@ public partial class ModelManagementViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task LoadSelectedModelAsync()
+    {
+        if (SelectedModelItem == null)
+        {
+            StatusMessage = "Select a model to load";
+            return;
+        }
+
+        if (CurrentModel != null &&
+            string.Equals(SelectedModelItem.Name, CurrentModel.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            StatusMessage = $"Model already active: {SelectedModelItem.Name}";
+            return;
+        }
+
+        var result = ModernMessageBox.Show(
+            $"Load model '{SelectedModelItem.Name}' and apply all parameters?",
+            "Load Model",
+            ModernMessageBox.MessageBoxType.Question,
+            ModernMessageBox.MessageBoxButtons.YesNo,
+            ModernMessageBox.ButtonStyle.Warning);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            StatusMessage = "Load canceled";
+            return;
+        }
+
+        if (IsEditing)
+        {
+            IsEditing = false;
+            StatusMessage = "Editing canceled - loading new model";
+        }
+
+        await LoadModelAsync(SelectedModelItem.Name);
+    }
+
+    [RelayCommand]
     private async Task CreateNewModelAsync()
     {
         try
         {
-            // Generate unique name
-            var baseName = "New Model";
-            var name = baseName;
-            var counter = 1;
+            var owner = Application.Current?.MainWindow;
+            var suggestedName = CurrentModel == null ? "New Model" : $"{CurrentModel.Name} Backup";
+            var name = TextKeyboardDialog.Show(owner, suggestedName)?.Trim();
 
-            while (_modelService.ModelExists(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                name = $"{baseName} {counter++}";
+                StatusMessage = "Model creation canceled";
+                return;
             }
 
-            var model = _modelService.CreateNewModel(name);
+            if (_modelService.ModelExists(name))
+            {
+                StatusMessage = $"Model name already exists: {name}";
+                return;
+            }
+
+            PickAndPlaceModel model;
+            if (CurrentModel != null)
+            {
+                model = (PickAndPlaceModel)CurrentModel.Clone(name);
+                model.Description = string.Empty;
+            }
+            else
+            {
+                model = new PickAndPlaceModel { Name = name, CreatedAt = DateTime.Now };
+            }
+
             await _modelService.SaveModelAsync(model);
+            _modelService.SetCurrentModel(model);
 
             await RefreshModelListAsync();
             LoadCurrentModelToEdit();
@@ -233,14 +313,54 @@ public partial class ModelManagementViewModel : ObservableObject
 
         try
         {
+            // Validate model name is not empty
+            if (string.IsNullOrWhiteSpace(EditModelName))
+            {
+                ModernMessageBox.Show(
+                    "Model name cannot be empty.",
+                    "Validation Error",
+                    ModernMessageBox.MessageBoxType.Warning,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Warning);
+                StatusMessage = "Save failed: Model name is required";
+                return;
+            }
+
+            var oldName = CurrentModel.Name;
+
+            // Check for duplicate name (only if name changed)
+            if (!string.Equals(EditModelName, oldName, StringComparison.OrdinalIgnoreCase) &&
+                _modelService.ModelExists(EditModelName))
+            {
+                ModernMessageBox.Show(
+                    $"A model with name '{EditModelName}' already exists.\n\nPlease choose a different name.",
+                    "Duplicate Name",
+                    ModernMessageBox.MessageBoxType.Warning,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Warning);
+                StatusMessage = $"Save failed: Name '{EditModelName}' already exists";
+                return;
+            }
+
             // Update model from edit fields
             ApplyEditToModel();
 
-            // Validate
+            // Validate model data
             var errors = CurrentModel.Validate();
             if (errors.Count > 0)
             {
-                StatusMessage = $"Validation error: {errors[0]}";
+                var errorMessage = string.Join("\n", errors.Take(3));
+                if (errors.Count > 3)
+                {
+                    errorMessage += $"\n... and {errors.Count - 3} more errors";
+                }
+                ModernMessageBox.Show(
+                    $"Please fix the following errors:\n\n{errorMessage}",
+                    "Validation Error",
+                    ModernMessageBox.MessageBoxType.Warning,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Warning);
+                StatusMessage = $"Save failed: {errors[0]}";
                 return;
             }
 
@@ -250,17 +370,33 @@ public partial class ModelManagementViewModel : ObservableObject
             if (success)
             {
                 IsEditing = false;
+                if (!string.Equals(oldName, CurrentModel.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _modelService.DeleteModel(oldName);
+                }
                 await RefreshModelListAsync();
                 StatusMessage = $"Model saved: {CurrentModel.Name}";
             }
             else
             {
+                ModernMessageBox.Show(
+                    "Failed to save model. Please check the logs for details.",
+                    "Save Failed",
+                    ModernMessageBox.MessageBoxType.Error,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Danger);
                 StatusMessage = "Failed to save model";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to save model");
+            ModernMessageBox.Show(
+                $"Error saving model:\n\n{ex.Message}",
+                "Save Error",
+                ModernMessageBox.MessageBoxType.Error,
+                ModernMessageBox.MessageBoxButtons.OK,
+                ModernMessageBox.ButtonStyle.Danger);
             StatusMessage = $"Error saving model: {ex.Message}";
         }
     }
@@ -273,33 +409,63 @@ public partial class ModelManagementViewModel : ObservableObject
         try
         {
             var modelName = CurrentModel.Name;
+
+            // Confirm before delete
+            var result = ModernMessageBox.Show(
+                $"Are you sure you want to delete model '{modelName}'?\n\nThis action cannot be undone.",
+                "Delete Model",
+                ModernMessageBox.MessageBoxType.Warning,
+                ModernMessageBox.MessageBoxButtons.YesNo,
+                ModernMessageBox.ButtonStyle.Danger);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusMessage = "Delete canceled";
+                return;
+            }
+
             var success = _modelService.DeleteModel(modelName);
 
             if (success)
             {
                 await RefreshModelListAsync();
 
-                // Load another model if available
-                if (ModelList.Count > 0)
+                if (CurrentModel == null)
                 {
-                    await LoadModelAsync(ModelList[0].Name);
-                }
-                else
-                {
-                    CurrentModel = null;
-                    ClearEditFields();
+                    // Load most recent model or first available
+                    var recentModel = await _modelService.LoadMostRecentModelAsync();
+                    if (recentModel == null && ModelList.Count > 0)
+                    {
+                        await LoadModelAsync(ModelList[0].Name);
+                    }
+                    else if (recentModel == null)
+                    {
+                        ClearEditFields();
+                    }
                 }
 
                 StatusMessage = $"Model deleted: {modelName}";
             }
             else
             {
+                ModernMessageBox.Show(
+                    $"Failed to delete model '{modelName}'.",
+                    "Delete Failed",
+                    ModernMessageBox.MessageBoxType.Error,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Danger);
                 StatusMessage = $"Failed to delete model: {modelName}";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete model");
+            ModernMessageBox.Show(
+                $"Error deleting model: {ex.Message}",
+                "Delete Error",
+                ModernMessageBox.MessageBoxType.Error,
+                ModernMessageBox.MessageBoxButtons.OK,
+                ModernMessageBox.ButtonStyle.Danger);
             StatusMessage = $"Error deleting model: {ex.Message}";
         }
     }
@@ -311,13 +477,42 @@ public partial class ModelManagementViewModel : ObservableObject
 
         try
         {
-            var baseName = $"{CurrentModel.Name} (Copy)";
-            var name = baseName;
-            var counter = 1;
+            // Ask for new name
+            var owner = Application.Current?.MainWindow;
+            var suggestedName = $"{CurrentModel.Name} (Copy)";
+            var name = TextKeyboardDialog.Show(owner, suggestedName)?.Trim();
 
-            while (_modelService.ModelExists(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                name = $"{CurrentModel.Name} (Copy {counter++})";
+                StatusMessage = "Clone canceled";
+                return;
+            }
+
+            // Check if name already exists
+            if (_modelService.ModelExists(name))
+            {
+                ModernMessageBox.Show(
+                    $"A model with name '{name}' already exists.\n\nPlease choose a different name.",
+                    "Name Already Exists",
+                    ModernMessageBox.MessageBoxType.Warning,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Warning);
+                StatusMessage = $"Clone failed: Name already exists";
+                return;
+            }
+
+            // Confirm clone
+            var result = ModernMessageBox.Show(
+                $"Clone model '{CurrentModel.Name}' as '{name}'?",
+                "Clone Model",
+                ModernMessageBox.MessageBoxType.Question,
+                ModernMessageBox.MessageBoxButtons.YesNo,
+                ModernMessageBox.ButtonStyle.Primary);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusMessage = "Clone canceled";
+                return;
             }
 
             var clone = await _modelService.CloneModelAsync(CurrentModel.Name, name);
@@ -329,29 +524,27 @@ public partial class ModelManagementViewModel : ObservableObject
                 IsEditing = true;
                 StatusMessage = $"Model cloned: {name}";
             }
+            else
+            {
+                ModernMessageBox.Show(
+                    $"Failed to clone model.",
+                    "Clone Failed",
+                    ModernMessageBox.MessageBoxType.Error,
+                    ModernMessageBox.MessageBoxButtons.OK,
+                    ModernMessageBox.ButtonStyle.Danger);
+                StatusMessage = "Clone failed";
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to clone model");
+            ModernMessageBox.Show(
+                $"Error cloning model: {ex.Message}",
+                "Clone Error",
+                ModernMessageBox.MessageBoxType.Error,
+                ModernMessageBox.MessageBoxButtons.OK,
+                ModernMessageBox.ButtonStyle.Danger);
             StatusMessage = $"Error cloning model: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private async Task SetAsDefaultAsync()
-    {
-        if (CurrentModel == null) return;
-
-        try
-        {
-            await _modelService.SetDefaultModelAsync(CurrentModel.Name);
-            await RefreshModelListAsync();
-            StatusMessage = $"Set as default: {CurrentModel.Name}";
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to set default model");
-            StatusMessage = $"Error: {ex.Message}";
         }
     }
 
@@ -475,11 +668,17 @@ public partial class ModelManagementViewModel : ObservableObject
 /// <summary>
 /// Item for model list display
 /// </summary>
-public class ModelListItem
+public partial class ModelListItem : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public bool IsDefault { get; set; }
-    public DateTime ModifiedAt { get; set; }
-    public bool IsCurrentModel { get; set; }
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    private string _description = string.Empty;
+
+    [ObservableProperty]
+    private DateTime _modifiedAt;
+
+    [ObservableProperty]
+    private bool _isCurrentModel;
 }

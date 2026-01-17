@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PickAndPlace.Services;
 using NAutoSuite.Core.Machine;
 using NAutoSuite.Core.Model;
+using NAutoSuite.UI.Controls;
 using PickAndPlace.Machine;
 using PickAndPlace.Model;
 using Serilog;
@@ -15,6 +16,7 @@ public partial class MainViewModel : ObservableObject
     private readonly PickAndPlaceMachine _machine;
     private readonly DispatcherTimer _updateTimer;
     private readonly SettingsService _settingsService;
+    private readonly MachineSettings _machineSettings;
     private readonly ModelService<PickAndPlaceModel> _modelService;
 
     [ObservableProperty]
@@ -27,10 +29,7 @@ public partial class MainViewModel : ObservableObject
     private string _projectName = "Pick & Place Machine (EtherCAT)";
 
     [ObservableProperty]
-    private string _alarmMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool _hasAlarm;
+    private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
 
     [ObservableProperty]
     private long _cycleCount;
@@ -84,9 +83,9 @@ public partial class MainViewModel : ObservableObject
 
         // Initialize settings service and load saved settings
         _settingsService = new SettingsService(Log.Logger);
-        var settings = _settingsService.Load();
-        _machineNumber = settings.MachineNumber;
-        _projectName = settings.ProjectName;
+        _machineSettings = _settingsService.Load();
+        _machineNumber = _machineSettings.MachineNumber;
+        _projectName = _machineSettings.ProjectName;
 
         // Initialize model service
         _modelService = new ModelService<PickAndPlaceModel>("PickAndPlace", Log.Logger);
@@ -111,6 +110,8 @@ public partial class MainViewModel : ObservableObject
     {
         ModelName = e.NewModel?.Name ?? "No Model";
         OnPropertyChanged(nameof(CurrentModel));
+        _machineSettings.LastModelName = e.NewModel?.Name;
+        _settingsService.Save(_machineSettings);
         Log.Information("Model changed: {OldModel} -> {NewModel}",
             e.OldModel?.Name ?? "None",
             e.NewModel?.Name ?? "None");
@@ -118,23 +119,27 @@ public partial class MainViewModel : ObservableObject
 
     private async Task LoadDefaultModelAsync()
     {
-        var model = await _modelService.LoadDefaultModelAsync();
+        // First try to load last used model
+        if (!string.IsNullOrWhiteSpace(_machineSettings.LastModelName) &&
+            _modelService.ModelExists(_machineSettings.LastModelName))
+        {
+            await _modelService.LoadModelAsync(_machineSettings.LastModelName);
+            return;
+        }
+
+        // Try to load most recently modified model
+        var model = await _modelService.LoadMostRecentModelAsync();
         if (model == null)
         {
-            // No default model, check if any models exist
+            // No models exist, create a new one
             var modelNames = _modelService.GetModelNames();
             if (modelNames.Count == 0)
             {
-                // Create a default model
                 var defaultModel = _modelService.CreateNewModel("Default");
-                defaultModel.IsDefault = true;
                 await _modelService.SaveModelAsync(defaultModel);
+                _machineSettings.LastModelName = defaultModel.Name;
+                _settingsService.Save(_machineSettings);
                 Log.Information("Created default model");
-            }
-            else
-            {
-                // Load first available model
-                await _modelService.LoadModelAsync(modelNames[0]);
             }
         }
     }
@@ -169,17 +174,8 @@ public partial class MainViewModel : ObservableObject
             AxisPosition = _machine.CurrentPosition;
             IsAxisMoving = _machine.IsAxisMoving;
 
-            // Update alarms
-            HasAlarm = _machine.HasActiveAlarms;
-            if (HasAlarm)
-            {
-                var firstAlarm = _machine.ActiveAlarms.FirstOrDefault();
-                AlarmMessage = firstAlarm != null ? $"[{firstAlarm.Code}] {firstAlarm.Message}" : "";
-            }
-            else
-            {
-                AlarmMessage = "";
-            }
+            // Update header status based on machine state
+            UpdateHeaderStatus();
 
             // Update tower lights
             UpdateTowerLights();
@@ -233,6 +229,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateStatusMessage()
     {
+        var alarmMessage = _machine.ActiveAlarms.FirstOrDefault()?.Message ?? "";
         StatusMessage = MachineState switch
         {
             MachineState.Uninitialized => "System ready - Please initialize",
@@ -242,10 +239,30 @@ public partial class MainViewModel : ObservableObject
             MachineState.Paused => "Paused",
             MachineState.Stopping => "Stopping...",
             MachineState.Stopped => "Stopped",
-            MachineState.Error => $"Error: {AlarmMessage}",
+            MachineState.Error => $"Error: {alarmMessage}",
             MachineState.EmergencyStop => "EMERGENCY STOP!",
             _ => "Unknown state"
         };
+    }
+
+    private void UpdateHeaderStatus()
+    {
+        // Error states
+        if (MachineState == MachineState.EmergencyStop || MachineState == MachineState.Error)
+        {
+            HeaderStatusLevel = HeaderStatusLevel.Error;
+            return;
+        }
+
+        // Warning states - has alarms but not critical
+        if (_machine.HasActiveAlarms)
+        {
+            HeaderStatusLevel = HeaderStatusLevel.Warning;
+            return;
+        }
+
+        // OK state
+        HeaderStatusLevel = HeaderStatusLevel.Ok;
     }
 
     [RelayCommand]
@@ -326,8 +343,7 @@ public partial class MainViewModel : ObservableObject
             }
             else
             {
-                HasAlarm = false;
-                AlarmMessage = string.Empty;
+                HeaderStatusLevel = HeaderStatusLevel.Ok;
                 StatusMessage = "Reset successful";
             }
         }

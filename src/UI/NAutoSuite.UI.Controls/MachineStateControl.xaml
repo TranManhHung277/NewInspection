@@ -7,17 +7,23 @@
              >
     <Border x:Name="StateIndicator" Grid.Column="1"
            Background="#1F600F"
-           Padding="10,0"
-            MinWidth="200"
+           Padding="10"
+            MinWidth="100"
+
            VerticalAlignment="Stretch"
            HorizontalAlignment="Left">
-
+        <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="STATUS"
+               FontSize="10"
+               FontWeight="SemiBold"
+               Foreground="#B0D4FF"
+               Margin="0,0,0,2"/>
             <TextBlock x:Name="StateText"
                       Text="Running"
-                      FontSize="32"
+                      FontSize="18"
                       FontWeight="Bold"
                       Foreground="White"
                       VerticalAlignment="Center"/>
-
+        </StackPanel>
     </Border>
 </UserControl>

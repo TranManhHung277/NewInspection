@@ -33,8 +33,7 @@
                                     MachineState="{Binding MachineState}"
                                     ProjectNameValue="{Binding ProjectName}"
                                     ModelNameValue="{Binding ModelName}"
-                                    AlarmMessage="{Binding AlarmMessage}"
-                                    HasAlarm="{Binding HasAlarm}"
+                                    StatusLevel="{Binding HeaderStatusLevel}"
                                     CloseClicked="HeaderControl_CloseClicked"/>
 
         <!-- Content Area -->
