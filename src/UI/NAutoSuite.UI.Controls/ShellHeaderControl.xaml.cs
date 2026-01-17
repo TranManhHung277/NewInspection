@@ -93,7 +93,7 @@ public partial class ShellHeaderControl : UserControl
     {
         if (d is ShellHeaderControl control)
         {
-            control.MachineNumber.Text = e.NewValue?.ToString() ?? "1";
+            control.MachineNumber.Text = "#"+e.NewValue?.ToString() ?? "#1";
         }
     }
 

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Machine.PickAndPlace.Services;
 using NAutoSuite.Core.Machine;
 using PickAndPlace.Frontend.Machine;
 using Serilog;
@@ -11,6 +12,7 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly PickAndPlaceMachineFrontend _machine;
     private readonly DispatcherTimer _updateTimer;
+    private readonly SettingsService _settingsService;
 
     [ObservableProperty]
     private MachineState _machineState = MachineState.Uninitialized;
@@ -63,6 +65,12 @@ public partial class MainViewModel : ObservableObject
     {
         _machine = machine;
 
+        // Initialize settings service and load saved settings
+        _settingsService = new SettingsService(Log.Logger);
+        var settings = _settingsService.Load();
+        _machineNumber = settings.MachineNumber;
+        _projectName = settings.ProjectName;
+
         // Subscribe to machine state changes
         _machine.StateChanged += OnMachineStateChanged;
 
@@ -73,6 +81,16 @@ public partial class MainViewModel : ObservableObject
         };
         _updateTimer.Tick += UpdateTimerTick;
         _updateTimer.Start();
+    }
+
+    partial void OnMachineNumberChanged(int value)
+    {
+        _settingsService.SaveMachineNumber(value);
+    }
+
+    partial void OnProjectNameChanged(string value)
+    {
+        _settingsService.SaveProjectName(value);
     }
 
     private void OnMachineStateChanged(object? sender, MachineState newState)
