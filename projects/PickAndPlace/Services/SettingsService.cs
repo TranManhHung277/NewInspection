@@ -2,7 +2,7 @@ using Serilog;
 using System.IO;
 using System.Text.Json;
 
-namespace Machine.PickAndPlace.Services;
+namespace PickAndPlace.Services;
 
 /// <summary>
 /// Service to load/save machine settings to JSON file

@@ -13,7 +13,10 @@
       "Bash(dotnet run:*)",
       "Bash(tree /F /A \"d:\\\\3. Program\\\\C#\\\\NAutoSuite\\\\projects\")",
       "Bash(timeout /t 5)",
-      "Bash(del \"d:\\\\Projects\\\\C#\\\\NAutoSuite\\\\projects\\\\Machine.PickAndPlace.Frontend\\\\Services\\\\LogService.cs\")"
+      "Bash(del \"d:\\\\Projects\\\\C#\\\\NAutoSuite\\\\projects\\\\Machine.PickAndPlace.Frontend\\\\Services\\\\LogService.cs\")",
+      "Bash(rename:*)",
+      "Bash(cmd /c \"cd /d D:\\\\3. Program\\\\C#\\\\NAutoSuite\\\\projects && ren Machine.PickAndPlace.Frontend PickAndPlace\")",
+      "Bash(cmd /c:*)"
     ]
   }
 }

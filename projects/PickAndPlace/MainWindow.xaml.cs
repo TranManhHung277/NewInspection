@@ -1,9 +1,9 @@
 using System.Windows;
-using Machine.PickAndPlace.ViewModels;
-using Machine.PickAndPlace.Views;
+using PickAndPlace.ViewModels;
+using PickAndPlace.Views;
 using NAutoSuite.UI.Controls.Dialogs;
 
-namespace Machine.PickAndPlace;
+namespace PickAndPlace;
 
 public partial class MainWindow : Window
 {

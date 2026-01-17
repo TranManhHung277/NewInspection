@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace Machine.PickAndPlace.Views;
+namespace PickAndPlace.Views;
 
 public partial class SettingView : UserControl
 {

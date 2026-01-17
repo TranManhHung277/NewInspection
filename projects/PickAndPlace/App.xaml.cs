@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Machine.PickAndPlace.ViewModels;
-using PickAndPlace.Frontend.Machine;
+using PickAndPlace.ViewModels;
+using PickAndPlace.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
 using NAutoSuite.Hardware.Leadshine;
@@ -10,7 +10,7 @@ using Serilog;
 using Serilog.Events;
 using System.Windows;
 
-namespace Machine.PickAndPlace;
+namespace PickAndPlace;
 
 public partial class App : Application
 {
@@ -70,12 +70,12 @@ public partial class App : Application
                     );
                 });
 
-                // Register PickAndPlace Machine with new logic
-                services.AddSingleton<PickAndPlaceMachineFrontend>(sp =>
+                // Register PickAndPlace Machine
+                services.AddSingleton<PickAndPlaceMachine>(sp =>
                 {
                     var axis = sp.GetRequiredService<IAxis>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new PickAndPlaceMachineFrontend(axis, logger);
+                    return new PickAndPlaceMachine(axis, logger);
                 });
 
                 // Register ViewModels

@@ -6,10 +6,10 @@ using NAutoSuite.Core.Machine;
 using NAutoSuite.Core.IO;
 using Serilog;
 
-namespace PickAndPlace.Frontend.Machine;
+namespace PickAndPlace.Machine;
 
 /// <summary>
-/// PickAndPlace Machine Frontend - Logic mới với 1 trục
+/// PickAndPlace Machine - Demo machine với 1 trục
 /// Pattern:
 /// 1. Start → Chạy 10s
 /// 2. Chạy đi chạy lại 1 vòng → Lặp 10 lần
@@ -17,7 +17,7 @@ namespace PickAndPlace.Frontend.Machine;
 /// 4. Dừng 5s
 /// 5. Lặp lại từ đầu
 /// </summary>
-public class PickAndPlaceMachineFrontend : MachineBase
+public class PickAndPlaceMachine : MachineBase
 {
     private readonly IAxis _axis;
 
@@ -29,10 +29,10 @@ public class PickAndPlaceMachineFrontend : MachineBase
     private readonly int _cycleLoops = 10;           // 10 lần
     private readonly double _pauseTime = 5;          // 5 seconds
 
-    public PickAndPlaceMachineFrontend(
+    public PickAndPlaceMachine(
         IAxis axis,
         ILogger? logger = null)
-        : base("PAP001_FE", "PickAndPlace Frontend", logger)
+        : base("PAP001", "PickAndPlace Machine", logger)
     {
         _axis = axis;
 
@@ -88,7 +88,7 @@ public class PickAndPlaceMachineFrontend : MachineBase
     {
         await base.OnInitializingAsync();
 
-        _logger.Information("Initializing PickAndPlace Machine Frontend...");
+        _logger.Information("Initializing PickAndPlace Machine...");
 
         try
         {

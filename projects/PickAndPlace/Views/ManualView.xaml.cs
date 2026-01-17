@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using NAutoSuite.UI.Controls.Dialogs;
 
-namespace Machine.PickAndPlace.Views;
+namespace PickAndPlace.Views;
 
 public partial class ManualView : UserControl
 {
@@ -15,7 +15,7 @@ public partial class ManualView : UserControl
     {
         // Cách 1: Sử dụng embedded resource (pack URI)
         // Assembly name là "PickAndPlace.Frontend" (tên file .csproj)
-        var testImageUri = new Uri("pack://application:,,,/PickAndPlace.Frontend;component/Assets/error.jpg", UriKind.Absolute);
+        var testImageUri = new Uri("pack://application:,,,/PickAndPlace;component/Assets/error.jpg", UriKind.Absolute);
 
         ImageMessageBox.Show(
             message: "Phát hiện lỗi sensor tại vị trí Pick.\n\n" +

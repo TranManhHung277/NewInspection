@@ -1,4 +1,4 @@
-namespace Machine.PickAndPlace.Services;
+namespace PickAndPlace.Services;
 
 /// <summary>
 /// Machine settings that persist across sessions

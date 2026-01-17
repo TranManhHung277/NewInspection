@@ -1,7 +1,7 @@
 using System.Windows.Controls;
 using NAutoSuite.UI.Controls;
 
-namespace Machine.PickAndPlace.Views;
+namespace PickAndPlace.Views;
 
 public partial class LogView : UserControl
 {

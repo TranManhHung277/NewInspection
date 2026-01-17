@@ -1,16 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Machine.PickAndPlace.Services;
+using PickAndPlace.Services;
 using NAutoSuite.Core.Machine;
-using PickAndPlace.Frontend.Machine;
+using PickAndPlace.Machine;
 using Serilog;
 using System.Windows.Threading;
 
-namespace Machine.PickAndPlace.ViewModels;
+namespace PickAndPlace.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly PickAndPlaceMachineFrontend _machine;
+    private readonly PickAndPlaceMachine _machine;
     private readonly DispatcherTimer _updateTimer;
     private readonly SettingsService _settingsService;
 
@@ -61,7 +61,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "Initializing...";
 
-    public MainViewModel(PickAndPlaceMachineFrontend machine)
+    public MainViewModel(PickAndPlaceMachine machine)
     {
         _machine = machine;
 
