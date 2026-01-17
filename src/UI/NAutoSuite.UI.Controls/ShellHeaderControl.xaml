@@ -26,20 +26,41 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Station Number (Left) -->
+            <!-- Station Number & Model Name (Left) -->
             <Border Grid.Column="0"
                     Background="#1F6FEB"
                     Padding="25,0"
                     VerticalAlignment="Stretch"
                     HorizontalAlignment="Left">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-
+                    <!-- Machine Number -->
                     <TextBlock x:Name="MachineNumber"
                                Text="#1"
                                FontSize="36"
                                FontWeight="Bold"
                                Foreground="White"
                                VerticalAlignment="Center"/>
+
+                    <!-- Separator -->
+                    <Border Width="2" Background="#FFFFFF" Opacity="0.3"
+                            Margin="15,8" VerticalAlignment="Stretch"/>
+
+                    <!-- Model Name -->
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="MODEL"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="#B0D4FF"
+                                   Margin="0,0,0,2"/>
+                        <TextBlock x:Name="ModelName"
+                                   Text="No Model"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   MaxWidth="200"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

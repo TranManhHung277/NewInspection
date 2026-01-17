@@ -32,6 +32,7 @@
                                     MachineNumberValue="{Binding MachineNumber}"
                                     MachineState="{Binding MachineState}"
                                     ProjectNameValue="{Binding ProjectName}"
+                                    ModelNameValue="{Binding ModelName}"
                                     AlarmMessage="{Binding AlarmMessage}"
                                     HasAlarm="{Binding HasAlarm}"
                                     CloseClicked="HeaderControl_CloseClicked"/>

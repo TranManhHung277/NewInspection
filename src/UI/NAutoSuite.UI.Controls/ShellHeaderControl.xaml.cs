@@ -30,6 +30,10 @@ public partial class ShellHeaderControl : UserControl
         DependencyProperty.Register(nameof(HasAlarm), typeof(bool), typeof(ShellHeaderControl),
             new PropertyMetadata(false, OnHasAlarmChanged));
 
+    public static readonly DependencyProperty ModelNameProperty =
+        DependencyProperty.Register(nameof(ModelNameValue), typeof(string), typeof(ShellHeaderControl),
+            new PropertyMetadata("No Model", OnModelNameChanged));
+
     public int MachineNumberValue
     {
         get => (int)GetValue(MachineNumberProperty);
@@ -58,6 +62,12 @@ public partial class ShellHeaderControl : UserControl
     {
         get => (bool)GetValue(HasAlarmProperty);
         set => SetValue(HasAlarmProperty, value);
+    }
+
+    public string ModelNameValue
+    {
+        get => (string)GetValue(ModelNameProperty);
+        set => SetValue(ModelNameProperty, value);
     }
 
     public event RoutedEventHandler? CloseClicked;
@@ -134,6 +144,15 @@ public partial class ShellHeaderControl : UserControl
             {
                 control.AlarmIndicator.Background = new SolidColorBrush(Color.FromRgb(128, 128, 128)); // Gray
             }
+        }
+    }
+
+    private static void OnModelNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ShellHeaderControl control)
+        {
+            var modelName = e.NewValue?.ToString();
+            control.ModelName.Text = string.IsNullOrEmpty(modelName) ? "No Model" : modelName;
         }
     }
 }

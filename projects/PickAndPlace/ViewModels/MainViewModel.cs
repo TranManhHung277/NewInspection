@@ -2,7 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PickAndPlace.Services;
 using NAutoSuite.Core.Machine;
+using NAutoSuite.Core.Model;
 using PickAndPlace.Machine;
+using PickAndPlace.Model;
 using Serilog;
 using System.Windows.Threading;
 
@@ -13,6 +15,7 @@ public partial class MainViewModel : ObservableObject
     private readonly PickAndPlaceMachine _machine;
     private readonly DispatcherTimer _updateTimer;
     private readonly SettingsService _settingsService;
+    private readonly ModelService<PickAndPlaceModel> _modelService;
 
     [ObservableProperty]
     private MachineState _machineState = MachineState.Uninitialized;
@@ -61,6 +64,20 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "Initializing...";
 
+    // Model
+    [ObservableProperty]
+    private string _modelName = "No Model";
+
+    /// <summary>
+    /// Current loaded model
+    /// </summary>
+    public PickAndPlaceModel? CurrentModel => _modelService.CurrentModel;
+
+    /// <summary>
+    /// Model service for save/load models
+    /// </summary>
+    public ModelService<PickAndPlaceModel> ModelService => _modelService;
+
     public MainViewModel(PickAndPlaceMachine machine)
     {
         _machine = machine;
@@ -70,6 +87,13 @@ public partial class MainViewModel : ObservableObject
         var settings = _settingsService.Load();
         _machineNumber = settings.MachineNumber;
         _projectName = settings.ProjectName;
+
+        // Initialize model service
+        _modelService = new ModelService<PickAndPlaceModel>("PickAndPlace", Log.Logger);
+        _modelService.ModelChanged += OnModelChanged;
+
+        // Try to load default model
+        _ = LoadDefaultModelAsync();
 
         // Subscribe to machine state changes
         _machine.StateChanged += OnMachineStateChanged;
@@ -81,6 +105,38 @@ public partial class MainViewModel : ObservableObject
         };
         _updateTimer.Tick += UpdateTimerTick;
         _updateTimer.Start();
+    }
+
+    private void OnModelChanged(object? sender, ModelChangedEventArgs<PickAndPlaceModel> e)
+    {
+        ModelName = e.NewModel?.Name ?? "No Model";
+        OnPropertyChanged(nameof(CurrentModel));
+        Log.Information("Model changed: {OldModel} -> {NewModel}",
+            e.OldModel?.Name ?? "None",
+            e.NewModel?.Name ?? "None");
+    }
+
+    private async Task LoadDefaultModelAsync()
+    {
+        var model = await _modelService.LoadDefaultModelAsync();
+        if (model == null)
+        {
+            // No default model, check if any models exist
+            var modelNames = _modelService.GetModelNames();
+            if (modelNames.Count == 0)
+            {
+                // Create a default model
+                var defaultModel = _modelService.CreateNewModel("Default");
+                defaultModel.IsDefault = true;
+                await _modelService.SaveModelAsync(defaultModel);
+                Log.Information("Created default model");
+            }
+            else
+            {
+                // Load first available model
+                await _modelService.LoadModelAsync(modelNames[0]);
+            }
+        }
     }
 
     partial void OnMachineNumberChanged(int value)

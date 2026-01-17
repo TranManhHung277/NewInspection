@@ -5,14 +5,407 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1920">
+
+    <UserControl.Resources>
+        <!-- Style for section headers -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1F6FEB"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <!-- Style for field labels -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#B0B0B0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <!-- Style for input fields -->
+        <Style x:Key="InputField" TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="20">
-        <StackPanel>
-            <TextBlock Text="Production Data" FontSize="28" FontWeight="Bold"
-                       Foreground="White" Margin="0,0,0,20"/>
-            <Border Style="{StaticResource Card}">
-                <TextBlock Text="Production statistics and charts"
-                           FontSize="16" Foreground="#B0B0B0"/>
-            </Border>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Model Management" FontSize="28" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text=" - Configure machine models and parameters" FontSize="16"
+                       Foreground="#808080" VerticalAlignment="Bottom" Margin="10,0,0,4"/>
         </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- Model List (Left) -->
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="20"/>
+                <!-- Model Details (Right) -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Model List Panel -->
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Available Models" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="{Binding ModelList.Count, StringFormat=' ({0})'}"
+                                   FontSize="14" Foreground="#808080" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Button Content="+ New" Style="{StaticResource PrimaryButton}"
+                                Width="80" Height="32" FontSize="13"
+                                Command="{Binding CreateNewModelCommand}"/>
+                        <Button Content="Refresh" Style="{StaticResource OutlineButton}"
+                                Width="80" Height="32" FontSize="13" Margin="8,0,0,0"
+                                Command="{Binding RefreshModelListCommand}"/>
+                    </StackPanel>
+
+                    <!-- Model List -->
+                    <ListBox Grid.Row="2" x:Name="ModelListBox"
+                             ItemsSource="{Binding ModelList}"
+                             SelectedItem="{Binding SelectedModelItem}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="12,10" Margin="0,2" CornerRadius="4" Cursor="Hand">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#1E1E1E"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCurrentModel}" Value="True">
+                                                    <Setter Property="Background" Value="#2D3748"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#3E3E42"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                                                <Border Visibility="{Binding IsDefault, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                        Background="#1F6FEB" CornerRadius="3" Padding="6,2" Margin="8,0,0,0">
+                                                    <TextBlock Text="DEFAULT" FontSize="10" Foreground="White"/>
+                                                </Border>
+                                                <Border Visibility="{Binding IsCurrentModel, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                        Background="#4CAF50" CornerRadius="3" Padding="6,2" Margin="8,0,0,0">
+                                                    <TextBlock Text="ACTIVE" FontSize="10" Foreground="White"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#606060"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding ModifiedAt, StringFormat='{}{0:dd/MM HH:mm}'}"
+                                                   FontSize="11" Foreground="#505050" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Model Details Panel -->
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header with Edit/Save buttons -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Model Details" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
+                            <Border Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Background="#FF9800" CornerRadius="3" Padding="8,3" Margin="12,0,0,0">
+                                <TextBlock Text="EDITING" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <!-- Normal mode buttons -->
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                                <Button Content="Edit" Style="{StaticResource PrimaryButton}"
+                                        Width="80" Height="32" FontSize="13"
+                                        Command="{Binding StartEditingCommand}"/>
+                                <Button Content="Clone" Style="{StaticResource OutlineButton}"
+                                        Width="80" Height="32" FontSize="13" Margin="8,0,0,0"
+                                        Command="{Binding CloneModelCommand}"/>
+                                <Button Content="Set Default" Style="{StaticResource OutlineButton}"
+                                        Width="100" Height="32" FontSize="13" Margin="8,0,0,0"
+                                        Command="{Binding SetAsDefaultCommand}"/>
+                                <Button Content="Delete" Style="{StaticResource ErrorButton}"
+                                        Width="80" Height="32" FontSize="13" Margin="8,0,0,0"
+                                        Command="{Binding DeleteModelCommand}"/>
+                            </StackPanel>
+
+                            <!-- Editing mode buttons -->
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Button Content="Save" Style="{StaticResource SuccessButton}"
+                                        Width="100" Height="32" FontSize="13"
+                                        Command="{Binding SaveModelCommand}"/>
+                                <Button Content="Cancel" Style="{StaticResource OutlineButton}"
+                                        Width="80" Height="32" FontSize="13" Margin="8,0,0,0"
+                                        Command="{Binding CancelEditingCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Scrollable Content -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                            <Setter Property="IsEnabled" Value="True"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+
+                            <!-- Basic Info Section -->
+                            <TextBlock Text="BASIC INFORMATION" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#252526" CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Model Name:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource InputField}"
+                                             Text="{Binding EditModelName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Description:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Teaching Positions Section -->
+                            <TextBlock Text="TEACHING POSITIONS (mm)" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#252526" CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Headers -->
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="X" FontWeight="SemiBold" Foreground="#808080" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Y" FontWeight="SemiBold" Foreground="#808080" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Z" FontWeight="SemiBold" Foreground="#808080" HorizontalAlignment="Center"/>
+
+                                    <!-- Home Position -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Home:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding HomePositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="2" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding HomePositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding HomePositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <!-- Pick Position -->
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Pick:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding PickPositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="4" Grid.Column="2" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding PickPositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="4" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding PickPositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <!-- Place Position -->
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Place:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding PlacePositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="6" Grid.Column="2" Style="{StaticResource InputField}" Margin="0,0,8,0"
+                                             Text="{Binding PlacePositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Grid.Row="6" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding PlacePositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Speed Settings Section -->
+                            <TextBlock Text="SPEED SETTINGS (mm/s)" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#252526" CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Move Speed:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource InputField}"
+                                             Text="{Binding MoveSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Approach:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding ApproachSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Speed:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource InputField}"
+                                             Text="{Binding PickSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Speed:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="2" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding PlaceSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Delay Settings Section -->
+                            <TextBlock Text="DELAY SETTINGS (ms)" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#252526" CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Vacuum On:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource InputField}"
+                                             Text="{Binding VacuumOnDelay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Vacuum Off:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding VacuumOffDelay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Delay:" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource InputField}"
+                                             Text="{Binding PickDelay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Delay:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="2" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding PlaceDelay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Process Settings Section -->
+                            <TextBlock Text="PROCESS SETTINGS" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#252526" CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="12"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Vacuum Threshold:" Style="{StaticResource FieldLabel}"/>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                                        <TextBox Style="{StaticResource InputField}" Width="80"
+                                                 Text="{Binding VacuumThreshold, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="%" Foreground="#808080" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Pick Retry Count:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Style="{StaticResource InputField}"
+                                             Text="{Binding PickRetryCount, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Target Cycle Time:" Style="{StaticResource FieldLabel}"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                        <TextBox Style="{StaticResource InputField}" Width="80"
+                                                 Text="{Binding TargetCycleTime, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="sec" Foreground="#808080" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Part Check:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
+                                    <CheckBox Grid.Row="2" Grid.Column="3" IsChecked="{Binding EnablePartCheck}"
+                                              Content="Enable" Foreground="White" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

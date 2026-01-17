@@ -21,11 +21,14 @@ public partial class MainWindow : Window
         _viewModel = viewModel;
         DataContext = _viewModel;
 
+        // Create Model Management ViewModel for DATA tab
+        var modelManagementViewModel = new ModelManagementViewModel(_viewModel.ModelService);
+
         // Create all views
         _autoView = new AutoView { DataContext = _viewModel };
         _manualView = new ManualView { DataContext = _viewModel };
         _settingView = new SettingView { DataContext = _viewModel };
-        _dataView = new DataView { DataContext = _viewModel };
+        _dataView = new DataView(modelManagementViewModel);
         _logView = new LogView();
 
         // Show Auto view by default
