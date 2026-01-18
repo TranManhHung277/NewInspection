@@ -59,6 +59,11 @@ public interface IMachine : IAsyncDisposable
     Task<Result> EmergencyStopAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Home machine
+    /// </summary>
+    Task<Result> HomeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// State changed event
     /// </summary>
     event EventHandler<MachineState>? StateChanged;

@@ -1,6 +1,7 @@
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
+using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Interlock;
 using NAutoSuite.Core.IO;
 using NAutoSuite.Core.Hardware;
@@ -29,16 +30,24 @@ public abstract class MachineBase : IMachine
     private readonly HardwareManager _hardwareManager;
     private readonly IOImage _ioImage;
     private readonly MachineIO _machineIO;
+    private readonly RegisterImage _registerImage;
+    private readonly MachineRegisters _machineRegisters;
     private IOScanService? _ioScanService;
+    private RegisterScanService? _registerScanService;
     private bool _hardwareRegistered;
     private CancellationTokenSource? _runCts;
     private readonly SensorWaiter _sensorWaiter;
+    private readonly MachineProfile? _profile;
+    private bool _autoRestoreRequired;
 
     public string Id { get; }
     public string Name { get; }
     public MachineState State => _stateMachine.State;
     public MachineContext Context { get; }
     public MachineIO IO => _machineIO;
+    public MachineRegisters Reg => _machineRegisters;
+    public RegisterMap? Registers => _profile?.RegisterMap;
+    public IReadOnlyList<AxisDefinition>? ProfileAxes => _profile?.Axes;
     protected HardwareManager Hardware => _hardwareManager;
     public MachineRunMode RunMode { get; private set; } = MachineRunMode.Auto;
     protected CancellationToken RunCancellationToken => _runCts?.Token ?? CancellationToken.None;
@@ -80,18 +89,21 @@ public abstract class MachineBase : IMachine
 
     public event EventHandler<MachineState>? StateChanged;
 
-    protected MachineBase(string id, string name, ILogger? logger = null)
+    protected MachineBase(string id, string name, MachineProfile? profile = null, ILogger? logger = null)
     {
         Guard.AgainstNullOrEmpty(id, nameof(id));
         Guard.AgainstNullOrEmpty(name, nameof(name));
 
         Id = id;
         Name = name;
+        _profile = profile;
         Context = new MachineContext();
         _logger = logger ?? Log.Logger;
         _hardwareManager = new HardwareManager();
         _ioImage = new IOImage();
         _machineIO = new MachineIO(_ioImage);
+        _registerImage = new RegisterImage();
+        _machineRegisters = new MachineRegisters(_registerImage);
         _sensorWaiter = new SensorWaiter(_logger);
 
         // Initialize alarm and interlock managers
@@ -205,6 +217,9 @@ public abstract class MachineBase : IMachine
 
         // Get IO Map from derived class
         var ioMap = GetIOMap();
+        var registerMap = _profile?.RegisterMap;
+        var hasRegisters = registerMap != null &&
+            (registerMap.InputRegisters.Count > 0 || registerMap.OutputRegisters.Count > 0);
         if (ioMap == null)
         {
             _logger.Warning("No IO Map provided - Main loop will not handle common IO");
@@ -234,6 +249,16 @@ public abstract class MachineBase : IMachine
                 await _hardwareManager.UpdateDataAsync(ct);
                 await _commonIOHandler!.ScanAsync(ct);
                 await _ioScanService!.FlushOutputsAsync(ct);
+            }, intervalMs: 100);
+        }
+
+        if (hasRegisters && registerMap != null)
+        {
+            _registerScanService = new RegisterScanService(registerMap, _hardwareManager, _registerImage);
+            _backgroundTaskManager.RegisterTask("RegisterScan", async ct =>
+            {
+                await _registerScanService!.UpdateInputsAsync(ct);
+                await _registerScanService!.FlushOutputsAsync(ct);
             }, intervalMs: 100);
         }
 
@@ -269,6 +294,16 @@ public abstract class MachineBase : IMachine
     {
         try
         {
+            if (RunMode == MachineRunMode.Manual)
+            {
+                return Result.Failure("Cannot start auto cycle in Manual mode");
+            }
+
+            if (_autoRestoreRequired)
+            {
+                return Result.Failure("Please Home/Restore before starting Auto");
+            }
+
             if (State == MachineState.Paused)
             {
                 if (_hardwareManager.Devices.Count > 0 &&
@@ -385,6 +420,16 @@ public abstract class MachineBase : IMachine
                 return Result.Success("Reset ignored while running");
             }
 
+            if (!HasActiveAlarms)
+            {
+                return Result.Success("Reset ignored (no active alarms)");
+            }
+
+            if (State == MachineState.Uninitialized)
+            {
+                return Result.Success("Reset ignored (already uninitialized)");
+            }
+
             Context.Reset();
             ClearAllAlarms();
             await _stateMachine.FireAsync(MachineTrigger.Reset);
@@ -437,12 +482,22 @@ public abstract class MachineBase : IMachine
         if (_hardwareRegistered) return;
 
         OnRegisterHardware(_hardwareManager);
+
+        if (_profile?.Axes is { Count: > 0 })
+        {
+            OnRegisterProfileAxes(_hardwareManager, _profile.Axes);
+        }
         _hardwareRegistered = true;
 
         if (_hardwareManager.IODevices.Count == 0)
         {
             _hardwareManager.RegisterIO(new MachineIoAdapter(this));
         }
+    }
+
+    public virtual Task<Result> HomeAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Result.Failure("Home not supported"));
     }
 
     protected virtual Task OnRunningAsync()
@@ -576,6 +631,16 @@ public abstract class MachineBase : IMachine
         _logger.Information("Machine {Name} run mode set to {Mode}", Name, mode);
     }
 
+    public void RequireAutoRestore()
+    {
+        _autoRestoreRequired = true;
+    }
+
+    protected void MarkAutoRestoreComplete()
+    {
+        _autoRestoreRequired = false;
+    }
+
     protected async Task<Result> WaitForInputOnAsync(
         string address,
         int timeoutMs,
@@ -643,10 +708,18 @@ public abstract class MachineBase : IMachine
     }
 
     /// <summary>
+    /// Override this to register axes based on the profile definitions.
+    /// </summary>
+    protected virtual void OnRegisterProfileAxes(HardwareManager hardwareManager, IReadOnlyList<AxisDefinition> axes)
+    {
+        // Derived classes can register profile axes here
+    }
+
+    /// <summary>
     /// Override this to provide IO Map for automatic IO scanning
     /// Return null if you don't want automatic IO handling
     /// </summary>
-    protected virtual IOMap? GetIOMap() => null;
+    protected virtual IOMap? GetIOMap() => _profile?.IOMap;
 
     /// <summary>
     /// Override this to react to hardware connection failures.

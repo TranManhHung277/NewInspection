@@ -22,6 +22,7 @@ public partial class MainViewModel : ObservableObject
     private readonly SimulatorAxis? _axisZSim;
     private bool _isSyncingSimPosition;
     private bool _autoInitAttempted;
+    private bool _modeSyncing;
     private DispatcherTimer? _homeHoldTimer;
     private readonly DispatcherTimer _updateTimer;
     private readonly SettingsService _settingsService;
@@ -68,6 +69,15 @@ public partial class MainViewModel : ObservableObject
     private bool _buzzer;
 
     [ObservableProperty]
+    private bool _redBlink;
+
+    [ObservableProperty]
+    private bool _yellowBlink;
+
+    [ObservableProperty]
+    private bool _greenBlink;
+
+    [ObservableProperty]
     private double _axisXPosition;
 
     [ObservableProperty]
@@ -110,6 +120,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _vacuumOk;
 
+    [ObservableProperty]
+    private bool _vacuumOn;
+
+    [ObservableProperty]
+    private bool _materialLow;
+
     // IO Outputs
     [ObservableProperty]
     private bool _cylinderExtendOutput;
@@ -123,9 +139,21 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "Initializing...";
 
+    [ObservableProperty]
+    private string _axisXStatus = string.Empty;
+
+    [ObservableProperty]
+    private string _axisXTargetPosition = "0";
+
+    [ObservableProperty]
+    private int _jogSpeedIndex;
+
     // Model
     [ObservableProperty]
     private string _modelName = "No Model";
+
+    [ObservableProperty]
+    private bool _isManualMode;
 
     /// <summary>
     /// Current loaded model
@@ -250,6 +278,53 @@ public partial class MainViewModel : ObservableObject
         _machine.SetRunMode(value);
     }
 
+    partial void OnIsManualModeChanged(bool value)
+    {
+        if (_modeSyncing) return;
+
+        if (value)
+        {
+            _ = SwitchToManualAsync();
+        }
+        else
+        {
+            SwitchToAutoMode();
+        }
+    }
+
+    private async Task SwitchToManualAsync()
+    {
+        try
+        {
+            var wasRunning = MachineState == MachineState.Running || MachineState == MachineState.Paused;
+            if (MachineState == MachineState.Running)
+            {
+                await _machine.StopAsync();
+            }
+
+            if (wasRunning)
+            {
+                _machine.CaptureAutoSnapshot();
+                _machine.RequireAutoRestore();
+            }
+
+            _modeSyncing = true;
+            RunMode = MachineRunMode.Manual;
+            _modeSyncing = false;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Switch to manual failed");
+        }
+    }
+
+    private void SwitchToAutoMode()
+    {
+        _modeSyncing = true;
+        RunMode = _lastAutoMode;
+        _modeSyncing = false;
+    }
+
     [RelayCommand]
     private void SetAutoMode()
     {
@@ -266,12 +341,12 @@ public partial class MainViewModel : ObservableObject
 
     public void SetManualMode()
     {
-        RunMode = MachineRunMode.Manual;
+        _ = SwitchToManualAsync();
     }
 
     public void RestoreAutoMode()
     {
-        RunMode = _lastAutoMode;
+        SwitchToAutoMode();
     }
 
     private void OnMachineStateChanged(object? sender, MachineState newState)
@@ -284,6 +359,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void HomeHoldStart()
     {
+        if (RunMode != MachineRunMode.Manual)
+        {
+            _ = RestoreAutoSnapshotAsync();
+            return;
+        }
+
         if (_homeHoldTimer != null) return;
 
         StatusMessage = "Hold HOME for 3s to start homing";
@@ -304,6 +385,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void HomeHoldEnd()
     {
+        if (RunMode != MachineRunMode.Manual) return;
         if (_homeHoldTimer == null) return;
         _homeHoldTimer.Stop();
         _homeHoldTimer = null;
@@ -326,6 +408,18 @@ public partial class MainViewModel : ObservableObject
             AxisZPosition = _machine.AxisZPosition;
             IsAxisMoving = _machine.IsAxisMoving;
             AutoStep = _machine.AutoStep;
+            RunMode = _machine.RunMode;
+            AxisXStatus = _machine.AxisXInAlarm
+                ? "Alarm"
+                : _machine.AxisXIsMoving
+                    ? "Moving"
+                    : _machine.AxisXIsHomed
+                        ? "Homed"
+                        : "Idle";
+
+            _modeSyncing = true;
+            IsManualMode = RunMode == MachineRunMode.Manual;
+            _modeSyncing = false;
 
             _isSyncingSimPosition = true;
             SimulatedXPosition = AxisXPosition;
@@ -336,10 +430,10 @@ public partial class MainViewModel : ObservableObject
             // Update header status based on machine state
             UpdateHeaderStatus();
 
+            UpdateIOStates();
+
             // Update tower lights
             UpdateTowerLights();
-
-            UpdateIOStates();
         }
         catch (Exception ex)
         {
@@ -349,17 +443,27 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateTowerLights()
     {
-        // Reset all lights
         TowerLightGreen = false;
         TowerLightYellow = false;
         TowerLightRed = false;
         Buzzer = false;
+        RedBlink = false;
+        YellowBlink = false;
+        GreenBlink = false;
+
+        var hasErrorAlarm = _machine.ActiveAlarms.Any(a =>
+            a.Severity == NAutoSuite.Core.Alarm.AlarmSeverity.Error ||
+            a.Severity == NAutoSuite.Core.Alarm.AlarmSeverity.Critical);
+        var hasWarningAlarm = _machine.ActiveAlarms.Any(a =>
+            a.Severity == NAutoSuite.Core.Alarm.AlarmSeverity.Warning);
+        var hasWarningCondition = hasWarningAlarm || MaterialLow;
 
         switch (MachineState)
         {
             case MachineState.Uninitialized:
             case MachineState.Initializing:
-                TowerLightYellow = true;  // Blinking được handle bởi animation trong XAML
+                TowerLightYellow = true;
+                YellowBlink = true;
                 break;
 
             case MachineState.Idle:
@@ -369,15 +473,40 @@ public partial class MainViewModel : ObservableObject
 
             case MachineState.Running:
                 TowerLightGreen = true;
+                if (hasErrorAlarm)
+                {
+                    TowerLightRed = true;
+                    RedBlink = true;
+                }
+                if (hasWarningCondition)
+                {
+                    TowerLightYellow = true;
+                    YellowBlink = true;
+                }
                 break;
 
             case MachineState.Paused:
-                TowerLightGreen = true;  // Blinking
+                TowerLightGreen = true;
+                if (hasErrorAlarm)
+                {
+                    TowerLightRed = true;
+                    RedBlink = true;
+                }
+                else if (hasWarningCondition)
+                {
+                    TowerLightYellow = true;
+                    YellowBlink = true;
+                }
+                else
+                {
+                    GreenBlink = true;
+                }
                 break;
 
             case MachineState.EmergencyStop:
             case MachineState.Error:
-                TowerLightRed = true;  // Blinking
+                TowerLightRed = true;
+                RedBlink = true;
                 Buzzer = true;
                 break;
 
@@ -416,7 +545,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Warning states - has alarms but not critical
-        if (_machine.HasActiveAlarms)
+        if (_machine.HasActiveAlarms || MaterialLow)
         {
             HeaderStatusLevel = HeaderStatusLevel.Warning;
             return;
@@ -455,6 +584,7 @@ public partial class MainViewModel : ObservableObject
     private void UpdateIOStates()
     {
         var map = _machine.IOMap;
+        var common = map.CommonInputs;
 
         PartPresent = _ioSimulator.GetInput(map.MachineInputs.PartPresent);
         TestOk = _ioSimulator.GetInput(map.MachineInputs.TestOk);
@@ -462,9 +592,11 @@ public partial class MainViewModel : ObservableObject
         CylinderExtended = _ioSimulator.GetInput(map.MachineInputs.CylinderExtended);
         CylinderRetracted = _ioSimulator.GetInput(map.MachineInputs.CylinderRetracted);
         VacuumOk = _ioSimulator.GetInput(map.MachineInputs.VacuumOk);
+        MaterialLow = _ioSimulator.GetInput(common.MaterialLow);
 
         CylinderExtendOutput = _ioSimulator.GetOutput(map.MachineOutputs.CylinderExtend);
         VacuumOnOutput = _ioSimulator.GetOutput(map.MachineOutputs.VacuumOn);
+        VacuumOn = VacuumOnOutput;
     }
 
     [RelayCommand]
@@ -580,6 +712,29 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private async Task RestoreAutoSnapshotAsync()
+    {
+        try
+        {
+            StatusMessage = "Restoring auto state...";
+            var result = await _machine.RestoreAutoSnapshotAsync();
+            if (!result.IsSuccess)
+            {
+                StatusMessage = $"Restore failed: {result.Message}";
+                Log.Error("Restore auto snapshot failed: {Message}", result.Message);
+            }
+            else
+            {
+                StatusMessage = "Auto state restored";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Restore error: {ex.Message}";
+            Log.Error(ex, "Restore auto snapshot error");
+        }
+    }
+
     [RelayCommand]
     private async Task EmergencyStopAsync()
     {
@@ -620,6 +775,144 @@ public partial class MainViewModel : ObservableObject
         var address = _machine.IOMap.MachineInputs.TestNg;
         _ioSimulator.SetInput(address, !TestNg);
         UpdateIOStates();
+    }
+
+    [RelayCommand]
+    private void ToggleMaterialLow()
+    {
+        var address = _machine.IOMap.CommonInputs.MaterialLow;
+        _ioSimulator.SetInput(address, !MaterialLow);
+        UpdateIOStates();
+    }
+
+    private bool EnsureManual(string action)
+    {
+        if (RunMode == MachineRunMode.Manual) return true;
+        StatusMessage = $"{action} only in Manual mode";
+        return false;
+    }
+
+    private double GetJogSpeed()
+    {
+        return JogSpeedIndex switch
+        {
+            0 => 10,
+            1 => 50,
+            2 => 100,
+            _ => 50
+        };
+    }
+
+    [RelayCommand]
+    private async Task JogXNegativeAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogXAsync(-5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task JogXPositiveAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogXAsync(5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task JogYNegativeAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogYAsync(-5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task JogYPositiveAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogYAsync(5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task JogZDownAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogZAsync(-5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task JogZUpAsync()
+    {
+        if (!EnsureManual("Jog")) return;
+        await _machine.JogZAsync(5, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task MoveAxisXAsync()
+    {
+        if (!EnsureManual("Move")) return;
+        if (!double.TryParse(AxisXTargetPosition, out var target))
+        {
+            StatusMessage = "Invalid X position";
+            return;
+        }
+
+        await _machine.MoveAxisXAsync(target, GetJogSpeed());
+    }
+
+    [RelayCommand]
+    private async Task HomeAxisXAsync()
+    {
+        if (!EnsureManual("Home")) return;
+        await _machine.HomeAxisXAsync();
+    }
+
+    [RelayCommand]
+    private async Task HomeAxisYAsync()
+    {
+        if (!EnsureManual("Home")) return;
+        await _machine.HomeAxisYAsync();
+    }
+
+    [RelayCommand]
+    private async Task HomeAxisZAsync()
+    {
+        if (!EnsureManual("Home")) return;
+        await _machine.HomeAxisZAsync();
+    }
+
+    [RelayCommand]
+    private async Task MoveToPickAsync()
+    {
+        if (!EnsureManual("Move")) return;
+        await _machine.MoveToPickAsync();
+    }
+
+    [RelayCommand]
+    private async Task MoveToPlaceAsync()
+    {
+        if (!EnsureManual("Move")) return;
+        await _machine.MoveToPlaceAsync();
+    }
+
+    [RelayCommand]
+    private async Task MoveToHomeAsync()
+    {
+        if (!EnsureManual("Move")) return;
+        await _machine.MoveToHomeAsync();
+    }
+
+    [RelayCommand]
+    private void ToggleVacuum()
+    {
+        if (!EnsureManual("Vacuum")) return;
+        VacuumOn = !VacuumOn;
+        _machine.SetVacuum(VacuumOn);
+    }
+
+    [RelayCommand]
+    private async Task StopAllAxesAsync()
+    {
+        if (!EnsureManual("Stop")) return;
+        await _machine.StopAllAxesAsync();
     }
 
     public void NavigateToView(object view)

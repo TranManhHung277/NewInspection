@@ -8,11 +8,15 @@ namespace NAutoSuite.Hardware.Simulator;
 /// <summary>
 /// Simulated Leadshine EtherCAT master with digital IO.
 /// </summary>
-public class LeadshineEthercatSimulator : IEtherCATMaster, IIO, IHardwareDataProvider
+public class LeadshineEthercatSimulator : IEtherCATMaster, IIO, IRegisterIO, IHardwareDataProvider
 {
     private readonly ConcurrentDictionary<string, bool> _inputs =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, bool> _outputs =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, double> _registerInputs =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, double> _registerOutputs =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly List<ScheduledSignal> _scheduled = new();
     private readonly object _lock = new();
@@ -58,6 +62,8 @@ public class LeadshineEthercatSimulator : IEtherCATMaster, IIO, IHardwareDataPro
     {
         _inputs.Clear();
         _outputs.Clear();
+        _registerInputs.Clear();
+        _registerOutputs.Clear();
         EnsureDefaultCommonInputs();
         return Task.FromResult(Result.Success("Simulator reset"));
     }
@@ -96,10 +102,28 @@ public class LeadshineEthercatSimulator : IEtherCATMaster, IIO, IHardwareDataPro
         return Task.FromResult(Result.Success("Output updated"));
     }
 
+    public Task<Result<double>> ReadRegisterAsync(string address, CancellationToken cancellationToken = default)
+    {
+        var value = _registerInputs.TryGetValue(address, out var current) ? current : 0;
+        return Task.FromResult(Result.Success(value));
+    }
+
+    public Task<Result> WriteRegisterAsync(string address, double value, CancellationToken cancellationToken = default)
+    {
+        _registerOutputs[address] = value;
+        return Task.FromResult(Result.Success("Register updated"));
+    }
+
     public void SetInput(string address, bool value)
     {
         if (string.IsNullOrWhiteSpace(address)) return;
         _inputs[address] = value;
+    }
+
+    public void SetRegisterInput(string address, double value)
+    {
+        if (string.IsNullOrWhiteSpace(address)) return;
+        _registerInputs[address] = value;
     }
 
     public bool GetInput(string address)
@@ -220,6 +244,10 @@ public class LeadshineEthercatSimulator : IEtherCATMaster, IIO, IHardwareDataPro
         _inputs.TryAdd("IX0.3", false); // Reset
         _inputs.TryAdd("IX0.4", false); // Safety door open
         _inputs.TryAdd("IX0.5", true);  // Air pressure OK
+        _inputs.TryAdd("IX0.6", false); // Home
+        _inputs.TryAdd("IX0.7", true);  // Auto switch
+        _inputs.TryAdd("IX0.8", false); // Manual switch
+        _inputs.TryAdd("IX0.9", false); // Material low
     }
 
     private sealed class ScheduledSignal

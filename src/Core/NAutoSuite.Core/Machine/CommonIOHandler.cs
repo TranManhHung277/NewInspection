@@ -20,6 +20,10 @@ public class CommonIOHandler
     private bool _prevStartState;
     private bool _prevStopState;
     private bool _prevResetState;
+    private bool _prevHomeState;
+    private bool _prevAutoSwitchState;
+    private bool _prevManualSwitchState;
+    private bool _prevMaterialLowState;
 
     // Tower light flash timer
     private int _flashCounter;
@@ -70,6 +74,9 @@ public class CommonIOHandler
         bool start = _ioImage.GetInput(_ioMap.CommonInputs.StartButton);
         bool stop = _ioImage.GetInput(_ioMap.CommonInputs.StopButton);
         bool reset = _ioImage.GetInput(_ioMap.CommonInputs.ResetButton);
+        bool home = _ioImage.GetInput(_ioMap.CommonInputs.HomeButton);
+        bool autoSwitch = _ioImage.GetInput(_ioMap.CommonInputs.AutoModeSwitch);
+        bool manualSwitch = _ioImage.GetInput(_ioMap.CommonInputs.ManualModeSwitch);
 
         // ===== EMERGENCY STOP =====
         // EMG có tín hiệu (level trigger, không cần edge)
@@ -117,10 +124,43 @@ public class CommonIOHandler
             await _machine.ResetAsync(ct);
         }
 
+        // ===== HOME BUTTON =====
+        if (home && !_prevHomeState)
+        {
+            if (_machine.State == MachineState.Idle || _machine.State == MachineState.Stopped)
+            {
+                _logger.Information("Home button pressed - Homing machine");
+                await _machine.HomeAsync(ct);
+            }
+            else
+            {
+                _logger.Warning("Home button pressed but machine is in {State}", _machine.State);
+            }
+        }
+
+        // ===== AUTO/MANUAL SWITCH =====
+        if (autoSwitch != _prevAutoSwitchState || manualSwitch != _prevManualSwitchState)
+        {
+            if (_machine is MachineBase machineBase)
+            {
+                if (autoSwitch && !manualSwitch)
+                {
+                    machineBase.SetRunMode(MachineRunMode.Auto);
+                }
+                else if (manualSwitch && !autoSwitch)
+                {
+                    machineBase.SetRunMode(MachineRunMode.Manual);
+                }
+            }
+        }
+
         // Save current states for next cycle
         _prevStartState = start;
         _prevStopState = stop;
         _prevResetState = reset;
+        _prevHomeState = home;
+        _prevAutoSwitchState = autoSwitch;
+        _prevManualSwitchState = manualSwitch;
     }
 
     /// <summary>
@@ -208,5 +248,17 @@ public class CommonIOHandler
             _logger.Warning("Air pressure lost during operation - Stopping machine");
             await _machine.StopAsync(ct);
         }
+
+        bool materialLow = _ioImage.GetInput(_ioMap.CommonInputs.MaterialLow);
+        if (materialLow && !_prevMaterialLowState)
+        {
+            _logger.Warning("Material low during operation");
+        }
+        else if (!materialLow && _prevMaterialLowState)
+        {
+            _logger.Information("Material restored");
+        }
+
+        _prevMaterialLowState = materialLow;
     }
 }

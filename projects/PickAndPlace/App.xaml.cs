@@ -44,49 +44,57 @@ public partial class App : Application
                 // Register Serilog ILogger for injection
                 services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
 
+                services.AddSingleton<PickAndPlaceProfile>();
+
                 services.AddSingleton<LeadshineEthercatSimulator>(sp =>
                 {
                     var sim = new LeadshineEthercatSimulator();
-                    sim.RegisterCylinder("QX1.0", "IX1.3", "IX1.4");
-                    sim.RegisterVacuum("QX1.1", "IX1.5");
-                    sim.SetInput("IX1.4", true);
-                    sim.SetInput("IX0.5", true);
-                    sim.ConfigureTestHead("IX1.0", "IX1.1", "IX1.2", cycleMs: 1500, okProbability: 0.7, pulseMs: 300);
+                    var profile = sp.GetRequiredService<PickAndPlaceProfile>();
+                    var map = (PickAndPlaceIOMap)profile.IOMap;
+
+                    sim.RegisterCylinder(map.MachineOutputs.CylinderExtend,
+                        map.MachineInputs.CylinderExtended,
+                        map.MachineInputs.CylinderRetracted);
+                    sim.RegisterVacuum(map.MachineOutputs.VacuumOn, map.MachineInputs.VacuumOk);
+                    sim.SetInput(map.MachineInputs.CylinderRetracted, true);
+                    sim.SetInput(map.CommonInputs.AirPressure, true);
+                    sim.ConfigureTestHead(map.MachineInputs.PartPresent,
+                        map.MachineInputs.TestOk,
+                        map.MachineInputs.TestNg,
+                        cycleMs: 1500,
+                        okProbability: 0.7,
+                        pulseMs: 300);
                     return sim;
                 });
 
                 services.AddSingleton<IEtherCATMaster>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
                 services.AddSingleton<IIO>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
+                services.AddSingleton<IRegisterIO>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
 
-                // Register simulated axes (3 axes)
-                services.AddSingleton<IAxis>(sp =>
+                // Register simulated axes from profile
+                services.AddSingleton<IEnumerable<IAxis>>(sp =>
                 {
+                    var profile = sp.GetRequiredService<PickAndPlaceProfile>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new SimulatorAxis("PAP_SIM_X", "AxisX", logger);
-                });
-
-                services.AddSingleton<IAxis>(sp =>
-                {
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new SimulatorAxis("PAP_SIM_Y", "AxisY", logger);
-                });
-
-                services.AddSingleton<IAxis>(sp =>
-                {
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new SimulatorAxis("PAP_SIM_Z", "AxisZ", logger);
+                    return profile.Axes.Select(axis =>
+                    {
+                        var id = $"PAP_SIM_{axis.Name}";
+                        return (IAxis)new SimulatorAxis(id, axis.Name, logger);
+                    }).ToList();
                 });
 
                 // Register PickAndPlace Machine
                 services.AddSingleton<PickAndPlaceMachine>(sp =>
                 {
-                    var axes = sp.GetServices<IAxis>().ToList();
-                    var axisX = axes[0];
-                    var axisY = axes[1];
-                    var axisZ = axes[2];
+                    var axes = sp.GetRequiredService<IEnumerable<IAxis>>().ToList();
+                    var axisMap = axes.ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+                    var axisX = axisMap["AxisX"];
+                    var axisY = axisMap["AxisY"];
+                    var axisZ = axisMap["AxisZ"];
                     var master = sp.GetRequiredService<IEtherCATMaster>();
+                    var profile = sp.GetRequiredService<PickAndPlaceProfile>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new PickAndPlaceMachine(axisX, axisY, axisZ, master, logger);
+                    return new PickAndPlaceMachine(axisX, axisY, axisZ, master, profile, logger);
                 });
 
                 // Register ViewModels
@@ -107,7 +115,7 @@ public partial class App : Application
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
-        Log.Information("MainWindow displayed. Application ready. Hardware NOT initialized yet - waiting for user to click Initialize button.");
+        Log.Information("MainWindow displayed. Application ready (auto-initialize enabled).");
 
         Log.Information("Pick and Place Machine Application started (Simulation Mode)");
     }

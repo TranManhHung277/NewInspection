@@ -21,7 +21,7 @@ public class TemplateMachine : MachineBase
         IAxis? axisX = null,
         IAxis? axisY = null,
         ILogger? logger = null)
-        : base(id, name, logger)
+        : base(id, name, null, logger)
     {
         _axisX = axisX;
         _axisY = axisY;

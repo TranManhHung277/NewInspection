@@ -10,11 +10,14 @@ public class HardwareManager
 {
     private readonly List<IDevice> _devices = new();
     private readonly List<IIO> _ioDevices = new();
+    private readonly List<IRegisterIO> _registerDevices = new();
     private readonly List<IHardwareDataProvider> _dataProviders = new();
 
     public IReadOnlyList<IDevice> Devices => _devices.AsReadOnly();
 
     public IReadOnlyList<IIO> IODevices => _ioDevices.AsReadOnly();
+
+    public IReadOnlyList<IRegisterIO> RegisterDevices => _registerDevices.AsReadOnly();
 
     public IReadOnlyList<IHardwareDataProvider> DataProviders => _dataProviders.AsReadOnly();
 
@@ -29,6 +32,14 @@ public class HardwareManager
             if (!_ioDevices.Contains(ioDevice))
             {
                 _ioDevices.Add(ioDevice);
+            }
+        }
+
+        if (device is IRegisterIO registerDevice)
+        {
+            if (!_registerDevices.Contains(registerDevice))
+            {
+                _registerDevices.Add(registerDevice);
             }
         }
 

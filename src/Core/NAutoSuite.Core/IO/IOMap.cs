@@ -35,32 +35,52 @@ public class CommonInputMap
     /// <summary>
     /// Emergency stop button
     /// </summary>
-    public string EmergencyStop { get; set; } = "IX0.0";
+    public string EmergencyStop { get; set; } = string.Empty;
 
     /// <summary>
     /// Start button
     /// </summary>
-    public string StartButton { get; set; } = "IX0.1";
+    public string StartButton { get; set; } = string.Empty;
 
     /// <summary>
     /// Stop button
     /// </summary>
-    public string StopButton { get; set; } = "IX0.2";
+    public string StopButton { get; set; } = string.Empty;
 
     /// <summary>
     /// Reset button
     /// </summary>
-    public string ResetButton { get; set; } = "IX0.3";
+    public string ResetButton { get; set; } = string.Empty;
 
     /// <summary>
     /// Safety door sensor
     /// </summary>
-    public string SafetyDoor { get; set; } = "IX0.4";
+    public string SafetyDoor { get; set; } = string.Empty;
 
     /// <summary>
     /// Air pressure sensor
     /// </summary>
-    public string AirPressure { get; set; } = "IX0.5";
+    public string AirPressure { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Home button
+    /// </summary>
+    public string HomeButton { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Auto mode selector switch
+    /// </summary>
+    public string AutoModeSwitch { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Manual mode selector switch
+    /// </summary>
+    public string ManualModeSwitch { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Material/fuel low warning
+    /// </summary>
+    public string MaterialLow { get; set; } = string.Empty;
 }
 
 /// <summary>

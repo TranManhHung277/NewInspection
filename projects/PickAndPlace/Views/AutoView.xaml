@@ -15,22 +15,22 @@
         </Storyboard>
     </UserControl.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Title -->
-        <TextBlock Grid.Row="0" Text="Automatic Mode - EtherCAT Simulation" FontSize="28" FontWeight="Bold"
-                   Foreground="White" Margin="0,0,0,20"/>
+        <TextBlock Grid.Row="0" Text="Automatic Mode - EtherCAT Simulation" FontSize="22" FontWeight="Bold"
+                   Foreground="White" Margin="0,0,0,12"/>
 
         <!-- Content -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.8*"/>
                 <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.2*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left: Machine Status & Axis Info -->
@@ -44,7 +44,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.2*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Status: " FontSize="16" Foreground="#B0B0B0"/>
                             <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" FontSize="16"
@@ -56,7 +56,7 @@
                     <Border Background="#252526" Padding="16" CornerRadius="4" Margin="0,0,0,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.2*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Total Cycles" FontSize="16" Foreground="#B0B0B0"/>
@@ -69,7 +69,7 @@
                     <Border Background="#252526" Padding="16" CornerRadius="4" Margin="0,0,0,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.2*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Run Time" FontSize="16" Foreground="#B0B0B0"/>
@@ -108,7 +108,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.2*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="Auto Step:" FontSize="16" Foreground="#B0B0B0"/>
                             <TextBlock Grid.Column="1" Text="{Binding AutoStep}" FontSize="16"
@@ -126,23 +126,22 @@
                                 <!-- Red Light -->
                                 <Border Width="60" Height="60" CornerRadius="30" Margin="10"
                                         Background="{Binding TowerLightRed, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Red'}">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MachineState}" Value="EmergencyStop">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard Storyboard="{StaticResource BlinkingAnimation}"/>
-                                                    </DataTrigger.EnterActions>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding MachineState}" Value="Error">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard Storyboard="{StaticResource BlinkingAnimation}"/>
-                                                    </DataTrigger.EnterActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <TextBlock Text="RED" FontSize="10" FontWeight="Bold"
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RedBlink}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard x:Name="RedBlinkStoryboard"
+                                                                     Storyboard="{StaticResource BlinkingAnimation}"/>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="RedBlinkStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="RED" FontSize="10" FontWeight="Bold"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Foreground="White"/>
                                 </Border>
@@ -150,18 +149,22 @@
                                 <!-- Yellow Light -->
                                 <Border Width="60" Height="60" CornerRadius="30" Margin="10"
                                         Background="{Binding TowerLightYellow, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Yellow'}">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MachineState}" Value="Initializing">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard Storyboard="{StaticResource BlinkingAnimation}"/>
-                                                    </DataTrigger.EnterActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <TextBlock Text="YELLOW" FontSize="9" FontWeight="Bold"
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding YellowBlink}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard x:Name="YellowBlinkStoryboard"
+                                                                     Storyboard="{StaticResource BlinkingAnimation}"/>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="YellowBlinkStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="YELLOW" FontSize="9" FontWeight="Bold"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Foreground="Black"/>
                                 </Border>
@@ -169,18 +172,22 @@
                                 <!-- Green Light -->
                                 <Border Width="60" Height="60" CornerRadius="30" Margin="10"
                                         Background="{Binding TowerLightGreen, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MachineState}" Value="Paused">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard Storyboard="{StaticResource BlinkingAnimation}"/>
-                                                    </DataTrigger.EnterActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <TextBlock Text="GREEN" FontSize="9" FontWeight="Bold"
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding GreenBlink}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard x:Name="GreenBlinkStoryboard"
+                                                                     Storyboard="{StaticResource BlinkingAnimation}"/>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="GreenBlinkStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="GREEN" FontSize="9" FontWeight="Bold"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Foreground="White"/>
                                 </Border>
@@ -221,192 +228,191 @@
             <!-- Right: Control Panel -->
             <Border Grid.Column="2" Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="Control Panel" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16"/>
-
-                    <!-- Initialize Button -->
-                    <Button Content="⚙ INITIALIZE" Style="{StaticResource PrimaryButton}"
-                            Height="60" FontSize="18" Margin="0,0,0,12"
-                            Command="{Binding InitializeCommand}"/>
-
-                    <!-- Home Button -->
-                    <Button Content="🏠 HOLD HOME" Style="{StaticResource PrimaryButton}"
-                            Height="60" FontSize="18" Margin="0,0,0,20"
-                            PreviewMouseLeftButtonDown="HomeHoldStart"
-                            PreviewMouseLeftButtonUp="HomeHoldEnd"/>
-
-                    <!-- Start Button -->
-                    <Button Content="▶ START" Style="{StaticResource SuccessButton}"
-                            Height="70" FontSize="20" Margin="0,0,0,12"
-                            Command="{Binding StartCommand}" FontWeight="Bold"/>
-
-                    <!-- Stop Button -->
-                    <Button Content="⏹ STOP" Style="{StaticResource ErrorButton}"
-                            Height="70" FontSize="20" Margin="0,0,0,12"
-                            Command="{Binding StopCommand}" FontWeight="Bold"/>
-
-                    <!-- Emergency Stop Button -->
-                    <Button Content="🛑 EMERGENCY STOP" Background="#D32F2F" Foreground="White"
-                            Height="70" FontSize="18" Margin="0,0,0,20" FontWeight="Bold"
-                            Command="{Binding EmergencyStopCommand}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                    BorderBrush="#FF5252" BorderThickness="3"
-                                                    CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#B71C1C"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
-                    <!-- Reset Button -->
-                    <Button Content="🔄 RESET" Style="{StaticResource OutlineButton}"
-                            Height="50" FontSize="16"
-                            Command="{Binding ResetCommand}"/>
+                    <TextBlock Text="Control Panel" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
                     <!-- Run Mode -->
-                    <Border Background="#1E1E1E" Padding="12" CornerRadius="8" Margin="0,20,0,0">
+                    <Border Background="#1E1E1E" Padding="8" CornerRadius="8" Margin="0,8,0,0">
                         <StackPanel>
-                            <TextBlock Text="Run Mode" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <TextBlock Text="Run Mode" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="AUTO" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <ToggleButton Width="64" Height="24"
+                                              IsChecked="{Binding IsManualMode}"
+                                              Content="MANUAL" FontSize="11"/>
+                                <TextBlock Text="MANUAL" Foreground="#8B949E" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="AUTO" Style="{StaticResource SuccessButton}"
-                                        Height="44" FontSize="16" Width="110"
-                                        Command="{Binding SetAutoModeCommand}" Margin="0,0,10,0"/>
+                                        Height="32" FontSize="12" Width="92"
+                                        Command="{Binding SetAutoModeCommand}" Margin="0,0,8,0"/>
                                 <Button Content="DRY RUN" Style="{StaticResource OutlineButton}"
-                                        Height="44" FontSize="16" Width="110"
+                                        Height="32" FontSize="12" Width="92"
                                         Command="{Binding SetDryRunModeCommand}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- IO Simulation -->
-                    <Border Background="#1E1E1E" Padding="16" CornerRadius="8" Margin="0,20,0,0">
+                    <Border Background="#1E1E1E" Padding="10" CornerRadius="8" Margin="0,8,0,0">
                         <StackPanel>
-                            <TextBlock Text="IO Simulation" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                            <TextBlock Text="IO Simulation" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6"/>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="Toggle Part Present" Style="{StaticResource OutlineButton}"
-                                        Command="{Binding TogglePartPresentCommand}" Margin="0,0,10,0"/>
-                                <Ellipse Width="18" Height="18" VerticalAlignment="Center">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding PartPresent, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
+                            <UniformGrid Columns="2" Rows="2" Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,8,6">
+                                    <Button Content="Part Present" Style="{StaticResource OutlineButton}"
+                                            Width="120" Height="28" FontSize="11"
+                                            Command="{Binding TogglePartPresentCommand}" Margin="0,0,6,0"/>
+                                    <Ellipse Width="14" Height="14" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding PartPresent, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="Toggle OK" Style="{StaticResource OutlineButton}"
-                                        Command="{Binding ToggleTestOkCommand}" Margin="0,0,10,0"/>
-                                <Ellipse Width="18" Height="18" VerticalAlignment="Center">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding TestOk, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Button Content="Test OK" Style="{StaticResource OutlineButton}"
+                                            Width="120" Height="28" FontSize="11"
+                                            Command="{Binding ToggleTestOkCommand}" Margin="0,0,6,0"/>
+                                    <Ellipse Width="14" Height="14" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding TestOk, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <Button Content="Toggle NG" Style="{StaticResource OutlineButton}"
-                                        Command="{Binding ToggleTestNgCommand}" Margin="0,0,10,0"/>
-                                <Ellipse Width="18" Height="18" VerticalAlignment="Center">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding TestNg, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Red'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                                    <Button Content="Test NG" Style="{StaticResource OutlineButton}"
+                                            Width="120" Height="28" FontSize="11"
+                                            Command="{Binding ToggleTestNgCommand}" Margin="0,0,6,0"/>
+                                    <Ellipse Width="14" Height="14" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding TestNg, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Red'}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </StackPanel>
 
-                            <TextBlock Text="Sensors" FontSize="14" Foreground="#B0B0B0" Margin="0,0,0,8"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Text="Cylinder Extended" Width="150" Foreground="White"/>
-                                <Ellipse Width="16" Height="16">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding CylinderExtended, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Text="Cylinder Retracted" Width="150" Foreground="White"/>
-                                <Ellipse Width="16" Height="16">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding CylinderRetracted, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <TextBlock Text="Vacuum OK" Width="150" Foreground="White"/>
-                                <Ellipse Width="16" Height="16">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding VacuumOk, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Material Low" Style="{StaticResource OutlineButton}"
+                                            Width="120" Height="28" FontSize="11"
+                                            Command="{Binding ToggleMaterialLowCommand}" Margin="0,0,6,0"/>
+                                    <Ellipse Width="14" Height="14" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding MaterialLow, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Yellow'}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </StackPanel>
+                            </UniformGrid>
 
-                            <TextBlock Text="Outputs" FontSize="14" Foreground="#B0B0B0" Margin="0,0,0,8"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Text="Cylinder Extend" Width="150" Foreground="White"/>
-                                <Ellipse Width="16" Height="16">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding CylinderExtendOutput, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Orange'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Vacuum On" Width="150" Foreground="White"/>
-                                <Ellipse Width="16" Height="16">
-                                    <Ellipse.Fill>
-                                        <SolidColorBrush Color="{Binding VacuumOnOutput, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Orange'}"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                            </StackPanel>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Sensors" FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Cyl. Ext" Width="90" Foreground="White" FontSize="11"/>
+                                        <Ellipse Width="12" Height="12">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding CylinderExtended, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Cyl. Ret" Width="90" Foreground="White" FontSize="11"/>
+                                        <Ellipse Width="12" Height="12">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding CylinderRetracted, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Vacuum OK" Width="90" Foreground="White" FontSize="11"/>
+                                        <Ellipse Width="12" Height="12">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding VacuumOk, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green'}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Outputs" FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Cyl. Ext" Width="90" Foreground="White" FontSize="11"/>
+                                        <Ellipse Width="12" Height="12">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding CylinderExtendOutput, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Orange'}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Vacuum On" Width="90" Foreground="White" FontSize="11"/>
+                                        <Ellipse Width="12" Height="12">
+                                            <Ellipse.Fill>
+                                                <SolidColorBrush Color="{Binding VacuumOnOutput, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Orange'}"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
 
-                    <Border Background="#1E1E1E" Padding="16" CornerRadius="8" Margin="0,20,0,0">
+                    <!-- Simulation Controls -->
+                    <Border Background="#1E1E1E" Padding="10" CornerRadius="8" Margin="0,8,0,0">
                         <StackPanel>
-                            <TextBlock Text="Simulation Controls" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                            <TextBlock Text="Simulation Controls" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6"/>
 
-                            <TextBlock Text="X Position" Foreground="#B0B0B0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
-                                <Slider Minimum="-50" Maximum="300" Width="220"
-                                        Value="{Binding SimulatedXPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="{Binding SimulatedXPosition, StringFormat=' {0:F1}'}" Foreground="White" Margin="8,0,0,0"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                            <TextBlock Text="Y Position" Foreground="#B0B0B0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
-                                <Slider Minimum="-50" Maximum="300" Width="220"
-                                        Value="{Binding SimulatedYPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="{Binding SimulatedYPosition, StringFormat=' {0:F1}'}" Foreground="White" Margin="8,0,0,0"/>
-                            </StackPanel>
+                                <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,8,8">
+                                    <TextBlock Text="X Pos" Foreground="#B0B0B0" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Slider Minimum="-50" Maximum="300" Width="160"
+                                                Value="{Binding SimulatedXPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="{Binding SimulatedXPosition, StringFormat=' {0:F1}'}" Foreground="White" FontSize="11" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
 
-                            <TextBlock Text="Z Position" Foreground="#B0B0B0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
-                                <Slider Minimum="-20" Maximum="150" Width="220"
-                                        Value="{Binding SimulatedZPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="{Binding SimulatedZPosition, StringFormat=' {0:F1}'}" Foreground="White" Margin="8,0,0,0"/>
-                            </StackPanel>
+                                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,8,0">
+                                    <TextBlock Text="Y Pos" Foreground="#B0B0B0" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Slider Minimum="-50" Maximum="300" Width="160"
+                                                Value="{Binding SimulatedYPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="{Binding SimulatedYPosition, StringFormat=' {0:F1}'}" Foreground="White" FontSize="11" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
 
-                            <TextBlock Text="Speed" Foreground="#B0B0B0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <Slider Minimum="0" Maximum="200" Width="220"
-                                        Value="{Binding SimulatedSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Text="{Binding SimulatedSpeed, StringFormat=' {0:F0}'}" Foreground="White" Margin="8,0,0,0"/>
-                            </StackPanel>
+                                <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,0,0,8">
+                                    <TextBlock Text="Z Pos" Foreground="#B0B0B0" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Slider Minimum="-20" Maximum="150" Width="160"
+                                                Value="{Binding SimulatedZPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="{Binding SimulatedZPosition, StringFormat=' {0:F1}'}" Foreground="White" FontSize="11" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Grid.Row="1">
+                                    <TextBlock Text="Speed" Foreground="#B0B0B0" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Slider Minimum="0" Maximum="200" Width="160"
+                                                Value="{Binding SimulatedSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Text="{Binding SimulatedSpeed, StringFormat=' {0:F0}'}" Foreground="White" FontSize="11" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
-
-
                 </StackPanel>
             </Border>
         </Grid>
