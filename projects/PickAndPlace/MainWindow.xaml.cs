@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private readonly SettingView _settingView;
     private readonly DataView _dataView;
     private readonly LogView _logView;
+    private string _lastTab = "Auto";
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -34,12 +35,22 @@ public partial class MainWindow : Window
         // Show Auto view by default
         _viewModel.NavigateToView(_autoView);
 
-        // Hardware initialization is done manually via Initialize button
-        // Do NOT auto-initialize on window load
+        // Hardware initialization is triggered on startup via view model
     }
 
     private void FooterControl_TabChanged(object? sender, string tabName)
     {
+        if (tabName == "Manual")
+        {
+            _viewModel.SetManualMode();
+        }
+        else if (_lastTab == "Manual")
+        {
+            _viewModel.RestoreAutoMode();
+        }
+
+        _lastTab = tabName;
+
         object view = tabName switch
         {
             "Auto" => (object)_autoView,

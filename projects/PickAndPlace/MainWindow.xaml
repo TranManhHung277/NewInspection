@@ -33,6 +33,7 @@
                                     MachineState="{Binding MachineState}"
                                     ProjectNameValue="{Binding ProjectName}"
                                     ModelNameValue="{Binding ModelName}"
+                                    RunModeValue="{Binding RunMode}"
                                     StatusLevel="{Binding HeaderStatusLevel}"
                                     CloseClicked="HeaderControl_CloseClicked"/>
 

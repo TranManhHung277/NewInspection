@@ -1,5 +1,6 @@
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Common;
+using NAutoSuite.Core.Hardware;
 using NAutoSuite.Core.Machine;
 using Serilog;
 
@@ -27,33 +28,17 @@ public class TemplateMachine : MachineBase
         _machineLogger = logger ?? Log.Logger;
     }
 
-    protected override async Task OnInitializingAsync()
+    protected override void OnRegisterHardware(HardwareManager hardwareManager)
     {
-        await base.OnInitializingAsync();
-
-        _machineLogger.Information("Connecting hardware...");
-
         if (_axisX != null)
         {
-            var result = await _axisX.ConnectAsync();
-            if (!result.IsSuccess)
-            {
-                _machineLogger.Error("Failed to connect Axis X: {Message}", result.Message);
-                return;
-            }
+            hardwareManager.RegisterDevice(_axisX);
         }
 
         if (_axisY != null)
         {
-            var result = await _axisY.ConnectAsync();
-            if (!result.IsSuccess)
-            {
-                _machineLogger.Error("Failed to connect Axis Y: {Message}", result.Message);
-                return;
-            }
+            hardwareManager.RegisterDevice(_axisY);
         }
-
-        _machineLogger.Information("Hardware connected successfully");
     }
 
     protected override async Task OnRunningAsync()

@@ -20,6 +20,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Machine Number:" Margin="0,8"/>
@@ -29,6 +30,11 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Project Name:" Margin="0,8"/>
                         <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ModernTextBox}"
                                  Text="{Binding ProjectName}" Margin="0,8"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Hardware:" Margin="0,8"/>
+                        <Button Grid.Row="2" Grid.Column="1" Content="CONNECT HARDWARE"
+                                Style="{StaticResource PrimaryButton}" Height="48"
+                                Command="{Binding InitializeCommand}"/>
                     </Grid>
                 </StackPanel>
             </Border>

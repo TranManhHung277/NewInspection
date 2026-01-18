@@ -73,6 +73,9 @@ public class SimulatorAxis : AxisBase
         if (!_servoOn)
             return Result.Failure("Servo not enabled");
 
+        if (velocity.HasValue)
+            _velocity = velocity.Value;
+
         _logger.Information("Moving simulator axis {Name} to {Position}", Name, position);
         _isMoving = true;
 
@@ -82,6 +85,7 @@ public class SimulatorAxis : AxisBase
 
         _position = position;
         _isMoving = false;
+        _velocity = 0;
 
         return Result.Success($"Moved to {position}");
     }
@@ -94,6 +98,9 @@ public class SimulatorAxis : AxisBase
         if (!_servoOn)
             return Result.Failure("Servo not enabled");
 
+        if (velocity.HasValue)
+            _velocity = velocity.Value;
+
         var targetPosition = _position + distance;
         _logger.Information("Moving simulator axis {Name} by {Distance} to {Target}", Name, distance, targetPosition);
 
@@ -103,6 +110,7 @@ public class SimulatorAxis : AxisBase
 
         _position = targetPosition;
         _isMoving = false;
+        _velocity = 0;
 
         return Result.Success($"Moved by {distance}");
     }
@@ -113,6 +121,18 @@ public class SimulatorAxis : AxisBase
         _velocity = 0;
         _logger.Information("Simulator axis {Name} stopped (emergency={Emergency})", Name, emergency);
         return Task.FromResult(Result.Success("Stopped"));
+    }
+
+    public void SetSimulatedPosition(double position)
+    {
+        if (_isMoving) return;
+        _position = position;
+    }
+
+    public void SetSimulatedVelocity(double velocity)
+    {
+        if (_isMoving) return;
+        _velocity = velocity;
     }
 
     public override Task<Result> SetServoAsync(bool enabled, CancellationToken cancellationToken = default)

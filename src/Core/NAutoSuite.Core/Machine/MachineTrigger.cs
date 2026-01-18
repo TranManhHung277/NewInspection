@@ -8,6 +8,7 @@ public enum MachineTrigger
     Initialize,
     Start,
     Stop,
+    Error,
     Pause,
     Resume,
     Reset,

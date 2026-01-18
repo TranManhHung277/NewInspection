@@ -5,6 +5,42 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              Height="100">
+    <UserControl.Resources>
+        <Style x:Key="FooterActionButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Base"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"/>
+                            <Border x:Name="HoverOverlay" Background="#22FFFFFF" CornerRadius="6" Opacity="0"/>
+                            <Border x:Name="PressedOverlay" Background="#33000000" CornerRadius="6" Opacity="0"/>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="HoverOverlay" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="PressedOverlay" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Border Background="#2D2D30" BorderBrush="#3E3E42" BorderThickness="0,1,0,0">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -73,10 +109,10 @@
                 </Border>
             </UniformGrid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="30,0,0,0">
-                <Button Content="START" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StartCommand}" Background="#4CAF50" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" />
-                <Button Content="STOP" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StopCommand}" Background="#F44336" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" />
-                <Button Content="RESET" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding ResetCommand}" Background="#FF9800" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" />
-                <Button Content="HOME" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding HomeAllCommand}" Background="#2196F3" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,10,5" />
+                <Button Content="START" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StartCommand}" Background="#4CAF50" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="STOP" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StopCommand}" Background="#F44336" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="RESET" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding ResetCommand}" Background="#FF9800" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="HOME" Width="150" FontSize="32" FontWeight="Bold" Background="#2196F3" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,10,5" Style="{StaticResource FooterActionButtonStyle}" PreviewMouseLeftButtonDown="HomeHoldStart" PreviewMouseLeftButtonUp="HomeHoldEnd" />
             </StackPanel>
         </Grid>
     </Border>

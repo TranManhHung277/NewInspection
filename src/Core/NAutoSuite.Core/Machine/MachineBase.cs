@@ -3,6 +3,7 @@ using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Interlock;
 using NAutoSuite.Core.IO;
+using NAutoSuite.Core.Hardware;
 using Serilog;
 using Stateless;
 
@@ -11,7 +12,8 @@ namespace NAutoSuite.Core.Machine;
 /// <summary>
 /// Base class for all machines with integrated:
 /// - Alarm and interlock management
-/// - Automatic IO scan cycle (EMG, Start, Stop, Reset, Tower Lights)
+/// - Hardware registry for device connections
+/// - Automatic IO scan cycle with cached IO image (EMG, Start, Stop, Reset, Tower Lights)
 /// - Background task manager
 /// - State machine
 ///
@@ -24,11 +26,22 @@ public abstract class MachineBase : IMachine
 {
     private readonly StateMachine<MachineState, MachineTrigger> _stateMachine;
     protected readonly ILogger _logger;
+    private readonly HardwareManager _hardwareManager;
+    private readonly IOImage _ioImage;
+    private readonly MachineIO _machineIO;
+    private IOScanService? _ioScanService;
+    private bool _hardwareRegistered;
+    private CancellationTokenSource? _runCts;
+    private readonly SensorWaiter _sensorWaiter;
 
     public string Id { get; }
     public string Name { get; }
     public MachineState State => _stateMachine.State;
     public MachineContext Context { get; }
+    public MachineIO IO => _machineIO;
+    protected HardwareManager Hardware => _hardwareManager;
+    public MachineRunMode RunMode { get; private set; } = MachineRunMode.Auto;
+    protected CancellationToken RunCancellationToken => _runCts?.Token ?? CancellationToken.None;
 
     /// <summary>
     /// Alarm manager for handling machine alarms
@@ -76,6 +89,10 @@ public abstract class MachineBase : IMachine
         Name = name;
         Context = new MachineContext();
         _logger = logger ?? Log.Logger;
+        _hardwareManager = new HardwareManager();
+        _ioImage = new IOImage();
+        _machineIO = new MachineIO(_ioImage);
+        _sensorWaiter = new SensorWaiter(_logger);
 
         // Initialize alarm and interlock managers
         AlarmManager = new AlarmManager(_logger);
@@ -97,12 +114,14 @@ public abstract class MachineBase : IMachine
             .Permit(MachineTrigger.Initialize, MachineState.Initializing);
 
         _stateMachine.Configure(MachineState.Initializing)
-            .OnEntryAsync(OnInitializingAsync)
+            .OnEntryAsync(OnInitializingInternalAsync)
             .Permit(MachineTrigger.Complete, MachineState.Idle)
-            .Permit(MachineTrigger.Reset, MachineState.Error);
+            .Permit(MachineTrigger.Error, MachineState.Error)
+            .Permit(MachineTrigger.Reset, MachineState.Uninitialized);
 
         _stateMachine.Configure(MachineState.Idle)
             .Permit(MachineTrigger.Start, MachineState.Running)
+            .Permit(MachineTrigger.Error, MachineState.Error)
             .Permit(MachineTrigger.Reset, MachineState.Uninitialized);
 
         _stateMachine.Configure(MachineState.Running)
@@ -110,28 +129,33 @@ public abstract class MachineBase : IMachine
             .OnExitAsync(OnExitRunningAsync)
             .Permit(MachineTrigger.Stop, MachineState.Stopping)
             .Permit(MachineTrigger.Pause, MachineState.Paused)
+            .Permit(MachineTrigger.Error, MachineState.Error)
             .Permit(MachineTrigger.EmergencyStop, MachineState.EmergencyStop)
             .Permit(MachineTrigger.Complete, MachineState.Idle)
             .Permit(MachineTrigger.CancelAuto, MachineState.Idle);
 
         _stateMachine.Configure(MachineState.Paused)
             .Permit(MachineTrigger.Resume, MachineState.Running)
+            .Permit(MachineTrigger.Error, MachineState.Error)
+            .Permit(MachineTrigger.Reset, MachineState.Idle)
             .Permit(MachineTrigger.Stop, MachineState.Stopping);
 
         _stateMachine.Configure(MachineState.Stopping)
             .OnEntryAsync(OnStoppingAsync)
+            .Permit(MachineTrigger.Error, MachineState.Error)
             .Permit(MachineTrigger.Complete, MachineState.Stopped);
 
         _stateMachine.Configure(MachineState.Stopped)
-            .Permit(MachineTrigger.Reset, MachineState.Idle);
+            .Permit(MachineTrigger.Reset, MachineState.Idle)
+            .Permit(MachineTrigger.Error, MachineState.Error);
 
         _stateMachine.Configure(MachineState.Error)
             .Permit(MachineTrigger.ClearError, MachineState.Idle)
-            .Permit(MachineTrigger.Reset, MachineState.Uninitialized);
+            .Permit(MachineTrigger.Reset, MachineState.Idle);
 
         _stateMachine.Configure(MachineState.EmergencyStop)
             .OnEntryAsync(OnEmergencyStopAsync)
-            .Permit(MachineTrigger.Reset, MachineState.Idle);
+            .Permit(MachineTrigger.Reset, MachineState.Uninitialized);
 
         _stateMachine.OnTransitioned(transition =>
         {
@@ -156,6 +180,10 @@ public abstract class MachineBase : IMachine
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to initialize machine {Name}", Name);
+            if (_stateMachine.CanFire(MachineTrigger.Reset))
+            {
+                await _stateMachine.FireAsync(MachineTrigger.Reset);
+            }
             return Result.Failure("Initialization failed", ex);
         }
     }
@@ -172,31 +200,42 @@ public abstract class MachineBase : IMachine
             return;
         }
 
+        // Setup BackgroundTaskManager
+        _backgroundTaskManager = new BackgroundTaskManager(_logger);
+
         // Get IO Map from derived class
         var ioMap = GetIOMap();
         if (ioMap == null)
         {
             _logger.Warning("No IO Map provided - Main loop will not handle common IO");
-            return;
+
+            if (_hardwareManager.DataProviders.Count > 0)
+            {
+                _backgroundTaskManager.RegisterTask("HardwareDataScan", async ct =>
+                {
+                    await _hardwareManager.UpdateDataAsync(ct);
+                }, intervalMs: 100);
+            }
         }
-
-        // Setup CommonIOHandler
-        _commonIOHandler = new CommonIOHandler(
-            machine: this,
-            ioMap: ioMap,
-            readInputFunc: OnReadInputAsync,
-            writeOutputFunc: OnWriteOutputAsync,
-            logger: _logger
-        );
-
-        // Setup BackgroundTaskManager
-        _backgroundTaskManager = new BackgroundTaskManager(_logger);
-
-        // Register CommonIOScan task (100ms cycle)
-        _backgroundTaskManager.RegisterTask("CommonIOScan", async ct =>
+        else
         {
-            await _commonIOHandler!.ScanAsync(ct);
-        }, intervalMs: 100);
+            _ioScanService = new IOScanService(ioMap, _hardwareManager, _ioImage);
+            _commonIOHandler = new CommonIOHandler(
+                machine: this,
+                ioMap: ioMap,
+                ioImage: _ioImage,
+                logger: _logger
+            );
+
+            // Register IO scan task (100ms cycle)
+            _backgroundTaskManager.RegisterTask("IOSignalScan", async ct =>
+            {
+                await _ioScanService!.UpdateInputsAsync(ct);
+                await _hardwareManager.UpdateDataAsync(ct);
+                await _commonIOHandler!.ScanAsync(ct);
+                await _ioScanService!.FlushOutputsAsync(ct);
+            }, intervalMs: 100);
+        }
 
         // Allow derived classes to register additional background tasks
         OnRegisterBackgroundTasks(_backgroundTaskManager);
@@ -230,8 +269,33 @@ public abstract class MachineBase : IMachine
     {
         try
         {
+            if (State == MachineState.Paused)
+            {
+                if (_hardwareManager.Devices.Count > 0 &&
+                    _hardwareManager.Devices.Any(device => !device.IsConnected))
+                {
+                    return Result.Failure("Hardware not connected. Please initialize.");
+                }
+
+                var (canResume, failedResumeConditions) = InterlockManager.CheckStartConditions();
+                if (!canResume)
+                {
+                    var message = $"Cannot start: {string.Join(", ", failedResumeConditions)}";
+                    _logger.Warning("Start interlock failed for machine {Name}: {Message}", Name, message);
+                    return Result.Failure(message);
+                }
+
+                return await ResumeAsync(cancellationToken);
+            }
+
             if (!_stateMachine.CanFire(MachineTrigger.Start))
                 return Result.Failure($"Cannot start from state {State}");
+
+            if (_hardwareManager.Devices.Count > 0 &&
+                _hardwareManager.Devices.Any(device => !device.IsConnected))
+            {
+                return Result.Failure("Hardware not connected. Please initialize.");
+            }
 
             // Check interlock conditions before starting
             var (canStart, failedConditions) = InterlockManager.CheckStartConditions();
@@ -256,6 +320,14 @@ public abstract class MachineBase : IMachine
     {
         try
         {
+            _runCts?.Cancel();
+
+            if (State == MachineState.Running && _stateMachine.CanFire(MachineTrigger.Pause))
+            {
+                await _stateMachine.FireAsync(MachineTrigger.Pause);
+                return Result.Success("Machine paused");
+            }
+
             if (!_stateMachine.CanFire(MachineTrigger.Stop))
                 return Result.Failure($"Cannot stop from state {State}");
 
@@ -308,7 +380,13 @@ public abstract class MachineBase : IMachine
     {
         try
         {
+            if (State == MachineState.Running)
+            {
+                return Result.Success("Reset ignored while running");
+            }
+
             Context.Reset();
+            ClearAllAlarms();
             await _stateMachine.FireAsync(MachineTrigger.Reset);
             return Result.Success("Machine reset");
         }
@@ -323,6 +401,7 @@ public abstract class MachineBase : IMachine
     {
         try
         {
+            _runCts?.Cancel();
             await _stateMachine.FireAsync(MachineTrigger.EmergencyStop);
             return Result.Success("Emergency stop executed");
         }
@@ -339,15 +418,49 @@ public abstract class MachineBase : IMachine
         return Task.CompletedTask;
     }
 
+    private async Task OnInitializingInternalAsync()
+    {
+        RegisterHardwareIfNeeded();
+
+        var connectResult = await _hardwareManager.ConnectAllAsync();
+        if (!connectResult.IsSuccess)
+        {
+            await OnHardwareConnectFailedAsync(connectResult);
+            throw new InvalidOperationException(connectResult.Message);
+        }
+
+        await OnInitializingAsync();
+    }
+
+    private void RegisterHardwareIfNeeded()
+    {
+        if (_hardwareRegistered) return;
+
+        OnRegisterHardware(_hardwareManager);
+        _hardwareRegistered = true;
+
+        if (_hardwareManager.IODevices.Count == 0)
+        {
+            _hardwareManager.RegisterIO(new MachineIoAdapter(this));
+        }
+    }
+
     protected virtual Task OnRunningAsync()
     {
         _logger.Information("Machine {Name} started running", Name);
         Context.CycleStartTime = DateTime.Now;
+        _runCts?.Cancel();
+        _runCts?.Dispose();
+        _runCts = new CancellationTokenSource();
         return Task.CompletedTask;
     }
 
     protected virtual Task OnExitRunningAsync()
     {
+        _runCts?.Cancel();
+        _runCts?.Dispose();
+        _runCts = null;
+
         if (Context.CycleStartTime.HasValue)
         {
             var cycleTime = DateTime.Now - Context.CycleStartTime.Value;
@@ -395,12 +508,12 @@ public abstract class MachineBase : IMachine
     /// </summary>
     protected virtual void SetupDefaultInterlocks()
     {
-        // Default: Cannot start if there are critical alarms
+        // Default: Cannot start if there are active alarms
         InterlockManager.AddCondition(new InterlockCondition
         {
-            Id = "NO_CRITICAL_ALARMS",
-            Description = "No critical alarms present",
-            Condition = () => !ActiveAlarms.Any(a => a.Severity == AlarmSeverity.Critical),
+            Id = "NO_ACTIVE_ALARMS",
+            Description = "No active alarms present",
+            Condition = () => !HasActiveAlarms,
             IsRequired = true
         });
     }
@@ -412,6 +525,32 @@ public abstract class MachineBase : IMachine
     {
         AlarmManager.Raise(code, message, severity, source);
         Context.LastError = message;
+
+        if (severity == AlarmSeverity.Error || severity == AlarmSeverity.Critical)
+        {
+            TriggerPauseOnError();
+        }
+    }
+
+    private void TriggerPauseOnError()
+    {
+        if (State == MachineState.EmergencyStop)
+        {
+            return;
+        }
+
+        _runCts?.Cancel();
+
+        if (State == MachineState.Running && _stateMachine.CanFire(MachineTrigger.Pause))
+        {
+            _ = _stateMachine.FireAsync(MachineTrigger.Pause);
+            return;
+        }
+
+        if (_stateMachine.CanFire(MachineTrigger.Error))
+        {
+            _ = _stateMachine.FireAsync(MachineTrigger.Error);
+        }
     }
 
     /// <summary>
@@ -431,6 +570,44 @@ public abstract class MachineBase : IMachine
         Context.LastError = string.Empty;
     }
 
+    public void SetRunMode(MachineRunMode mode)
+    {
+        RunMode = mode;
+        _logger.Information("Machine {Name} run mode set to {Mode}", Name, mode);
+    }
+
+    protected async Task<Result> WaitForInputOnAsync(
+        string address,
+        int timeoutMs,
+        string? errorMessage = null,
+        CancellationToken ct = default)
+    {
+        var ok = await _sensorWaiter.WaitForSensorAsync(
+            address,
+            () => Task.FromResult(IO.ReadInput(address)),
+            timeoutMs,
+            ct);
+
+        if (ok) return Result.Success();
+        return Result.Failure(errorMessage ?? $"Timeout waiting for {address}");
+    }
+
+    protected async Task<Result> WaitForInputOffAsync(
+        string address,
+        int timeoutMs,
+        string? errorMessage = null,
+        CancellationToken ct = default)
+    {
+        var ok = await _sensorWaiter.WaitForSensorOffAsync(
+            address,
+            () => Task.FromResult(IO.ReadInput(address)),
+            timeoutMs,
+            ct);
+
+        if (ok) return Result.Success();
+        return Result.Failure(errorMessage ?? $"Timeout waiting for {address} OFF");
+    }
+
     /// <summary>
     /// Called when an alarm is raised
     /// </summary>
@@ -439,11 +616,11 @@ public abstract class MachineBase : IMachine
         _logger.Warning("Alarm raised: {AlarmCode} - {AlarmMessage} (Severity: {Severity})",
             alarm.Code, alarm.Message, alarm.Severity);
 
-        // Auto stop if critical alarm and machine is running
-        if (alarm.Severity == AlarmSeverity.Critical && State == MachineState.Running)
+        // Auto pause on serious alarms
+        if (alarm.Severity == AlarmSeverity.Error || alarm.Severity == AlarmSeverity.Critical)
         {
-            _logger.Warning("Critical alarm triggered, stopping machine {Name}", Name);
-            _ = StopAsync(); // Fire and forget
+            _logger.Warning("Alarm requires pause, pausing machine {Name}", Name);
+            TriggerPauseOnError();
         }
     }
 
@@ -458,20 +635,36 @@ public abstract class MachineBase : IMachine
     #region Template Methods for Derived Classes
 
     /// <summary>
+    /// Override this to register hardware devices, IO providers, and data providers.
+    /// </summary>
+    protected virtual void OnRegisterHardware(HardwareManager hardwareManager)
+    {
+        // Derived classes can register hardware here
+    }
+
+    /// <summary>
     /// Override this to provide IO Map for automatic IO scanning
     /// Return null if you don't want automatic IO handling
     /// </summary>
     protected virtual IOMap? GetIOMap() => null;
 
     /// <summary>
+    /// Override this to react to hardware connection failures.
+    /// </summary>
+    protected virtual Task OnHardwareConnectFailedAsync(Result result)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Override this to handle reading inputs from PLC/hardware
-    /// Called by CommonIOHandler for reading buttons and sensors
+    /// Used by the built-in IO adapter when no IO device is registered
     /// </summary>
     protected virtual Task<bool> OnReadInputAsync(string address, CancellationToken ct) => Task.FromResult(false);
 
     /// <summary>
     /// Override this to handle writing outputs to PLC/hardware
-    /// Called by CommonIOHandler for controlling tower lights, buzzer, etc.
+    /// Used by the built-in IO adapter when no IO device is registered
     /// </summary>
     protected virtual Task OnWriteOutputAsync(string address, bool value, CancellationToken ct) => Task.CompletedTask;
 
@@ -493,6 +686,43 @@ public abstract class MachineBase : IMachine
         return Task.CompletedTask;
     }
 
+    private sealed class MachineIoAdapter : IIO
+    {
+        private readonly MachineBase _machine;
+
+        public MachineIoAdapter(MachineBase machine)
+        {
+            _machine = machine;
+        }
+
+        public string Id => _machine.Id;
+
+        public string Name => _machine.Name;
+
+        public bool IsConnected => true;
+
+        public Task<Result> ConnectAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success("Machine IO adapter ready"));
+
+        public Task<Result> DisconnectAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success("Machine IO adapter stopped"));
+
+        public Task<Result> ResetAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success("Machine IO adapter reset"));
+
+        public async Task<Result<bool>> ReadInputAsync(string address, CancellationToken cancellationToken = default)
+        {
+            var value = await _machine.OnReadInputAsync(address, cancellationToken);
+            return Result.Success(value);
+        }
+
+        public async Task<Result> WriteOutputAsync(string address, bool value, CancellationToken cancellationToken = default)
+        {
+            await _machine.OnWriteOutputAsync(address, value, cancellationToken);
+            return Result.Success();
+        }
+    }
+
     #endregion
 
     #region Cleanup
@@ -506,6 +736,8 @@ public abstract class MachineBase : IMachine
 
         // Stop main loop
         StopMainLoop();
+
+        await _hardwareManager.DisconnectAllAsync();
 
         // Cleanup alarm manager
         AlarmManager.AlarmRaised -= OnAlarmRaised;

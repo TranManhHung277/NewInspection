@@ -4,7 +4,8 @@ using PickAndPlace.ViewModels;
 using PickAndPlace.Machine;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
-using NAutoSuite.Hardware.Leadshine;
+using NAutoSuite.Hardware.Abstractions.EtherCAT;
+using NAutoSuite.Hardware.Simulator;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
@@ -25,7 +26,7 @@ public partial class App : Application
 
         // Test logs at different levels
         Log.Debug("App startup - Debug level test");
-        Log.Information("Pick and Place Machine Application started (EtherCAT Mode)");
+        Log.Information("Pick and Place Machine Application started (Simulation Mode)");
         Log.Information("Configuring dependency injection container...");
 
         // Build host with DI
@@ -38,44 +39,54 @@ public partial class App : Application
                 // Register Core Services
                 services.AddSingleton<TimeService>();
 
-                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT) =====
+                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT Simulator) =====
 
                 // Register Serilog ILogger for injection
                 services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
 
-                // Register Leadshine Master (EtherCAT Card)
-                // Note: Using local connection (no IP address) - dmc_board_init()
-                services.AddSingleton<LeadshineMaster>(sp =>
+                services.AddSingleton<LeadshineEthercatSimulator>(sp =>
                 {
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new LeadshineMaster(
-                        cardNo: 0,                      // Card number (0, 1, 2...)
-                        ipAddress: null,                // null = use dmc_board_init() for local connection
-                        logger: logger
-                    );
+                    var sim = new LeadshineEthercatSimulator();
+                    sim.RegisterCylinder("QX1.0", "IX1.3", "IX1.4");
+                    sim.RegisterVacuum("QX1.1", "IX1.5");
+                    sim.SetInput("IX1.4", true);
+                    sim.SetInput("IX0.5", true);
+                    sim.ConfigureTestHead("IX1.0", "IX1.1", "IX1.2", cycleMs: 1500, okProbability: 0.7, pulseMs: 300);
+                    return sim;
                 });
 
-                // Register Real Axis (Only 1 axis for this demo)
+                services.AddSingleton<IEtherCATMaster>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
+                services.AddSingleton<IIO>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
+
+                // Register simulated axes (3 axes)
                 services.AddSingleton<IAxis>(sp =>
                 {
-                    var master = sp.GetRequiredService<LeadshineMaster>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new LeadshineAxis(
-                        cardNo: 0,
-                        axisIndex: 0,           // First axis (X)
-                        id: "PAP001_X",
-                        name: "AxisX",
-                        master: master,
-                        logger: logger
-                    );
+                    return new SimulatorAxis("PAP_SIM_X", "AxisX", logger);
+                });
+
+                services.AddSingleton<IAxis>(sp =>
+                {
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new SimulatorAxis("PAP_SIM_Y", "AxisY", logger);
+                });
+
+                services.AddSingleton<IAxis>(sp =>
+                {
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new SimulatorAxis("PAP_SIM_Z", "AxisZ", logger);
                 });
 
                 // Register PickAndPlace Machine
                 services.AddSingleton<PickAndPlaceMachine>(sp =>
                 {
-                    var axis = sp.GetRequiredService<IAxis>();
+                    var axes = sp.GetServices<IAxis>().ToList();
+                    var axisX = axes[0];
+                    var axisY = axes[1];
+                    var axisZ = axes[2];
+                    var master = sp.GetRequiredService<IEtherCATMaster>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new PickAndPlaceMachine(axis, logger);
+                    return new PickAndPlaceMachine(axisX, axisY, axisZ, master, logger);
                 });
 
                 // Register ViewModels
@@ -98,7 +109,7 @@ public partial class App : Application
 
         Log.Information("MainWindow displayed. Application ready. Hardware NOT initialized yet - waiting for user to click Initialize button.");
 
-        Log.Information("Pick and Place Machine Application started (EtherCAT Mode)");
+        Log.Information("Pick and Place Machine Application started (Simulation Mode)");
     }
 
     protected override async void OnExit(ExitEventArgs e)

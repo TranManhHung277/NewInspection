@@ -50,6 +50,10 @@ public partial class ShellHeaderControl : UserControl
         DependencyProperty.Register(nameof(StatusLevel), typeof(HeaderStatusLevel), typeof(ShellHeaderControl),
             new PropertyMetadata(HeaderStatusLevel.Ok, OnStatusLevelChanged));
 
+    public static readonly DependencyProperty RunModeProperty =
+        DependencyProperty.Register(nameof(RunModeValue), typeof(MachineRunMode), typeof(ShellHeaderControl),
+            new PropertyMetadata(MachineRunMode.Auto, OnRunModeChanged));
+
     public int MachineNumberValue
     {
         get => (int)GetValue(MachineNumberProperty);
@@ -82,6 +86,12 @@ public partial class ShellHeaderControl : UserControl
     {
         get => (HeaderStatusLevel)GetValue(StatusLevelProperty);
         set => SetValue(StatusLevelProperty, value);
+    }
+
+    public MachineRunMode RunModeValue
+    {
+        get => (MachineRunMode)GetValue(RunModeProperty);
+        set => SetValue(RunModeProperty, value);
     }
 
     public event RoutedEventHandler? CloseClicked;
@@ -151,6 +161,14 @@ public partial class ShellHeaderControl : UserControl
         if (d is ShellHeaderControl control && e.NewValue is HeaderStatusLevel status)
         {
             control.ApplyStatus(status);
+        }
+    }
+
+    private static void OnRunModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ShellHeaderControl control && e.NewValue is MachineRunMode mode)
+        {
+            control.RunModeControl.Mode = mode;
         }
     }
 

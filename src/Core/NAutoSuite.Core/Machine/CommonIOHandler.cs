@@ -14,11 +14,9 @@ public class CommonIOHandler
     private readonly ILogger _logger;
     private readonly IOMap _ioMap;
     private readonly IMachine _machine;
-    private readonly Func<string, CancellationToken, Task<bool>>? _readInputFunc;
-    private readonly Func<string, bool, CancellationToken, Task>? _writeOutputFunc;
+    private readonly IOImage _ioImage;
 
     // Previous button states (để phát hiện rising edge)
-    private bool _prevEmgState;
     private bool _prevStartState;
     private bool _prevStopState;
     private bool _prevResetState;
@@ -30,14 +28,12 @@ public class CommonIOHandler
     public CommonIOHandler(
         IMachine machine,
         IOMap ioMap,
-        Func<string, CancellationToken, Task<bool>>? readInputFunc = null,
-        Func<string, bool, CancellationToken, Task>? writeOutputFunc = null,
+        IOImage ioImage,
         ILogger? logger = null)
     {
         _machine = machine;
         _ioMap = ioMap;
-        _readInputFunc = readInputFunc;
-        _writeOutputFunc = writeOutputFunc;
+        _ioImage = ioImage;
         _logger = logger ?? Log.Logger;
     }
 
@@ -69,13 +65,11 @@ public class CommonIOHandler
     /// </summary>
     private async Task ProcessButtonsAsync(CancellationToken ct)
     {
-        if (_readInputFunc == null) return;
-
         // Đọc tất cả buttons
-        bool emg = await ReadInputSafeAsync(_ioMap.CommonInputs.EmergencyStop, ct);
-        bool start = await ReadInputSafeAsync(_ioMap.CommonInputs.StartButton, ct);
-        bool stop = await ReadInputSafeAsync(_ioMap.CommonInputs.StopButton, ct);
-        bool reset = await ReadInputSafeAsync(_ioMap.CommonInputs.ResetButton, ct);
+        bool emg = _ioImage.GetInput(_ioMap.CommonInputs.EmergencyStop);
+        bool start = _ioImage.GetInput(_ioMap.CommonInputs.StartButton);
+        bool stop = _ioImage.GetInput(_ioMap.CommonInputs.StopButton);
+        bool reset = _ioImage.GetInput(_ioMap.CommonInputs.ResetButton);
 
         // ===== EMERGENCY STOP =====
         // EMG có tín hiệu (level trigger, không cần edge)
@@ -124,7 +118,6 @@ public class CommonIOHandler
         }
 
         // Save current states for next cycle
-        _prevEmgState = emg;
         _prevStartState = start;
         _prevStopState = stop;
         _prevResetState = reset;
@@ -133,10 +126,8 @@ public class CommonIOHandler
     /// <summary>
     /// Cập nhật tower lights tự động theo trạng thái máy
     /// </summary>
-    private async Task UpdateTowerLightsAsync(CancellationToken ct)
+    private Task UpdateTowerLightsAsync(CancellationToken ct)
     {
-        if (_writeOutputFunc == null) return;
-
         _flashCounter++;
         bool flashOn = (_flashCounter % FLASH_CYCLE) < (FLASH_CYCLE / 2);
 
@@ -145,54 +136,56 @@ public class CommonIOHandler
             case MachineState.Uninitialized:
             case MachineState.Initializing:
                 // Đèn vàng nhấp nháy khi đang khởi tạo
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, flashOn, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, false, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, flashOn);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, false);
                 break;
 
             case MachineState.Idle:
             case MachineState.Stopped:
                 // Đèn vàng sáng khi Idle
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, true, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, false, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, true);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, false);
                 break;
 
             case MachineState.Running:
                 // Đèn xanh sáng khi đang chạy
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, true, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, false, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, true);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, false);
                 break;
 
             case MachineState.Paused:
                 // Đèn xanh nhấp nháy khi tạm dừng
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, flashOn, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, false, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, flashOn);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, false);
                 break;
 
             case MachineState.EmergencyStop:
             case MachineState.Error:
                 // Đèn đỏ nhấp nháy + còi khi lỗi/EMG
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, flashOn, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, flashOn, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, flashOn);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, flashOn);
                 break;
 
             case MachineState.Stopping:
                 // Đèn vàng + đỏ khi đang dừng
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightGreen, false, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightYellow, true, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.TowerLightRed, true, ct);
-                await WriteOutputSafeAsync(_ioMap.CommonOutputs.Buzzer, false, ct);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightGreen, false);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightYellow, true);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.TowerLightRed, true);
+                _ioImage.SetOutput(_ioMap.CommonOutputs.Buzzer, false);
                 break;
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -200,10 +193,8 @@ public class CommonIOHandler
     /// </summary>
     private async Task CheckSafetySensorsAsync(CancellationToken ct)
     {
-        if (_readInputFunc == null) return;
-
         // Kiểm tra Safety Door
-        bool doorOpen = await ReadInputSafeAsync(_ioMap.CommonInputs.SafetyDoor, ct);
+        bool doorOpen = _ioImage.GetInput(_ioMap.CommonInputs.SafetyDoor);
         if (doorOpen && _machine.State == MachineState.Running)
         {
             _logger.Warning("Safety door opened during operation - Stopping machine");
@@ -211,44 +202,11 @@ public class CommonIOHandler
         }
 
         // Kiểm tra Air Pressure
-        bool airOk = await ReadInputSafeAsync(_ioMap.CommonInputs.AirPressure, ct);
+        bool airOk = _ioImage.GetInput(_ioMap.CommonInputs.AirPressure);
         if (!airOk && _machine.State == MachineState.Running)
         {
             _logger.Warning("Air pressure lost during operation - Stopping machine");
             await _machine.StopAsync(ct);
-        }
-    }
-
-    /// <summary>
-    /// Helper: Đọc input an toàn (không throw exception)
-    /// </summary>
-    private async Task<bool> ReadInputSafeAsync(string address, CancellationToken ct)
-    {
-        try
-        {
-            if (_readInputFunc == null) return false;
-            return await _readInputFunc(address, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to read input {Address}", address);
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Helper: Ghi output an toàn (không throw exception)
-    /// </summary>
-    private async Task WriteOutputSafeAsync(string address, bool value, CancellationToken ct)
-    {
-        try
-        {
-            if (_writeOutputFunc == null) return;
-            await _writeOutputFunc(address, value, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to write output {Address}", address);
         }
     }
 }

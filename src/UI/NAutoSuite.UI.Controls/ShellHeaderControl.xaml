@@ -62,6 +62,15 @@
                 <!-- Machine State -->
                 <local:MachineStateControl x:Name="StateControl"
                                            HorizontalAlignment="Center"/>
+
+                <!-- Separator -->
+                <Border Width="2" Background="#FFFFFF" Opacity="0.3"
+                        Margin="10,8" VerticalAlignment="Stretch"/>
+
+                <!-- Run Mode -->
+                <local:RunModeControl x:Name="RunModeControl"
+                                      Margin="12,8,0,8"
+                                      VerticalAlignment="Center"/>
             </StackPanel>
 
             <!-- Center - Machine Name (Always Centered) -->
