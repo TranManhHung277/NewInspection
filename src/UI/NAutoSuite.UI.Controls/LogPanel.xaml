@@ -84,6 +84,11 @@
 
             <!-- Action Buttons -->
             <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <CheckBox Content="Auto-scroll"
+                          IsChecked="{Binding AutoScrollEnabled}"
+                          Foreground="#B0B0B0"
+                          VerticalAlignment="Center"
+                          Margin="0,0,16,0"/>
                 <Button Content="Clear" Width="100" Height="32" Margin="0,0,10,0"
                         Command="{Binding ClearLogsCommand}"
                         Background="#C62828" Foreground="White"

@@ -1,3 +1,5 @@
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using NAutoSuite.UI.Controls.ViewModels;
@@ -33,6 +35,9 @@ public partial class LogPanel : UserControl
     public LogPanel()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     /// <summary>
@@ -65,4 +70,53 @@ public partial class LogPanel : UserControl
     /// Add a Debug log
     /// </summary>
     public void LogDebug(string message) => AddLog("Debug", message);
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        AttachViewModel(DataContext as LogPanelViewModel);
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        DetachViewModel(DataContext as LogPanelViewModel);
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        DetachViewModel(e.OldValue as LogPanelViewModel);
+        AttachViewModel(e.NewValue as LogPanelViewModel);
+    }
+
+    private void AttachViewModel(LogPanelViewModel? vm)
+    {
+        if (vm == null) return;
+        vm.FilteredLogs.CollectionChanged += OnLogsChanged;
+        vm.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void DetachViewModel(LogPanelViewModel? vm)
+    {
+        if (vm == null) return;
+        vm.FilteredLogs.CollectionChanged -= OnLogsChanged;
+        vm.PropertyChanged -= OnViewModelPropertyChanged;
+    }
+
+    private void OnLogsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (ViewModel?.AutoScrollEnabled != true)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(() => LogScrollViewer.ScrollToTop());
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LogPanelViewModel.AutoScrollEnabled) &&
+            ViewModel?.AutoScrollEnabled == true)
+        {
+            Dispatcher.BeginInvoke(() => LogScrollViewer.ScrollToTop());
+        }
+    }
 }

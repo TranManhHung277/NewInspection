@@ -40,7 +40,19 @@ public class AlarmManager
 
         if (_activeAlarms.TryAdd(code, alarm))
         {
-            _logger.Warning("Alarm raised: {Alarm}", alarm);
+            switch (severity)
+            {
+                case AlarmSeverity.Critical:
+                case AlarmSeverity.Error:
+                    _logger.Error("Alarm raised: {Alarm}", alarm);
+                    break;
+                case AlarmSeverity.Warning:
+                    _logger.Warning("Alarm raised: {Alarm}", alarm);
+                    break;
+                default:
+                    _logger.Information("Alarm raised: {Alarm}", alarm);
+                    break;
+            }
             AddToHistory(alarm);
             AlarmRaised?.Invoke(this, alarm);
         }

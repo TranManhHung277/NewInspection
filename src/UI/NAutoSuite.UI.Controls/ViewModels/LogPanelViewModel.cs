@@ -41,6 +41,9 @@ public partial class LogPanelViewModel : ObservableObject
     [ObservableProperty]
     private bool _showFatal = true;
 
+    [ObservableProperty]
+    private bool _autoScrollEnabled = true;
+
     public LogPanelViewModel()
     {
         // Apply filter whenever any filter property changes
@@ -82,8 +85,8 @@ public partial class LogPanelViewModel : ObservableObject
             Exception = exception
         };
 
-        AllLogs.Add(entry);
-        FilteredLogs.Add(entry);
+        AllLogs.Insert(0, entry);
+        FilteredLogs.Insert(0, entry);
     }
 
     /// <summary>
@@ -115,22 +118,22 @@ public partial class LogPanelViewModel : ObservableObject
             Exception = exception
         };
 
-        AllLogs.Add(entry);
+        AllLogs.Insert(0, entry);
 
         // Keep only last 1000 entries
         while (AllLogs.Count > MaxLogEntries)
         {
-            AllLogs.RemoveAt(0);
+            AllLogs.RemoveAt(AllLogs.Count - 1);
         }
 
         // Check if entry matches current filter
         if (MatchesFilter(entry))
         {
-            FilteredLogs.Add(entry);
+            FilteredLogs.Insert(0, entry);
 
             while (FilteredLogs.Count > MaxLogEntries)
             {
-                FilteredLogs.RemoveAt(0);
+                FilteredLogs.RemoveAt(FilteredLogs.Count - 1);
             }
         }
     }
@@ -176,8 +179,9 @@ public partial class LogPanelViewModel : ObservableObject
     {
         FilteredLogs.Clear();
 
-        foreach (var log in AllLogs)
+        for (var i = 0; i < AllLogs.Count; i++)
         {
+            var log = AllLogs[i];
             // Check level filter
             var matchesLevel = log.Level switch
             {
