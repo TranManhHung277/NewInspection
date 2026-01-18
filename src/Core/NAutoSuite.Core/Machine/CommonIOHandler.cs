@@ -70,13 +70,21 @@ public class CommonIOHandler
     private async Task ProcessButtonsAsync(CancellationToken ct)
     {
         // Đọc tất cả buttons
-        bool emg = _ioImage.GetInput(_ioMap.CommonInputs.EmergencyStop);
-        bool start = _ioImage.GetInput(_ioMap.CommonInputs.StartButton);
-        bool stop = _ioImage.GetInput(_ioMap.CommonInputs.StopButton);
-        bool reset = _ioImage.GetInput(_ioMap.CommonInputs.ResetButton);
-        bool home = _ioImage.GetInput(_ioMap.CommonInputs.HomeButton);
-        bool autoSwitch = _ioImage.GetInput(_ioMap.CommonInputs.AutoModeSwitch);
-        bool manualSwitch = _ioImage.GetInput(_ioMap.CommonInputs.ManualModeSwitch);
+        var emgAddr = _ioMap.CommonInputs.EmergencyStop;
+        var startAddr = _ioMap.CommonInputs.StartButton;
+        var stopAddr = _ioMap.CommonInputs.StopButton;
+        var resetAddr = _ioMap.CommonInputs.ResetButton;
+        var homeAddr = _ioMap.CommonInputs.HomeButton;
+        var autoAddr = _ioMap.CommonInputs.AutoModeSwitch;
+        var manualAddr = _ioMap.CommonInputs.ManualModeSwitch;
+
+        bool emg = !string.IsNullOrWhiteSpace(emgAddr) && _ioImage.GetInput(emgAddr);
+        bool start = !string.IsNullOrWhiteSpace(startAddr) && _ioImage.GetInput(startAddr);
+        bool stop = !string.IsNullOrWhiteSpace(stopAddr) && _ioImage.GetInput(stopAddr);
+        bool reset = !string.IsNullOrWhiteSpace(resetAddr) && _ioImage.GetInput(resetAddr);
+        bool home = !string.IsNullOrWhiteSpace(homeAddr) && _ioImage.GetInput(homeAddr);
+        bool autoSwitch = !string.IsNullOrWhiteSpace(autoAddr) && _ioImage.GetInput(autoAddr);
+        bool manualSwitch = !string.IsNullOrWhiteSpace(manualAddr) && _ioImage.GetInput(manualAddr);
 
         // ===== EMERGENCY STOP =====
         // EMG có tín hiệu (level trigger, không cần edge)
@@ -234,27 +242,30 @@ public class CommonIOHandler
     private async Task CheckSafetySensorsAsync(CancellationToken ct)
     {
         // Kiểm tra Safety Door
-        bool doorOpen = _ioImage.GetInput(_ioMap.CommonInputs.SafetyDoor);
-        if (doorOpen && _machine.State == MachineState.Running)
+        var safetyAddr = _ioMap.CommonInputs.SafetyDoor;
+        bool doorOpen = !string.IsNullOrWhiteSpace(safetyAddr) && _ioImage.GetInput(safetyAddr);
+        if (!string.IsNullOrWhiteSpace(safetyAddr) && doorOpen && _machine.State == MachineState.Running)
         {
             _logger.Warning("Safety door opened during operation - Stopping machine");
             await _machine.StopAsync(ct);
         }
 
         // Kiểm tra Air Pressure
-        bool airOk = _ioImage.GetInput(_ioMap.CommonInputs.AirPressure);
-        if (!airOk && _machine.State == MachineState.Running)
+        var airAddr = _ioMap.CommonInputs.AirPressure;
+        bool airOk = !string.IsNullOrWhiteSpace(airAddr) && _ioImage.GetInput(airAddr);
+        if (!string.IsNullOrWhiteSpace(airAddr) && !airOk && _machine.State == MachineState.Running)
         {
             _logger.Warning("Air pressure lost during operation - Stopping machine");
             await _machine.StopAsync(ct);
         }
 
-        bool materialLow = _ioImage.GetInput(_ioMap.CommonInputs.MaterialLow);
-        if (materialLow && !_prevMaterialLowState)
+        var materialAddr = _ioMap.CommonInputs.MaterialLow;
+        bool materialLow = !string.IsNullOrWhiteSpace(materialAddr) && _ioImage.GetInput(materialAddr);
+        if (!string.IsNullOrWhiteSpace(materialAddr) && materialLow && !_prevMaterialLowState)
         {
             _logger.Warning("Material low during operation");
         }
-        else if (!materialLow && _prevMaterialLowState)
+        else if (!string.IsNullOrWhiteSpace(materialAddr) && !materialLow && _prevMaterialLowState)
         {
             _logger.Information("Material restored");
         }

@@ -26,6 +26,12 @@ public class PickAndPlaceProfile : MachineProfile
         map.CommonInputs.AutoModeSwitch = "IX0.7";
         map.CommonInputs.ManualModeSwitch = "IX0.8";
         map.CommonInputs.MaterialLow = "IX0.9";
+
+        map.CommonOutputs.TowerLightRed = "QX0.0";
+        map.CommonOutputs.TowerLightYellow = "QX0.1";
+        map.CommonOutputs.TowerLightGreen = "QX0.2";
+        map.CommonOutputs.Buzzer = "QX0.3";
+        map.CommonOutputs.MainPowerEnable = "QX0.4";
         return map;
     }
 

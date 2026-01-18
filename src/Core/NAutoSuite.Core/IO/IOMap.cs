@@ -91,27 +91,27 @@ public class CommonOutputMap
     /// <summary>
     /// Tower light - Red (Error/EMG)
     /// </summary>
-    public string TowerLightRed { get; set; } = "QX0.0";
+    public string TowerLightRed { get; set; } = string.Empty;
 
     /// <summary>
     /// Tower light - Yellow (Warning)
     /// </summary>
-    public string TowerLightYellow { get; set; } = "QX0.1";
+    public string TowerLightYellow { get; set; } = string.Empty;
 
     /// <summary>
     /// Tower light - Green (Running)
     /// </summary>
-    public string TowerLightGreen { get; set; } = "QX0.2";
+    public string TowerLightGreen { get; set; } = string.Empty;
 
     /// <summary>
     /// Buzzer for alarms
     /// </summary>
-    public string Buzzer { get; set; } = "QX0.3";
+    public string Buzzer { get; set; } = string.Empty;
 
     /// <summary>
     /// Main power enable
     /// </summary>
-    public string MainPowerEnable { get; set; } = "QX0.4";
+    public string MainPowerEnable { get; set; } = string.Empty;
 }
 
 /// <summary>
