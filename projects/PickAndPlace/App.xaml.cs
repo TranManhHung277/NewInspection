@@ -2,13 +2,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PickAndPlace.ViewModels;
 using PickAndPlace.Machine;
+using PickAndPlace.Configuration;
+using PickAndPlace.Services;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
 using NAutoSuite.Hardware.Abstractions.EtherCAT;
-using NAutoSuite.Hardware.Simulator;
+using NAutoSuite.Hardware.Leadshine;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
+using System.IO;
 using System.Windows;
 
 namespace PickAndPlace;
@@ -39,51 +42,67 @@ public partial class App : Application
                 // Register Core Services
                 services.AddSingleton<TimeService>();
 
-                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT Simulator) =====
+                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT) =====
 
                 // Register Serilog ILogger for injection
                 services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
 
-                services.AddSingleton<PickAndPlaceProfile>();
-
-                services.AddSingleton<LeadshineEthercatSimulator>(sp =>
+                services.AddSingleton(sp =>
                 {
-                    var sim = new LeadshineEthercatSimulator();
-                    var profile = sp.GetRequiredService<PickAndPlaceProfile>();
-                    var map = (PickAndPlaceIOMap)profile.IOMap;
-
-                    sim.RegisterCylinder(map.MachineOutputs.CylinderExtend,
-                        map.MachineInputs.CylinderExtended,
-                        map.MachineInputs.CylinderRetracted);
-                    sim.RegisterVacuum(map.MachineOutputs.VacuumOn, map.MachineInputs.VacuumOk);
-                    sim.SetInput(map.MachineInputs.CylinderRetracted, true);
-                    sim.SetInput(map.CommonInputs.AirPressure, true);
-                    sim.ConfigureTestHead(map.MachineInputs.PartPresent,
-                        map.MachineInputs.TestOk,
-                        map.MachineInputs.TestNg,
-                        cycleMs: 1500,
-                        okProbability: 0.7,
-                        pulseMs: 300);
-                    return sim;
+                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware.leadshine.json");
+                    return LeadshineHardwareConfig.Load(configPath);
                 });
 
-                services.AddSingleton<IEtherCATMaster>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
-                services.AddSingleton<IIO>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
-                services.AddSingleton<IRegisterIO>(sp => sp.GetRequiredService<LeadshineEthercatSimulator>());
+                services.AddSingleton<PickAndPlaceProfile>(sp =>
+                {
+                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    return new PickAndPlaceProfile(config);
+                });
+
+                services.AddSingleton<LeadshineMaster>(sp =>
+                {
+                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new LeadshineMaster((ushort)config.CardNo, config.EthercatIp, logger);
+                });
+
+                services.AddSingleton<LeadshineRemoteIO>(sp =>
+                {
+                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    var points = config.IoPoints.Select(point =>
+                    {
+                        var address = LeadshineHardwareConfig.ResolveAddress(point);
+                        return new RemoteIoPoint
+                        {
+                            Address = address,
+                            NodeId = (ushort)point.NodeId,
+                            IoBit = (ushort)point.IoBit,
+                            IsOutput = string.Equals(point.Direction, "Output", StringComparison.OrdinalIgnoreCase)
+                        };
+                    }).ToList();
+
+                    return new LeadshineRemoteIO(config.CardNo, points, logger);
+                });
+
+                services.AddSingleton<IEtherCATMaster>(sp => sp.GetRequiredService<LeadshineMaster>());
+                services.AddSingleton<IIO>(sp => sp.GetRequiredService<LeadshineRemoteIO>());
+                services.AddSingleton<ISimulatedIO, NullSimulatedIO>();
 
                 // Register simulated axes from profile
                 services.AddSingleton<IEnumerable<IAxis>>(sp =>
                 {
-                    var profile = sp.GetRequiredService<PickAndPlaceProfile>();
+                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return profile.Axes.Select(axis =>
-                    {
-                        var id = $"PAP_SIM_{axis.Name}";
-                        return (IAxis)new SimulatorAxis(id, axis.Name, logger);
-                    }).ToList();
+                    return config.Axes.Select(axis =>
+                        (IAxis)new LeadshineAxis((ushort)config.CardNo,
+                            (ushort)axis.AxisIndex,
+                            axis.Id,
+                            axis.Name,
+                            null,
+                            logger)).ToList();
                 });
 
-                // Register PickAndPlace Machine
                 services.AddSingleton<PickAndPlaceMachine>(sp =>
                 {
                     var axes = sp.GetRequiredService<IEnumerable<IAxis>>().ToList();

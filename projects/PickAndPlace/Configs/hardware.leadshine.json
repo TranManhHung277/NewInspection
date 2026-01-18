@@ -1,0 +1,47 @@
+{
+  "cardNo": 0,
+  "ethercatIp": "",
+  "axes": [
+    { "id": "AXIS_X", "name": "AxisX", "axisIndex": 0, "description": "Pick X axis" },
+    { "id": "AXIS_Y", "name": "AxisY", "axisIndex": 1, "description": "Pick Y axis" },
+    { "id": "AXIS_Z", "name": "AxisZ", "axisIndex": 2, "description": "Pick Z axis" }
+  ],
+  "ioPoints": [
+    { "name": "EmergencyStop", "direction": "Input", "nodeId": 3, "ioBit": 0, "address": "IX1.0" },
+    { "name": "StartButton", "direction": "Input", "nodeId": 3, "ioBit": 1, "address": "IX1.1" },
+    { "name": "StopButton", "direction": "Input", "nodeId": 3, "ioBit": 2, "address": "IX1.2" },
+    { "name": "ResetButton", "direction": "Input", "nodeId": 3, "ioBit": 3, "address": "IX1.3" },
+    { "name": "SafetyDoor", "direction": "Input", "nodeId": 3, "ioBit": 4, "address": "IX1.4" },
+    { "name": "AirPressure", "direction": "Input", "nodeId": 3, "ioBit": 5, "address": "IX1.5" },
+    { "name": "HomeButton", "direction": "Input", "nodeId": 3, "ioBit": 6, "address": "IX1.6" },
+    { "name": "AutoModeSwitch", "direction": "Input", "nodeId": 3, "ioBit": 7, "address": "IX1.7" },
+    { "name": "ManualModeSwitch", "direction": "Input", "nodeId": 3, "ioBit": 8, "address": "IX1.8" },
+    { "name": "MaterialLow", "direction": "Input", "nodeId": 3, "ioBit": 9, "address": "IX1.9" },
+
+    { "name": "TowerLightRed", "direction": "Output", "nodeId": 3, "ioBit": 0, "address": "QX1.0" },
+    { "name": "TowerLightYellow", "direction": "Output", "nodeId": 3, "ioBit": 1, "address": "QX1.1" },
+    { "name": "TowerLightGreen", "direction": "Output", "nodeId": 3, "ioBit": 2, "address": "QX1.2" },
+    { "name": "Buzzer", "direction": "Output", "nodeId": 3, "ioBit": 3, "address": "QX1.3" },
+    { "name": "MainPowerEnable", "direction": "Output", "nodeId": 3, "ioBit": 4, "address": "QX1.4" },
+
+    { "name": "PartPresent", "direction": "Input", "nodeId": 3, "ioBit": 10, "address": "IX1.10" },
+    { "name": "TestOk", "direction": "Input", "nodeId": 3, "ioBit": 11, "address": "IX1.11" },
+    { "name": "TestNg", "direction": "Input", "nodeId": 3, "ioBit": 12, "address": "IX1.12" },
+    { "name": "CylinderExtended", "direction": "Input", "nodeId": 3, "ioBit": 13, "address": "IX1.13" },
+    { "name": "CylinderRetracted", "direction": "Input", "nodeId": 3, "ioBit": 14, "address": "IX1.14" },
+    { "name": "VacuumOk", "direction": "Input", "nodeId": 3, "ioBit": 15, "address": "IX1.15" },
+
+    { "name": "CylinderExtend", "direction": "Output", "nodeId": 3, "ioBit": 10, "address": "QX1.10" },
+    { "name": "VacuumOn", "direction": "Output", "nodeId": 3, "ioBit": 11, "address": "QX1.11" }
+  ],
+  "registers": {
+    "inputs": {
+      "PRODUCT_COUNT": "R1000",
+      "LAST_RESULT": "R1001"
+    },
+    "outputs": {
+      "TARGET_RECIPE": "R2000",
+      "START_BATCH": "R2001"
+    }
+  }
+}

@@ -1,5 +1,7 @@
+using System.Reflection;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.IO;
+using PickAndPlace.Configuration;
 
 namespace PickAndPlace.Machine;
 
@@ -9,50 +11,68 @@ namespace PickAndPlace.Machine;
 public class PickAndPlaceProfile : MachineProfile
 {
     public PickAndPlaceProfile()
-        : base(CreateIoMapWithCommon(), CreateRegisterMap(), CreateAxes())
+        : this(new LeadshineHardwareConfig())
     {
     }
 
-    private static IOMap CreateIoMapWithCommon()
+    public PickAndPlaceProfile(LeadshineHardwareConfig config)
+        : base(CreateIoMapFromConfig(config), CreateRegisterMapFromConfig(config), CreateAxesFromConfig(config))
+    {
+    }
+
+    private static IOMap CreateIoMapFromConfig(LeadshineHardwareConfig config)
     {
         var map = new PickAndPlaceIOMap();
-        map.CommonInputs.EmergencyStop = "IX0.0";
-        map.CommonInputs.StartButton = "IX0.1";
-        map.CommonInputs.StopButton = "IX0.2";
-        map.CommonInputs.ResetButton = "IX0.3";
-        map.CommonInputs.SafetyDoor = "IX0.4";
-        map.CommonInputs.AirPressure = "IX0.5";
-        map.CommonInputs.HomeButton = "IX0.6";
-        map.CommonInputs.AutoModeSwitch = "IX0.7";
-        map.CommonInputs.ManualModeSwitch = "IX0.8";
-        map.CommonInputs.MaterialLow = "IX0.9";
-
-        map.CommonOutputs.TowerLightRed = "QX0.0";
-        map.CommonOutputs.TowerLightYellow = "QX0.1";
-        map.CommonOutputs.TowerLightGreen = "QX0.2";
-        map.CommonOutputs.Buzzer = "QX0.3";
-        map.CommonOutputs.MainPowerEnable = "QX0.4";
+        foreach (var point in config.IoPoints)
+        {
+            ApplyIoPoint(map, point);
+        }
         return map;
     }
 
-    private static RegisterMap CreateRegisterMap()
+    private static RegisterMap CreateRegisterMapFromConfig(LeadshineHardwareConfig config)
     {
         var map = new RegisterMap();
-        // Example registers (extend as needed)
-        map.AddInput("PRODUCT_COUNT", "R1000");
-        map.AddInput("LAST_RESULT", "R1001");
-        map.AddOutput("TARGET_RECIPE", "R2000");
-        map.AddOutput("START_BATCH", "R2001");
+        foreach (var entry in config.Registers.Inputs)
+        {
+            map.AddInput(entry.Key, entry.Value);
+        }
+        foreach (var entry in config.Registers.Outputs)
+        {
+            map.AddOutput(entry.Key, entry.Value);
+        }
         return map;
     }
 
-    private static IReadOnlyList<AxisDefinition> CreateAxes()
+    private static IReadOnlyList<AxisDefinition> CreateAxesFromConfig(LeadshineHardwareConfig config)
     {
-        return new List<AxisDefinition>
+        return config.Axes.Select(axis => new AxisDefinition
         {
-            new() { Id = "AXIS_X", Name = "AxisX", Description = "Pick X axis" },
-            new() { Id = "AXIS_Y", Name = "AxisY", Description = "Pick Y axis" },
-            new() { Id = "AXIS_Z", Name = "AxisZ", Description = "Pick Z axis" }
-        };
+            Id = axis.Id,
+            Name = axis.Name,
+            Description = axis.Description,
+            AxisIndex = axis.AxisIndex
+        }).ToList();
+    }
+
+    private static void ApplyIoPoint(PickAndPlaceIOMap map, IoPointConfig point)
+    {
+        var address = LeadshineHardwareConfig.ResolveAddress(point);
+        var isOutput = string.Equals(point.Direction, "Output", StringComparison.OrdinalIgnoreCase);
+
+        object target = isOutput ? map.CommonOutputs : map.CommonInputs;
+        if (!TrySetAddress(target, point.Name, address))
+        {
+            target = isOutput ? map.MachineOutputs : map.MachineInputs;
+            TrySetAddress(target, point.Name, address);
+        }
+    }
+
+    private static bool TrySetAddress(object target, string name, string address)
+    {
+        var prop = target.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
+        if (prop == null || prop.PropertyType != typeof(string)) return false;
+        prop.SetValue(target, address);
+        return true;
     }
 }

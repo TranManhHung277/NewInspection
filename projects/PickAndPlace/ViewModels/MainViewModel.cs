@@ -7,7 +7,6 @@ using NAutoSuite.Core.Model;
 using NAutoSuite.UI.Controls;
 using PickAndPlace.Machine;
 using PickAndPlace.Model;
-using NAutoSuite.Hardware.Simulator;
 using Serilog;
 using System.Windows.Threading;
 
@@ -16,10 +15,7 @@ namespace PickAndPlace.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly PickAndPlaceMachine _machine;
-    private readonly LeadshineEthercatSimulator _ioSimulator;
-    private readonly SimulatorAxis? _axisXSim;
-    private readonly SimulatorAxis? _axisYSim;
-    private readonly SimulatorAxis? _axisZSim;
+    private readonly ISimulatedIO _simIo;
     private bool _isSyncingSimPosition;
     private bool _autoInitAttempted;
     private bool _modeSyncing;
@@ -167,15 +163,12 @@ public partial class MainViewModel : ObservableObject
 
     public MainViewModel(
         PickAndPlaceMachine machine,
-        LeadshineEthercatSimulator ioSimulator,
+        ISimulatedIO simIo,
         IEnumerable<IAxis> axes)
     {
         _machine = machine;
-        _ioSimulator = ioSimulator;
-        var axisList = axes.ToList();
-        _axisXSim = axisList.FirstOrDefault(a => a.Name == "AxisX") as SimulatorAxis;
-        _axisYSim = axisList.FirstOrDefault(a => a.Name == "AxisY") as SimulatorAxis;
-        _axisZSim = axisList.FirstOrDefault(a => a.Name == "AxisZ") as SimulatorAxis;
+        _simIo = simIo;
+        _ = axes;
 
         // Initialize settings service and load saved settings
         _settingsService = new SettingsService(Log.Logger);
@@ -558,27 +551,21 @@ public partial class MainViewModel : ObservableObject
     partial void OnSimulatedXPositionChanged(double value)
     {
         if (_isSyncingSimPosition) return;
-        _axisXSim?.SetSimulatedPosition(value);
     }
 
     partial void OnSimulatedYPositionChanged(double value)
     {
         if (_isSyncingSimPosition) return;
-        _axisYSim?.SetSimulatedPosition(value);
     }
 
     partial void OnSimulatedZPositionChanged(double value)
     {
         if (_isSyncingSimPosition) return;
-        _axisZSim?.SetSimulatedPosition(value);
     }
 
     partial void OnSimulatedSpeedChanged(double value)
     {
         if (_isSyncingSimPosition) return;
-        _axisXSim?.SetSimulatedVelocity(value);
-        _axisYSim?.SetSimulatedVelocity(value);
-        _axisZSim?.SetSimulatedVelocity(value);
     }
 
     private void UpdateIOStates()
@@ -586,16 +573,16 @@ public partial class MainViewModel : ObservableObject
         var map = _machine.IOMap;
         var common = map.CommonInputs;
 
-        PartPresent = _ioSimulator.GetInput(map.MachineInputs.PartPresent);
-        TestOk = _ioSimulator.GetInput(map.MachineInputs.TestOk);
-        TestNg = _ioSimulator.GetInput(map.MachineInputs.TestNg);
-        CylinderExtended = _ioSimulator.GetInput(map.MachineInputs.CylinderExtended);
-        CylinderRetracted = _ioSimulator.GetInput(map.MachineInputs.CylinderRetracted);
-        VacuumOk = _ioSimulator.GetInput(map.MachineInputs.VacuumOk);
-        MaterialLow = _ioSimulator.GetInput(common.MaterialLow);
+        PartPresent = _machine.IO.ReadInput(map.MachineInputs.PartPresent);
+        TestOk = _machine.IO.ReadInput(map.MachineInputs.TestOk);
+        TestNg = _machine.IO.ReadInput(map.MachineInputs.TestNg);
+        CylinderExtended = _machine.IO.ReadInput(map.MachineInputs.CylinderExtended);
+        CylinderRetracted = _machine.IO.ReadInput(map.MachineInputs.CylinderRetracted);
+        VacuumOk = _machine.IO.ReadInput(map.MachineInputs.VacuumOk);
+        MaterialLow = _machine.IO.ReadInput(common.MaterialLow);
 
-        CylinderExtendOutput = _ioSimulator.GetOutput(map.MachineOutputs.CylinderExtend);
-        VacuumOnOutput = _ioSimulator.GetOutput(map.MachineOutputs.VacuumOn);
+        CylinderExtendOutput = _machine.IO.ReadOutput(map.MachineOutputs.CylinderExtend);
+        VacuumOnOutput = _machine.IO.ReadOutput(map.MachineOutputs.VacuumOn);
         VacuumOn = VacuumOnOutput;
     }
 
@@ -757,7 +744,7 @@ public partial class MainViewModel : ObservableObject
     private void TogglePartPresent()
     {
         var address = _machine.IOMap.MachineInputs.PartPresent;
-        _ioSimulator.SetInput(address, !PartPresent);
+        _simIo.SetInput(address, !PartPresent);
         UpdateIOStates();
     }
 
@@ -765,7 +752,7 @@ public partial class MainViewModel : ObservableObject
     private void ToggleTestOk()
     {
         var address = _machine.IOMap.MachineInputs.TestOk;
-        _ioSimulator.SetInput(address, !TestOk);
+        _simIo.SetInput(address, !TestOk);
         UpdateIOStates();
     }
 
@@ -773,7 +760,7 @@ public partial class MainViewModel : ObservableObject
     private void ToggleTestNg()
     {
         var address = _machine.IOMap.MachineInputs.TestNg;
-        _ioSimulator.SetInput(address, !TestNg);
+        _simIo.SetInput(address, !TestNg);
         UpdateIOStates();
     }
 
@@ -781,7 +768,7 @@ public partial class MainViewModel : ObservableObject
     private void ToggleMaterialLow()
     {
         var address = _machine.IOMap.CommonInputs.MaterialLow;
-        _ioSimulator.SetInput(address, !MaterialLow);
+        _simIo.SetInput(address, !MaterialLow);
         UpdateIOStates();
     }
 
