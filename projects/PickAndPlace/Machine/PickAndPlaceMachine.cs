@@ -20,7 +20,8 @@ public class PickAndPlaceMachine : MachineBase
     private readonly IAxis _axisX;
     private readonly IAxis _axisY;
     private readonly IAxis _axisZ;
-    private readonly IEtherCATMaster? _master;
+    private readonly IReadOnlyList<IEtherCATMaster> _masters;
+    private readonly IReadOnlyList<IIO> _ioDevices;
     private readonly PickAndPlaceProfile _profile;
     private readonly PickAndPlaceIOMap _ioMap;
     private readonly Cylinder _rejectCylinder;
@@ -44,7 +45,8 @@ public class PickAndPlaceMachine : MachineBase
         IAxis axisX,
         IAxis axisY,
         IAxis axisZ,
-        IEtherCATMaster? master = null,
+        IEnumerable<IEtherCATMaster>? masters = null,
+        IEnumerable<IIO>? ioDevices = null,
         PickAndPlaceProfile? profile = null,
         ILogger? logger = null)
         : base("PAP_SIM", "PickAndPlace Simulator", profile ?? new PickAndPlaceProfile(), logger)
@@ -53,7 +55,8 @@ public class PickAndPlaceMachine : MachineBase
         _axisX = axisX;
         _axisY = axisY;
         _axisZ = axisZ;
-        _master = master;
+        _masters = masters?.ToList() ?? new List<IEtherCATMaster>();
+        _ioDevices = ioDevices?.ToList() ?? new List<IIO>();
         _ioMap = (PickAndPlaceIOMap)_profile.IOMap;
         _rejectCylinder = new Cylinder(
             IO,
@@ -91,9 +94,14 @@ public class PickAndPlaceMachine : MachineBase
 
     protected override void OnRegisterHardware(HardwareManager hardwareManager)
     {
-        if (_master != null)
+        foreach (var master in _masters)
         {
-            hardwareManager.RegisterDevice(_master);
+            hardwareManager.RegisterDevice(master);
+        }
+
+        foreach (var ioDevice in _ioDevices)
+        {
+            hardwareManager.RegisterDevice(ioDevice);
         }
     }
 

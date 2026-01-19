@@ -50,7 +50,19 @@ public partial class App : Application
                 services.AddSingleton(sp =>
                 {
                     var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware.leadshine.json");
-                    return LeadshineHardwareConfig.Load(configPath);
+                    return LeadshineHardwareSettings.Load(configPath);
+                });
+
+                services.AddSingleton(sp =>
+                {
+                    var settings = sp.GetRequiredService<LeadshineHardwareSettings>();
+                    return settings.BuildMergedConfig();
+                });
+
+                services.AddSingleton(sp =>
+                {
+                    var settings = sp.GetRequiredService<LeadshineHardwareSettings>();
+                    return settings.ResolveUsedCards();
                 });
 
                 services.AddSingleton<PickAndPlaceProfile>(sp =>
@@ -59,48 +71,50 @@ public partial class App : Application
                     return new PickAndPlaceProfile(config);
                 });
 
-                services.AddSingleton<LeadshineMaster>(sp =>
+                services.AddSingleton<IEnumerable<IEtherCATMaster>>(sp =>
                 {
-                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new LeadshineMaster((ushort)config.CardNo, config.EthercatIp, logger);
+                    return cards.Select(card =>
+                        (IEtherCATMaster)new LeadshineMaster((ushort)card.CardNo, card.EthercatIp, logger)).ToList();
                 });
 
-                services.AddSingleton<LeadshineRemoteIO>(sp =>
+                services.AddSingleton<IEnumerable<IIO>>(sp =>
                 {
-                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    var points = config.IoPoints.Select(point =>
+                    return cards.Select(card =>
                     {
-                        var address = LeadshineHardwareConfig.ResolveAddress(point);
-                        return new RemoteIoPoint
+                        var points = card.IoPoints.Select(point =>
                         {
-                            Address = address,
-                            NodeId = (ushort)point.NodeId,
-                            IoBit = (ushort)point.IoBit,
-                            IsOutput = string.Equals(point.Direction, "Output", StringComparison.OrdinalIgnoreCase)
-                        };
+                            var address = LeadshineHardwareConfig.ResolveAddress(point);
+                            return new RemoteIoPoint
+                            {
+                                Address = address,
+                                NodeId = (ushort)point.NodeId,
+                                IoBit = (ushort)point.IoBit,
+                                IsOutput = string.Equals(point.Direction, "Output", StringComparison.OrdinalIgnoreCase)
+                            };
+                        }).ToList();
+
+                        return (IIO)new LeadshineRemoteIO(card.CardNo, points, logger);
                     }).ToList();
-
-                    return new LeadshineRemoteIO(config.CardNo, points, logger);
                 });
-
-                services.AddSingleton<IEtherCATMaster>(sp => sp.GetRequiredService<LeadshineMaster>());
-                services.AddSingleton<IIO>(sp => sp.GetRequiredService<LeadshineRemoteIO>());
                 services.AddSingleton<ISimulatedIO, NullSimulatedIO>();
 
                 // Register simulated axes from profile
                 services.AddSingleton<IEnumerable<IAxis>>(sp =>
                 {
-                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
+                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return config.Axes.Select(axis =>
-                        (IAxis)new LeadshineAxis((ushort)config.CardNo,
-                            (ushort)axis.AxisIndex,
-                            axis.Id,
-                            axis.Name,
-                            null,
-                            logger)).ToList();
+                    return cards.SelectMany(card => card.Axes.Select(axis =>
+                            (IAxis)new LeadshineAxis((ushort)card.CardNo,
+                                (ushort)axis.AxisIndex,
+                                axis.Id,
+                                axis.Name,
+                                null,
+                                logger)))
+                        .ToList();
                 });
 
                 services.AddSingleton<PickAndPlaceMachine>(sp =>
@@ -110,10 +124,11 @@ public partial class App : Application
                     var axisX = axisMap["AxisX"];
                     var axisY = axisMap["AxisY"];
                     var axisZ = axisMap["AxisZ"];
-                    var master = sp.GetRequiredService<IEtherCATMaster>();
+                    var masters = sp.GetRequiredService<IEnumerable<IEtherCATMaster>>();
+                    var ioDevices = sp.GetRequiredService<IEnumerable<IIO>>();
                     var profile = sp.GetRequiredService<PickAndPlaceProfile>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new PickAndPlaceMachine(axisX, axisY, axisZ, master, profile, logger);
+                    return new PickAndPlaceMachine(axisX, axisY, axisZ, masters, ioDevices, profile, logger);
                 });
 
                 // Register ViewModels
