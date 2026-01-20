@@ -1,0 +1,71 @@
+<UserControl x:Class="NAutoSuite.UI.Controls.SensorStatusControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="36"
+             d:DesignWidth="160">
+
+    <Border Background="#252526"
+            BorderBrush="#3E3E42"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="8,4">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Sensor icon -->
+            <Grid Grid.Column="0"
+                  Width="20" Height="20"
+                  Margin="0,0,8,0">
+                <!-- Glow effect -->
+                <Ellipse Fill="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         Opacity="0.3">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="4"/>
+                    </Ellipse.Effect>
+                </Ellipse>
+                <!-- Main indicator -->
+                <Ellipse Fill="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         Stroke="#1E1E1E"
+                         StrokeThickness="1">
+                    <Ellipse.Effect>
+                        <DropShadowEffect ShadowDepth="0"
+                                          BlurRadius="3"
+                                          Opacity="0.5"
+                                          Color="{Binding StatusColor, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                    </Ellipse.Effect>
+                </Ellipse>
+                <!-- Highlight -->
+                <Ellipse Margin="4,3,4,0"
+                         VerticalAlignment="Top"
+                         Height="5"
+                         Fill="White"
+                         Opacity="0.3"/>
+            </Grid>
+
+            <!-- Sensor name -->
+            <TextBlock Grid.Column="1"
+                       Text="{Binding SensorName, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       Foreground="White"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"/>
+
+            <!-- Status text -->
+            <TextBlock Grid.Column="2"
+                       Text="{Binding StatusText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       Foreground="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       Margin="8,0,0,0"
+                       Visibility="{Binding StatusTextVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </Grid>
+    </Border>
+</UserControl>

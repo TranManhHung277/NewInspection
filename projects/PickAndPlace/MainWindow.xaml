@@ -35,6 +35,7 @@
                                     ModelNameValue="{Binding ModelName}"
                                     RunModeValue="{Binding RunMode}"
                                     StatusLevel="{Binding HeaderStatusLevel}"
+                                    HeaderClicked="HeaderControl_HeaderClicked"
                                     CloseClicked="HeaderControl_CloseClicked"/>
 
         <!-- Content Area -->

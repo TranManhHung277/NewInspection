@@ -1,0 +1,82 @@
+<UserControl x:Class="NAutoSuite.UI.Controls.ProgressIndicatorControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="120"
+             d:DesignWidth="120">
+
+    <Grid>
+        <!-- Circular Progress -->
+        <Grid x:Name="CircularProgress"
+              Visibility="{Binding CircularVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <Grid Width="{Binding Size, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  Height="{Binding Size, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                <!-- Background circle -->
+                <Ellipse Stroke="#3E3E42"
+                         StrokeThickness="{Binding StrokeWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         Fill="Transparent"/>
+
+                <!-- Progress arc -->
+                <Canvas>
+                    <Path x:Name="ProgressArc"
+                          Stroke="{Binding ProgressBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          StrokeThickness="{Binding StrokeWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"
+                          Data="{Binding ArcData, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                </Canvas>
+
+                <!-- Center content -->
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding PercentageText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Foreground="White"
+                               FontSize="{Binding ValueFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Foreground="#B0B0B0"
+                               FontSize="10"
+                               HorizontalAlignment="Center"
+                               Visibility="{Binding LabelVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Linear Progress -->
+        <Grid x:Name="LinearProgress"
+              Visibility="{Binding LinearVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <DockPanel Grid.Row="0"
+                       Margin="0,0,0,8">
+                <TextBlock Text="{Binding PercentageText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Foreground="#B0B0B0"
+                           FontSize="12"/>
+            </DockPanel>
+
+            <!-- Progress bar -->
+            <Border Grid.Row="1"
+                    Height="{Binding BarHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    Background="#3E3E42"
+                    CornerRadius="4">
+                <Border x:Name="ProgressBar"
+                        Background="{Binding ProgressBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CornerRadius="4"
+                        HorizontalAlignment="Left"
+                        Width="{Binding ProgressWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

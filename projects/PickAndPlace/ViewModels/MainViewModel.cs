@@ -133,6 +133,9 @@ public partial class MainViewModel : ObservableObject
     private bool _isAxisMoving;
 
     [ObservableProperty]
+    private bool _hasActiveAlarms;
+
+    [ObservableProperty]
     private string _statusMessage = "Initializing...";
 
     [ObservableProperty]
@@ -422,6 +425,8 @@ public partial class MainViewModel : ObservableObject
 
             // Update header status based on machine state
             UpdateHeaderStatus();
+
+            HasActiveAlarms = _machine.HasActiveAlarms;
 
             UpdateIOStates();
 

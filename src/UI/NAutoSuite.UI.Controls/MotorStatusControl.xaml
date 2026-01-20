@@ -1,0 +1,93 @@
+<UserControl x:Class="NAutoSuite.UI.Controls.MotorStatusControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="100"
+             d:DesignWidth="200">
+
+    <UserControl.Resources>
+        <Storyboard x:Key="RotateAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="MotorRotate"
+                             Storyboard.TargetProperty="Angle"
+                             From="0" To="360"
+                             Duration="0:0:1"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Border Background="#2D2D30"
+            BorderBrush="#3E3E42"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="12">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Motor icon with rotation -->
+            <Grid Grid.Column="0"
+                  Width="50" Height="50"
+                  Margin="0,0,12,0">
+                <!-- Background circle -->
+                <Ellipse Fill="#252526"
+                         Stroke="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                         StrokeThickness="2"/>
+
+                <!-- Motor symbol (rotating gear) -->
+                <Path x:Name="MotorGear"
+                      Data="M25,8 L27,15 L35,15 L29,20 L31,28 L25,23 L19,28 L21,20 L15,15 L23,15 Z"
+                      Fill="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      Stretch="Uniform"
+                      Width="28" Height="28"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Path.RenderTransform>
+                        <RotateTransform x:Name="MotorRotate" Angle="0"/>
+                    </Path.RenderTransform>
+                </Path>
+            </Grid>
+
+            <!-- Motor info -->
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center">
+                <!-- Motor name -->
+                <TextBlock Text="{Binding MotorName, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="SemiBold"/>
+
+                <!-- Status -->
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,4,0,0">
+                    <Ellipse Width="8" Height="8"
+                             Fill="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                             Margin="0,0,6,0"
+                             VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Foreground="{Binding StatusBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               FontSize="12"/>
+                </StackPanel>
+
+                <!-- Speed display -->
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,4,0,0"
+                            Visibility="{Binding SpeedVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    <TextBlock Text="{Binding Speed, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:F0}'}"
+                               Foreground="#2196F3"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               FontFamily="Consolas"/>
+                    <TextBlock Text=" RPM"
+                               Foreground="#6E6E6E"
+                               FontSize="11"
+                               VerticalAlignment="Bottom"
+                               Margin="0,0,0,1"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

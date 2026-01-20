@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1920">
     <Grid Margin="20">
@@ -189,22 +190,13 @@
 
                             <TextBlock Text="Vacuum" FontSize="16" VerticalAlignment="Center"/>
 
-                            <ToggleButton Grid.Column="1" Width="60" Height="32"
-                                          IsChecked="{Binding VacuumOn}"
-                                          Command="{Binding ToggleVacuumCommand}">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                                        <Setter Property="Background" Value="#3E3E42"/>
-                                        <Setter Property="Content" Value="OFF"/>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter Property="Background" Value="#4CAF50"/>
-                                                <Setter Property="Content" Value="ON"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
+                            <controls:SwitchToggleControl Grid.Column="1"
+                                                          Width="70"
+                                                          Height="32"
+                                                          IsChecked="{Binding VacuumOn}"
+                                                          Command="{Binding ToggleVacuumCommand}"
+                                                          OnLabel="ON"
+                                                          OffLabel="OFF"/>
                         </Grid>
                     </Border>
 

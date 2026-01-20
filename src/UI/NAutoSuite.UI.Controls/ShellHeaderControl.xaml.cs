@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
 using NAutoSuite.Core.Machine;
+using System.Windows.Input;
 
 namespace NAutoSuite.UI.Controls;
 
@@ -95,6 +96,7 @@ public partial class ShellHeaderControl : UserControl
     }
 
     public event RoutedEventHandler? CloseClicked;
+    public event RoutedEventHandler? HeaderClicked;
 
     public ShellHeaderControl()
     {
@@ -116,6 +118,16 @@ public partial class ShellHeaderControl : UserControl
     private void Timer_Tick(object? sender, EventArgs e)
     {
         UpdateTime();
+    }
+
+    private void MainBorder_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        HeaderClicked?.Invoke(this, e);
+    }
+
+    private void HeaderControl_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        HeaderClicked?.Invoke(this, e);
     }
 
     private void UpdateTime()

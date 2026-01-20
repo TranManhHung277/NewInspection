@@ -40,15 +40,6 @@ public partial class MainWindow : Window
 
     private void FooterControl_TabChanged(object? sender, string tabName)
     {
-        if (tabName == "Manual")
-        {
-            _viewModel.SetManualMode();
-        }
-        else if (_lastTab == "Manual")
-        {
-            _viewModel.RestoreAutoMode();
-        }
-
         _lastTab = tabName;
 
         object view = tabName switch
@@ -77,5 +68,17 @@ public partial class MainWindow : Window
         {
             Application.Current.Shutdown();
         }
+    }
+
+    private void HeaderControl_HeaderClicked(object sender, RoutedEventArgs e)
+    {
+        var hasError = _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Error
+            || _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.EmergencyStop
+            || _viewModel.HasActiveAlarms
+            || _viewModel.HeaderStatusLevel == NAutoSuite.UI.Controls.HeaderStatusLevel.Error;
+        var targetTab = hasError
+            ? "Log"
+            : "Auto";
+        FooterControl.SelectTab(targetTab);
     }
 }

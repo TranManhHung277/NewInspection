@@ -370,6 +370,7 @@ public partial class ModelManagementViewModel : ObservableObject
             if (success)
             {
                 IsEditing = false;
+                _modelService.SetCurrentModel(CurrentModel);
                 if (!string.Equals(oldName, CurrentModel.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     _modelService.DeleteModel(oldName);
