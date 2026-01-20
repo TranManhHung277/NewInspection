@@ -158,17 +158,16 @@ public class CommonIOHandler
                     machineBase.SetRunMode(MachineRunMode.Manual);
                 }
             }
-            else if (autoSwitch != _prevAutoSwitchState || manualSwitch != _prevManualSwitchState)
+            else if (autoSwitch && !manualSwitch)
             {
-                if (autoSwitch && !manualSwitch)
+                if (machineBase.RunMode != MachineRunMode.Auto)
                 {
                     machineBase.SetRunMode(MachineRunMode.Auto);
                 }
-                else if (manualSwitch && !autoSwitch)
-                {
-                    machineBase.SetRunMode(MachineRunMode.Manual);
-                }
-                else if (!autoSwitch && !manualSwitch)
+            }
+            else
+            {
+                if (machineBase.RunMode != MachineRunMode.Manual)
                 {
                     machineBase.SetRunMode(MachineRunMode.Manual);
                 }
