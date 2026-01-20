@@ -147,15 +147,28 @@ public class CommonIOHandler
         }
 
         // ===== AUTO/MANUAL SWITCH =====
-        if (autoSwitch != _prevAutoSwitchState || manualSwitch != _prevManualSwitchState)
+        if (_machine is MachineBase machineBase)
         {
-            if (_machine is MachineBase machineBase)
+            var hasSwitchInput = !string.IsNullOrWhiteSpace(autoAddr) || !string.IsNullOrWhiteSpace(manualAddr);
+
+            if (!hasSwitchInput)
+            {
+                if (machineBase.RunMode != MachineRunMode.Manual)
+                {
+                    machineBase.SetRunMode(MachineRunMode.Manual);
+                }
+            }
+            else if (autoSwitch != _prevAutoSwitchState || manualSwitch != _prevManualSwitchState)
             {
                 if (autoSwitch && !manualSwitch)
                 {
                     machineBase.SetRunMode(MachineRunMode.Auto);
                 }
                 else if (manualSwitch && !autoSwitch)
+                {
+                    machineBase.SetRunMode(MachineRunMode.Manual);
+                }
+                else if (!autoSwitch && !manualSwitch)
                 {
                     machineBase.SetRunMode(MachineRunMode.Manual);
                 }

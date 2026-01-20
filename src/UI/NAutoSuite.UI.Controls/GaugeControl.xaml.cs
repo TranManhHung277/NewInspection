@@ -10,7 +10,7 @@ namespace NAutoSuite.UI.Controls;
 public partial class GaugeControl : UserControl
 {
     private static readonly Brush DefaultValueBrush = new SolidColorBrush(Color.FromRgb(0x21, 0x96, 0xF3));
-    private static readonly Brush NeedleBrush = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+    private static readonly Brush DefaultNeedleBrush = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
     private static readonly Color DefaultValueColor = Color.FromRgb(0x21, 0x96, 0xF3);
 
     private const double StartAngle = 135; // Start angle in degrees (bottom left)
@@ -83,7 +83,7 @@ public partial class GaugeControl : UserControl
 
     public static readonly DependencyProperty NeedleBrushProperty =
         DependencyProperty.Register(nameof(NeedleBrush), typeof(Brush), typeof(GaugeControl),
-            new PropertyMetadata(NeedleBrush));
+            new PropertyMetadata(DefaultNeedleBrush));
 
     public static readonly DependencyProperty NeedleVisibilityProperty =
         DependencyProperty.Register(nameof(NeedleVisibility), typeof(Visibility), typeof(GaugeControl),
@@ -197,7 +197,7 @@ public partial class GaugeControl : UserControl
         set => SetValue(NeedleAngleProperty, value);
     }
 
-    public new Brush NeedleBrush
+    public Brush NeedleBrush
     {
         get => (Brush)GetValue(NeedleBrushProperty);
         set => SetValue(NeedleBrushProperty, value);

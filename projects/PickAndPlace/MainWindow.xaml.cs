@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     private readonly DataView _dataView;
     private readonly LogView _logView;
     private string _lastTab = "Auto";
+    private bool _suppressTabChange;
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -40,6 +41,22 @@ public partial class MainWindow : Window
 
     private void FooterControl_TabChanged(object? sender, string tabName)
     {
+        if (_suppressTabChange)
+        {
+            return;
+        }
+
+        if (_viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Running &&
+            _viewModel.RunMode == NAutoSuite.Core.Machine.MachineRunMode.Auto &&
+            tabName is "Manual" or "Data" or "Setting")
+        {
+            _viewModel.StatusMessage = "Stop machine before switching tabs";
+            _suppressTabChange = true;
+            FooterControl.SelectTab("Auto");
+            _suppressTabChange = false;
+            return;
+        }
+
         _lastTab = tabName;
 
         object view = tabName switch
