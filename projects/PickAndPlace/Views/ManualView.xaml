@@ -45,6 +45,22 @@
                         </StackPanel>
                     </Border>
 
+                    <TextBlock Text="STATUS" FontSize="14" Foreground="#B0B0B0" Margin="0,0,0,8"/>
+                    <UniformGrid Columns="2" Margin="0,0,0,16">
+                        <controls:StatusIndicatorControl Label="Ready" IsActive="{Binding AxisXReady}"/>
+                        <controls:StatusIndicatorControl Label="On" IsActive="{Binding AxisXOn}"/>
+                        <controls:StatusIndicatorControl Label="Enabled" IsActive="{Binding AxisXEnabled}"/>
+                        <controls:StatusIndicatorControl Label="Done" IsActive="{Binding AxisXDone}"/>
+                        <controls:StatusIndicatorControl Label="Target" IsActive="{Binding AxisXTargetReached}"/>
+                        <controls:StatusIndicatorControl Label="Warning" IsActive="{Binding AxisXWarning}"
+                                                         ActiveColor="#FFC107"/>
+                        <controls:StatusIndicatorControl Label="Fault" IsActive="{Binding AxisXFault}"
+                                                         ActiveColor="#F44336"/>
+                    </UniformGrid>
+
+                    <TextBlock Text="{Binding AxisXErrorCode, StringFormat=Error: {0}}"
+                               FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,16"/>
+
                     <!-- JOG Buttons -->
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
@@ -104,6 +120,22 @@
                         </StackPanel>
                     </Border>
 
+                    <TextBlock Text="STATUS" FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,8"/>
+                    <UniformGrid Columns="2" Margin="0,0,0,16">
+                        <controls:StatusIndicatorControl Label="Ready" IsActive="{Binding AxisYReady}"/>
+                        <controls:StatusIndicatorControl Label="On" IsActive="{Binding AxisYOn}"/>
+                        <controls:StatusIndicatorControl Label="Enabled" IsActive="{Binding AxisYEnabled}"/>
+                        <controls:StatusIndicatorControl Label="Done" IsActive="{Binding AxisYDone}"/>
+                        <controls:StatusIndicatorControl Label="Target" IsActive="{Binding AxisYTargetReached}"/>
+                        <controls:StatusIndicatorControl Label="Warning" IsActive="{Binding AxisYWarning}"
+                                                         ActiveColor="#FFC107"/>
+                        <controls:StatusIndicatorControl Label="Fault" IsActive="{Binding AxisYFault}"
+                                                         ActiveColor="#F44336"/>
+                    </UniformGrid>
+
+                    <TextBlock Text="{Binding AxisYErrorCode, StringFormat=Error: {0}}"
+                               FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,16"/>
+
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -135,6 +167,22 @@
                                        HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
+
+                    <TextBlock Text="STATUS" FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,8"/>
+                    <UniformGrid Columns="2" Margin="0,0,0,16">
+                        <controls:StatusIndicatorControl Label="Ready" IsActive="{Binding AxisZReady}"/>
+                        <controls:StatusIndicatorControl Label="On" IsActive="{Binding AxisZOn}"/>
+                        <controls:StatusIndicatorControl Label="Enabled" IsActive="{Binding AxisZEnabled}"/>
+                        <controls:StatusIndicatorControl Label="Done" IsActive="{Binding AxisZDone}"/>
+                        <controls:StatusIndicatorControl Label="Target" IsActive="{Binding AxisZTargetReached}"/>
+                        <controls:StatusIndicatorControl Label="Warning" IsActive="{Binding AxisZWarning}"
+                                                         ActiveColor="#FFC107"/>
+                        <controls:StatusIndicatorControl Label="Fault" IsActive="{Binding AxisZFault}"
+                                                         ActiveColor="#F44336"/>
+                    </UniformGrid>
+
+                    <TextBlock Text="{Binding AxisZErrorCode, StringFormat=Error: {0}}"
+                               FontSize="12" Foreground="#B0B0B0" Margin="0,0,0,16"/>
 
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>

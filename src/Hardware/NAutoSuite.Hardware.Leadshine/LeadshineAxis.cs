@@ -1,5 +1,6 @@
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Motion;
+using NAutoSuite.Hardware.Leadshine.Configuration;
 using Serilog;
 
 namespace NAutoSuite.Hardware.Leadshine;
@@ -12,6 +13,7 @@ public class LeadshineAxis : AxisBase
     private readonly ushort _cardNo;
     private readonly ushort _axisIndex;
     private readonly LeadshineMaster? _master;
+    private readonly LeadshineAxisConfig? _config;
     private bool _isConnected;
 
     // Motion parameters
@@ -19,6 +21,8 @@ public class LeadshineAxis : AxisBase
     private double _maxVel = 100.0;
     private double _acc = 0.2;
     private double _dec = 0.2;
+    private double _stopVel;
+    private double _jogVel = 50.0;
 
     public override bool IsConnected => _isConnected;
 
@@ -95,12 +99,30 @@ public class LeadshineAxis : AxisBase
         }
     }
 
-    public LeadshineAxis(ushort cardNo, ushort axisIndex, string id, string name, LeadshineMaster? master = null, ILogger? logger = null)
+    public LeadshineAxis(
+        ushort cardNo,
+        ushort axisIndex,
+        string id,
+        string name,
+        LeadshineAxisConfig? config = null,
+        LeadshineMaster? master = null,
+        ILogger? logger = null)
         : base(id, name, logger)
     {
         _cardNo = cardNo;
         _axisIndex = axisIndex;
         _master = master;
+        _config = config;
+
+        if (_config != null)
+        {
+            _minVel = _config.MinVel;
+            _maxVel = _config.MaxVel;
+            _acc = _config.Acc;
+            _dec = _config.Dec;
+            _stopVel = _config.StopVel;
+            _jogVel = _config.JogVel;
+        }
     }
 
     public override Task<Result> ConnectAsync(CancellationToken cancellationToken = default)
@@ -111,21 +133,28 @@ public class LeadshineAxis : AxisBase
             // Just verify we can read status
             var status = LTDMC.dmc_axis_io_status(_cardNo, _axisIndex);
 
-            // Enable axis immediately when connecting
-            var result = LTDMC.nmc_set_axis_enable(_cardNo, _axisIndex);
-            if (result != 0)
+            if (_config?.ServoOnConnect ?? true)
             {
-                _logger.Warning("Failed to enable axis {Name}, error code: {ErrorCode}", Name, result);
-            }
-            else
-            {
-                _logger.Information("Axis {Name} enabled successfully", Name);
+                var enableResult = LTDMC.nmc_set_axis_enable(_cardNo, _axisIndex);
+                if (enableResult != 0)
+                {
+                    _logger.Warning("Failed to enable axis {Name}, error code: {ErrorCode}", Name, enableResult);
+                }
+                else
+                {
+                    _logger.Information("Axis {Name} enabled successfully", Name);
+                }
             }
 
             // Configure gear ratio (equiv)
             // Động cơ 23-bit: 8,388,608 xung/vòng. 1 vòng = 36,000 unit (0.01 độ/unit)
-            double equiv = 8388608.0 / 36000.0;
-            result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
+            var equiv = _config?.GearEquiv ?? 0.0;
+            if (equiv <= 0)
+            {
+                equiv = 8388608.0 / 36000.0;
+            }
+
+            var result = LTDMC.dmc_set_equiv(_cardNo, _axisIndex, equiv);
             if (result != 0)
             {
                 _logger.Warning("Failed to set equiv for axis {Name}, error code: {ErrorCode}", Name, result);
@@ -156,15 +185,47 @@ public class LeadshineAxis : AxisBase
             //     _logger.Information("Axis {Name} run mode set to CSP (mode 8)", Name);
             // }
 
+            var runMode = _config?.RunMode ?? (ushort)8;
+            result = LTDMC.nmc_set_axis_run_mode(_cardNo, _axisIndex, runMode);
+            if (result != 0)
+            {
+                _logger.Warning("Failed to set run mode for axis {Name}, error code: {ErrorCode}", Name, result);
+            }
+            else
+            {
+                _logger.Information("Axis {Name} run mode set to {RunMode}", Name, runMode);
+            }
+
             // Set default profile (100 unit/s min, 36000 unit/s max = 360 deg/s, 0.2 acc/dec)
-            result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, 100, 36000, 0.2, 0.2, 100);
+            result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, _minVel, _maxVel, _acc, _dec, _stopVel);
             if (result != 0)
             {
                 _logger.Warning("Failed to set profile for axis {Name}, error code: {ErrorCode}", Name, result);
             }
             else
             {
-                _logger.Information("Axis {Name} default profile set: MinVel=100, MaxVel=36000, Acc/Dec=0.2", Name);
+                _logger.Information("Axis {Name} profile set: MinVel={MinVel}, MaxVel={MaxVel}, Acc={Acc}, Dec={Dec}",
+                    Name, _minVel, _maxVel, _acc, _dec);
+            }
+
+            if (_config?.EnableGear == true)
+            {
+                result = LTDMC.dmc_SetGearProfile(
+                    _cardNo,
+                    _axisIndex,
+                    _config.GearMasterType,
+                    _config.GearMasterIndex,
+                    _config.GearMasterEven,
+                    _config.GearSlaveEven,
+                    _config.GearMasterSlope);
+                if (result != 0)
+                {
+                    _logger.Warning("Failed to set electronic gear for axis {Name}, error code: {ErrorCode}", Name, result);
+                }
+                else
+                {
+                    _logger.Information("Axis {Name} electronic gear configured", Name);
+                }
             }
 
             _isConnected = true;
@@ -213,7 +274,7 @@ public class LeadshineAxis : AxisBase
             _acc = acc;
             _dec = dec;
 
-            var result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, minVel, maxVel, acc, dec, 0);
+            var result = LTDMC.dmc_set_profile_unit(_cardNo, _axisIndex, minVel, maxVel, acc, dec, _stopVel);
             if (result != 0)
             {
                 return Result.Failure($"Failed to set profile, error code: {result}");
@@ -238,7 +299,11 @@ public class LeadshineAxis : AxisBase
             _logger.Information("Starting home sequence for axis {Name}", Name);
 
             // Set home mode (mode 0: search home sensor)
-            var result = LTDMC.dmc_set_homemode(_cardNo, _axisIndex, 0, 10.0, 0, 0);
+            var homeDir = _config?.HomeDir ?? (ushort)0;
+            var homeVel = _config?.HomeVel ?? 10.0;
+            var homeMode = _config?.HomeMode ?? (ushort)0;
+            var homeEz = _config?.HomeEzCount ?? (ushort)0;
+            var result = LTDMC.dmc_set_homemode(_cardNo, _axisIndex, homeDir, homeVel, homeMode, homeEz);
             if (result != 0)
             {
                 return Result.Failure($"Failed to set home mode, error code: {result}");
@@ -436,6 +501,12 @@ public class LeadshineAxis : AxisBase
     {
         try
         {
+            var speedResult = LTDMC.dmc_change_speed_unit(_cardNo, _axisIndex, _jogVel, _acc);
+            if (speedResult != 0)
+            {
+                _logger.Warning("Failed to set jog speed for axis {Name}, error code: {ErrorCode}", Name, speedResult);
+            }
+
             ushort dir = (ushort)(positiveDirection ? 0 : 1); // 0=positive, 1=negative
             var result = LTDMC.dmc_vmove(_cardNo, _axisIndex, dir);
 

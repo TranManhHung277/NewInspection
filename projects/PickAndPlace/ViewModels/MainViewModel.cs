@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PickAndPlace.Services;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Machine;
+using NAutoSuite.Core.Entities;
 using NAutoSuite.Core.Model;
 using NAutoSuite.UI.Controls;
 using PickAndPlace.Machine;
@@ -25,6 +26,7 @@ public partial class MainViewModel : ObservableObject
     private readonly MachineSettings _machineSettings;
     private readonly ModelService<PickAndPlaceModel> _modelService;
     private readonly ConfigReloadService _configReloadService;
+    private readonly DataEventBus _dataBus;
 
     [ObservableProperty]
     private MachineState _machineState = MachineState.Uninitialized;
@@ -134,6 +136,87 @@ public partial class MainViewModel : ObservableObject
     private bool _isAxisMoving;
 
     [ObservableProperty]
+    private int _axisXStatusWord;
+
+    [ObservableProperty]
+    private int _axisYStatusWord;
+
+    [ObservableProperty]
+    private int _axisZStatusWord;
+
+    [ObservableProperty]
+    private int _axisXErrorCode;
+
+    [ObservableProperty]
+    private int _axisYErrorCode;
+
+    [ObservableProperty]
+    private int _axisZErrorCode;
+
+    [ObservableProperty]
+    private bool _axisXDone;
+
+    [ObservableProperty]
+    private bool _axisYDone;
+
+    [ObservableProperty]
+    private bool _axisZDone;
+
+    [ObservableProperty]
+    private bool _axisXReady;
+
+    [ObservableProperty]
+    private bool _axisYReady;
+
+    [ObservableProperty]
+    private bool _axisZReady;
+
+    [ObservableProperty]
+    private bool _axisXOn;
+
+    [ObservableProperty]
+    private bool _axisYOn;
+
+    [ObservableProperty]
+    private bool _axisZOn;
+
+    [ObservableProperty]
+    private bool _axisXEnabled;
+
+    [ObservableProperty]
+    private bool _axisYEnabled;
+
+    [ObservableProperty]
+    private bool _axisZEnabled;
+
+    [ObservableProperty]
+    private bool _axisXFault;
+
+    [ObservableProperty]
+    private bool _axisYFault;
+
+    [ObservableProperty]
+    private bool _axisZFault;
+
+    [ObservableProperty]
+    private bool _axisXWarning;
+
+    [ObservableProperty]
+    private bool _axisYWarning;
+
+    [ObservableProperty]
+    private bool _axisZWarning;
+
+    [ObservableProperty]
+    private bool _axisXTargetReached;
+
+    [ObservableProperty]
+    private bool _axisYTargetReached;
+
+    [ObservableProperty]
+    private bool _axisZTargetReached;
+
+    [ObservableProperty]
     private bool _hasActiveAlarms;
 
     [ObservableProperty]
@@ -169,12 +252,14 @@ public partial class MainViewModel : ObservableObject
         PickAndPlaceMachine machine,
         ISimulatedIO simIo,
         IEnumerable<IAxis> axes,
-        ConfigReloadService configReloadService)
+        ConfigReloadService configReloadService,
+        DataEventBus dataBus)
     {
         _machine = machine;
         _simIo = simIo;
         _ = axes;
         _configReloadService = configReloadService;
+        _dataBus = dataBus;
 
         // Initialize settings service and load saved settings
         _settingsService = new SettingsService(Log.Logger);
@@ -199,6 +284,8 @@ public partial class MainViewModel : ObservableObject
         };
         _updateTimer.Tick += UpdateTimerTick;
         _updateTimer.Start();
+
+        _dataBus.DataChanged += OnDataChanged;
 
         _ = AutoInitializeAsync();
     }
@@ -936,5 +1023,98 @@ public partial class MainViewModel : ObservableObject
     public void NavigateToView(object view)
     {
         CurrentView = view;
+    }
+
+    private void OnDataChanged(object? sender, DataChangedEventArgs e)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            return;
+        }
+
+        if (dispatcher.CheckAccess())
+        {
+            ApplyDataValue(e.SystemName, e.Value);
+        }
+        else
+        {
+            dispatcher.BeginInvoke(() => ApplyDataValue(e.SystemName, e.Value));
+        }
+    }
+
+    private void ApplyDataValue(string systemName, double value)
+    {
+        switch (systemName)
+        {
+            case "leadshine.data.axis_x_status_word":
+                AxisXStatusWord = (int)value;
+                ApplyStatusWordBits(AxisXStatusWord, "X");
+                break;
+            case "leadshine.data.axis_y_status_word":
+                AxisYStatusWord = (int)value;
+                ApplyStatusWordBits(AxisYStatusWord, "Y");
+                break;
+            case "leadshine.data.axis_z_status_word":
+                AxisZStatusWord = (int)value;
+                ApplyStatusWordBits(AxisZStatusWord, "Z");
+                break;
+            case "leadshine.data.axis_x_error_code":
+                AxisXErrorCode = (int)value;
+                break;
+            case "leadshine.data.axis_y_error_code":
+                AxisYErrorCode = (int)value;
+                break;
+            case "leadshine.data.axis_z_error_code":
+                AxisZErrorCode = (int)value;
+                break;
+            case "leadshine.data.axis_x_done":
+                AxisXDone = value > 0.5;
+                break;
+            case "leadshine.data.axis_y_done":
+                AxisYDone = value > 0.5;
+                break;
+            case "leadshine.data.axis_z_done":
+                AxisZDone = value > 0.5;
+                break;
+        }
+    }
+
+    private void ApplyStatusWordBits(int status, string axis)
+    {
+        var ready = (status & (1 << 0)) != 0;
+        var on = (status & (1 << 1)) != 0;
+        var enabled = (status & (1 << 2)) != 0;
+        var fault = (status & (1 << 3)) != 0;
+        var warning = (status & (1 << 7)) != 0;
+        var targetReached = (status & (1 << 10)) != 0;
+
+        switch (axis)
+        {
+            case "X":
+                AxisXReady = ready;
+                AxisXOn = on;
+                AxisXEnabled = enabled;
+                AxisXFault = fault;
+                AxisXWarning = warning;
+                AxisXTargetReached = targetReached;
+                break;
+            case "Y":
+                AxisYReady = ready;
+                AxisYOn = on;
+                AxisYEnabled = enabled;
+                AxisYFault = fault;
+                AxisYWarning = warning;
+                AxisYTargetReached = targetReached;
+                break;
+            case "Z":
+                AxisZReady = ready;
+                AxisZOn = on;
+                AxisZEnabled = enabled;
+                AxisZFault = fault;
+                AxisZWarning = warning;
+                AxisZTargetReached = targetReached;
+                break;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Hardware.Abstractions.Hardware;
@@ -33,14 +34,21 @@ public sealed class LeadshineHardwareModule : IHardwareModule
         var master = new LeadshineMaster((ushort)settings.CardNo, null, _logger);
         devices.Add(master);
 
-        axes.AddRange(settings.Axes);
-
         foreach (var axis in settings.Axes)
         {
+            axes.Add(new AxisDefinition
+            {
+                Id = axis.Id,
+                Name = axis.Name,
+                Description = axis.Description,
+                AxisIndex = axis.AxisIndex
+            });
+
             devices.Add(new LeadshineAxis((ushort)settings.CardNo,
                 (ushort)axis.AxisIndex,
                 axis.Id,
                 axis.Name,
+                axis,
                 null,
                 _logger));
         }
@@ -76,14 +84,18 @@ public sealed class LeadshineHardwareModule : IHardwareModule
 
         foreach (var item in settings.Data)
         {
+            var address = string.IsNullOrWhiteSpace(item.Address)
+                ? $"axis:{item.Axis}:pos"
+                : item.Address;
+            var defaultValue = ParseDefaultValue(item.Default, item.Type, $"leadshine.data.{item.Id}");
             dataPoints.Add(new DataPointConfig
             {
                 Id = item.Id,
                 Name = item.Name,
                 Axis = item.Axis,
-                Address = $"axis:{item.Axis}:pos",
+                Address = address,
                 DataType = item.Type,
-                DefaultValue = item.Default
+                DefaultValue = defaultValue
             });
         }
 
@@ -134,5 +146,38 @@ public sealed class LeadshineHardwareModule : IHardwareModule
                 throw new InvalidOperationException($"Duplicate id '{point.Id}' in leadshine.data");
             }
         }
+    }
+
+    private double ParseDefaultValue(string rawValue, string dataType, string context)
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return 0;
+        }
+
+        if (string.Equals(dataType, "bit", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(dataType, "bool", StringComparison.OrdinalIgnoreCase))
+        {
+            if (bool.TryParse(rawValue, out var boolValue))
+            {
+                return boolValue ? 1 : 0;
+            }
+
+            if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var bitNumber))
+            {
+                return bitNumber != 0 ? 1 : 0;
+            }
+
+            _logger.Warning("Invalid default value '{Value}' for {Context}; using 0", rawValue, context);
+            return 0;
+        }
+
+        if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+        {
+            return number;
+        }
+
+        _logger.Warning("Invalid default value '{Value}' for {Context}; using 0", rawValue, context);
+        return 0;
     }
 }

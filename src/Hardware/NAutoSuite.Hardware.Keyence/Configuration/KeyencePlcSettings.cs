@@ -42,7 +42,7 @@ public class KeyenceDataConfig
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string Type { get; set; } = "int32";
-    public double Default { get; set; }
+    public string Default { get; set; } = string.Empty;
 }
 
 public class KeyenceIoConfig

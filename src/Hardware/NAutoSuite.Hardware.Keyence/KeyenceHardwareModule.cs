@@ -1,3 +1,4 @@
+using System.Globalization;
 using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Hardware.Abstractions.Hardware;
@@ -37,13 +38,17 @@ public sealed class KeyenceHardwareModule : IHardwareModule
             })
             .ToList();
 
-        var dataPoints = settings.Data.Select(item => new DataPointConfig
+        var dataPoints = settings.Data.Select(item =>
         {
-            Id = item.Id,
-            Name = item.Name,
-            Address = NormalizeRegisterAddress(item.Address, item.Type),
-            DataType = item.Type,
-            DefaultValue = item.Default
+            var defaultValue = ParseDefaultValue(item.Default, item.Type, $"keyence.data.{item.Id}");
+            return new DataPointConfig
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Address = NormalizeRegisterAddress(item.Address, item.Type),
+                DataType = item.Type,
+                DefaultValue = defaultValue
+            };
         }).ToList();
 
         return new HardwareModuleResult(
@@ -117,5 +122,38 @@ public sealed class KeyenceHardwareModule : IHardwareModule
             "int16" => $"{address}.S",
             _ => address
         };
+    }
+
+    private double ParseDefaultValue(string rawValue, string dataType, string context)
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return 0;
+        }
+
+        if (string.Equals(dataType, "bit", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(dataType, "bool", StringComparison.OrdinalIgnoreCase))
+        {
+            if (bool.TryParse(rawValue, out var boolValue))
+            {
+                return boolValue ? 1 : 0;
+            }
+
+            if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var bitNumber))
+            {
+                return bitNumber != 0 ? 1 : 0;
+            }
+
+            _logger.Warning("Invalid default value '{Value}' for {Context}; using 0", rawValue, context);
+            return 0;
+        }
+
+        if (double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+        {
+            return number;
+        }
+
+        _logger.Warning("Invalid default value '{Value}' for {Context}; using 0", rawValue, context);
+        return 0;
     }
 }
