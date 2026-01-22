@@ -42,7 +42,8 @@
         </Style>
     </UserControl.Resources>
     <Border Background="#2D2D30" BorderBrush="#3E3E42" BorderThickness="0,1,0,0">
-        <Grid>
+        <Viewbox Stretch="Uniform" StretchDirection="Both">
+            <Grid Width="1920" Height="100">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -115,5 +116,6 @@
                 <Button Content="HOME" Width="150" FontSize="32" FontWeight="Bold" Background="#2196F3" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,10,5" Style="{StaticResource FooterActionButtonStyle}" PreviewMouseLeftButtonDown="HomeHoldStart" PreviewMouseLeftButtonUp="HomeHoldEnd" />
             </StackPanel>
         </Grid>
+        </Viewbox>
     </Border>
 </UserControl>

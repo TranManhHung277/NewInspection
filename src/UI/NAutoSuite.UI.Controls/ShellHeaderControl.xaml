@@ -14,7 +14,8 @@
             BorderThickness="0,0,0,1"
             Cursor="Hand"
             MouseLeftButtonUp="MainBorder_MouseLeftButtonUp">
-        <Grid>
+        <Viewbox Stretch="Uniform" StretchDirection="Both">
+            <Grid Width="1920" Height="70">
             <Grid.ColumnDefinitions>
                 <!-- Left Content -->
                 <ColumnDefinition Width="*"/>
@@ -146,5 +147,6 @@
                 </Border>
             </StackPanel>
         </Grid>
+        </Viewbox>
     </Border>
 </UserControl>

@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
     <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Simulator\NAutoSuite.Hardware.Simulator.csproj" />
     <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Leadshine\NAutoSuite.Hardware.Leadshine.csproj" />
+    <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Keyence\NAutoSuite.Hardware.Keyence.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
@@ -36,6 +37,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <AssemblyName>PickAndPlace</AssemblyName>
     <RootNamespace>PickAndPlace</RootNamespace>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

@@ -153,3 +153,42 @@ hardware:
           axes: []
           ioPoints: []
           registers: {}
+  keyence:
+    type: keyence
+    config:
+      ip: "192.168.0.10"
+      port: 8501
+      usePlc: false
+      name: "KeyencePLC"
+      ioPoints:
+        - name: EmergencyStop
+          direction: Input
+          address: X0
+        - name: StartButton
+          direction: Input
+          address: X1
+        - name: StopButton
+          direction: Input
+          address: X2
+        - name: ResetButton
+          direction: Input
+          address: X3
+        - name: TowerLightRed
+          direction: Output
+          address: Y0
+        - name: TowerLightYellow
+          direction: Output
+          address: Y1
+        - name: TowerLightGreen
+          direction: Output
+          address: Y2
+        - name: Buzzer
+          direction: Output
+          address: Y3
+      registers:
+        inputs:
+          PRODUCT_COUNT: R1000
+          LAST_RESULT: R1001
+        outputs:
+          TARGET_RECIPE: R2000
+          START_BATCH: R2001

@@ -8,6 +8,7 @@ using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Services;
 using NAutoSuite.Hardware.Abstractions.EtherCAT;
 using NAutoSuite.Hardware.Leadshine;
+using NAutoSuite.Hardware.Keyence;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
@@ -67,6 +68,20 @@ public partial class App : Application
                         .ToList();
                 });
 
+                services.AddSingleton<IReadOnlyList<KeyencePlcSettings>>(sp =>
+                {
+                    var catalog = sp.GetRequiredService<HardwareCatalogSettings>();
+                    var entries = catalog.FindByType("keyence").ToList();
+                    if (entries.Count == 0)
+                    {
+                        return Array.Empty<KeyencePlcSettings>();
+                    }
+
+                    return entries
+                        .Select(entry => KeyencePlcSettings.LoadFromYamlNode(entry.ConfigNode))
+                        .ToList();
+                });
+
                 services.AddSingleton<IReadOnlyList<LeadshineHardwareConfig>>(sp =>
                 {
                     var settings = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareSettings>>();
@@ -87,8 +102,21 @@ public partial class App : Application
 
                 services.AddSingleton<PickAndPlaceProfile>(sp =>
                 {
-                    var config = sp.GetRequiredService<LeadshineHardwareConfig>();
-                    return new PickAndPlaceProfile(config);
+                    var profileConfig = new HardwareProfileConfig();
+                    var leadshineCards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
+                    var keyenceConfigs = sp.GetRequiredService<IReadOnlyList<KeyencePlcSettings>>();
+
+                    foreach (var card in leadshineCards)
+                    {
+                        profileConfig.AddLeadshine(card);
+                    }
+
+                    foreach (var plc in keyenceConfigs.Where(plc => plc.UsePlc))
+                    {
+                        profileConfig.AddKeyence(plc);
+                    }
+
+                    return new PickAndPlaceProfile(profileConfig);
                 });
 
                 services.AddSingleton<IEnumerable<IEtherCATMaster>>(sp =>
@@ -103,7 +131,8 @@ public partial class App : Application
                 {
                     var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return cards.Select(card =>
+                    var ioDevices = new List<IIO>();
+                    ioDevices.AddRange(cards.Select(card =>
                     {
                         var points = card.IoPoints.Select(point =>
                         {
@@ -118,7 +147,15 @@ public partial class App : Application
                         }).ToList();
 
                         return (IIO)new LeadshineRemoteIO(card.CardNo, points, logger);
-                    }).ToList();
+                    }));
+
+                    var keyenceConfigs = sp.GetRequiredService<IReadOnlyList<KeyencePlcSettings>>();
+                    foreach (var plcConfig in keyenceConfigs.Where(plc => plc.UsePlc))
+                    {
+                        ioDevices.Add(new KeyencePlc(plcConfig.Ip, plcConfig.Port, plcConfig.Name, logger));
+                    }
+
+                    return ioDevices;
                 });
                 services.AddSingleton<ISimulatedIO, NullSimulatedIO>();
 

@@ -11,16 +11,21 @@ namespace PickAndPlace.Machine;
 public class PickAndPlaceProfile : MachineProfile
 {
     public PickAndPlaceProfile()
-        : this(new LeadshineHardwareConfig())
+        : this(new HardwareProfileConfig())
     {
     }
 
     public PickAndPlaceProfile(LeadshineHardwareConfig config)
+        : this(CreateFromLeadshine(config))
+    {
+    }
+
+    public PickAndPlaceProfile(HardwareProfileConfig config)
         : base(CreateIoMapFromConfig(config), CreateRegisterMapFromConfig(config), CreateAxesFromConfig(config))
     {
     }
 
-    private static IOMap CreateIoMapFromConfig(LeadshineHardwareConfig config)
+    private static IOMap CreateIoMapFromConfig(HardwareProfileConfig config)
     {
         var map = new PickAndPlaceIOMap();
         foreach (var point in config.IoPoints)
@@ -30,7 +35,7 @@ public class PickAndPlaceProfile : MachineProfile
         return map;
     }
 
-    private static RegisterMap CreateRegisterMapFromConfig(LeadshineHardwareConfig config)
+    private static RegisterMap CreateRegisterMapFromConfig(HardwareProfileConfig config)
     {
         var map = new RegisterMap();
         foreach (var entry in config.Registers.Inputs)
@@ -44,7 +49,7 @@ public class PickAndPlaceProfile : MachineProfile
         return map;
     }
 
-    private static IReadOnlyList<AxisDefinition> CreateAxesFromConfig(LeadshineHardwareConfig config)
+    private static IReadOnlyList<AxisDefinition> CreateAxesFromConfig(HardwareProfileConfig config)
     {
         return config.Axes.Select(axis => new AxisDefinition
         {
@@ -53,6 +58,13 @@ public class PickAndPlaceProfile : MachineProfile
             Description = axis.Description,
             AxisIndex = axis.AxisIndex
         }).ToList();
+    }
+
+    private static HardwareProfileConfig CreateFromLeadshine(LeadshineHardwareConfig config)
+    {
+        var profile = new HardwareProfileConfig();
+        profile.AddLeadshine(config);
+        return profile;
     }
 
     private static void ApplyIoPoint(PickAndPlaceIOMap map, IoPointConfig point)
