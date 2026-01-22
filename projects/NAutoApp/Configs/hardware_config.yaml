@@ -1,0 +1,423 @@
+app:
+  name: NAutoApp
+  version: 1.0.0
+  machine: 10
+hardware:
+  leadshine:
+    type: ethercat_card
+    config:
+      card_no: 0
+      name: "Card EtherCAT Leadshine"
+      axes:
+        - id: AXIS_X
+          name: AxisX
+          axis_index: 0
+          description: Pick X axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
+        - id: AXIS_Y
+          name: AxisY
+          axis_index: 1
+          description: Pick Y axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
+        - id: AXIS_Z
+          name: AxisZ
+          axis_index: 2
+          description: Pick Z axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
+      data:
+        - id: axis_x_pos
+          name: Axis X Position
+          axis: 0
+          address: axis:0:pos
+          type: int32
+          default: 0
+        - id: axis_x_target_pos
+          name: Axis X Target Position
+          axis: 0
+          address: axis:0:target_pos
+          type: int32
+          default: 0
+        - id: axis_x_cmd_pos
+          name: Axis X Command Position
+          axis: 0
+          address: axis:0:cmd_pos
+          type: int32
+          default: 0
+        - id: axis_x_speed
+          name: Axis X Speed
+          axis: 0
+          address: axis:0:speed
+          type: int32
+          default: 0
+        - id: axis_x_status_word
+          name: Axis X Status Word
+          axis: 0
+          address: axis:0:status_word
+          type: int32
+          default: 0
+        - id: axis_x_io_status
+          name: Axis X IO Status
+          axis: 0
+          address: axis:0:io_status
+          type: int32
+          default: 0
+        - id: axis_x_error_code
+          name: Axis X Error Code
+          axis: 0
+          address: axis:0:error_code
+          type: int32
+          default: 0
+        - id: axis_x_done
+          name: Axis X Done
+          axis: 0
+          address: axis:0:done
+          type: bit
+          default: false
+        - id: axis_y_pos
+          name: Axis Y Position
+          axis: 1
+          address: axis:1:pos
+          type: int32
+          default: 0
+        - id: axis_y_target_pos
+          name: Axis Y Target Position
+          axis: 1
+          address: axis:1:target_pos
+          type: int32
+          default: 0
+        - id: axis_y_cmd_pos
+          name: Axis Y Command Position
+          axis: 1
+          address: axis:1:cmd_pos
+          type: int32
+          default: 0
+        - id: axis_y_speed
+          name: Axis Y Speed
+          axis: 1
+          address: axis:1:speed
+          type: int32
+          default: 0
+        - id: axis_y_status_word
+          name: Axis Y Status Word
+          axis: 1
+          address: axis:1:status_word
+          type: int32
+          default: 0
+        - id: axis_y_io_status
+          name: Axis Y IO Status
+          axis: 1
+          address: axis:1:io_status
+          type: int32
+          default: 0
+        - id: axis_y_error_code
+          name: Axis Y Error Code
+          axis: 1
+          address: axis:1:error_code
+          type: int32
+          default: 0
+        - id: axis_y_done
+          name: Axis Y Done
+          axis: 1
+          address: axis:1:done
+          type: bit
+          default: false
+        - id: axis_z_pos
+          name: Axis Z Position
+          axis: 2
+          address: axis:2:pos
+          type: int32
+          default: 0
+        - id: axis_z_target_pos
+          name: Axis Z Target Position
+          axis: 2
+          address: axis:2:target_pos
+          type: int32
+          default: 0
+        - id: axis_z_cmd_pos
+          name: Axis Z Command Position
+          axis: 2
+          address: axis:2:cmd_pos
+          type: int32
+          default: 0
+        - id: axis_z_speed
+          name: Axis Z Speed
+          axis: 2
+          address: axis:2:speed
+          type: int32
+          default: 0
+        - id: axis_z_status_word
+          name: Axis Z Status Word
+          axis: 2
+          address: axis:2:status_word
+          type: int32
+          default: 0
+        - id: axis_z_io_status
+          name: Axis Z IO Status
+          axis: 2
+          address: axis:2:io_status
+          type: int32
+          default: 0
+        - id: axis_z_error_code
+          name: Axis Z Error Code
+          axis: 2
+          address: axis:2:error_code
+          type: int32
+          default: 0
+        - id: axis_z_done
+          name: Axis Z Done
+          axis: 2
+          address: axis:2:done
+          type: bit
+          default: false
+      common_io:
+        - id: emergency_stop
+          name: EmergencyStop
+          node_id: 3
+          io_bit: 0
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: start_button
+          name: StartButton
+          node_id: 3
+          io_bit: 1
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: stop_button
+          name: StopButton
+          node_id: 3
+          io_bit: 2
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: reset_button
+          name: ResetButton
+          node_id: 3
+          io_bit: 3
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: safety_door
+          name: SafetyDoor
+          node_id: 3
+          io_bit: 4
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: air_pressure
+          name: AirPressure
+          node_id: 3
+          io_bit: 5
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: home_button
+          name: HomeButton
+          node_id: 3
+          io_bit: 6
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: auto_mode_switch
+          name: AutoModeSwitch
+          node_id: 3
+          io_bit: 7
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: manual_mode_switch
+          name: ManualModeSwitch
+          node_id: 3
+          io_bit: 8
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: material_low
+          name: MaterialLow
+          node_id: 3
+          io_bit: 9
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: tower_light_red
+          name: TowerLightRed
+          node_id: 3
+          io_bit: 0
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: tower_light_yellow
+          name: TowerLightYellow
+          node_id: 3
+          io_bit: 1
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: tower_light_green
+          name: TowerLightGreen
+          node_id: 3
+          io_bit: 2
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: buzzer
+          name: Buzzer
+          node_id: 3
+          io_bit: 3
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: main_power_enable
+          name: MainPowerEnable
+          node_id: 3
+          io_bit: 4
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+      io:
+        - id: part_present
+          name: PartPresent
+          node_id: 3
+          io_bit: 10
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: test_ok
+          name: TestOk
+          node_id: 3
+          io_bit: 11
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: test_ng
+          name: TestNg
+          node_id: 3
+          io_bit: 12
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_extended
+          name: CylinderExtended
+          node_id: 3
+          io_bit: 13
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_retracted
+          name: CylinderRetracted
+          node_id: 3
+          io_bit: 14
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: vacuum_ok
+          name: VacuumOk
+          node_id: 3
+          io_bit: 15
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_extend
+          name: CylinderExtend
+          node_id: 3
+          io_bit: 10
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: vacuum_on
+          name: VacuumOn
+          node_id: 3
+          io_bit: 11
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+  keyence:
+    type: keyence
+    config:
+      ip: "192.168.0.10"
+      port: 8501
+      name: "KeyencePLC"
+      data:
+        - id: nhiet_do
+          name: Nhiet do
+          address: D1200
+          type: int32
+          default: 0
+      common_io:
+        - id: stop_plc
+          name: StopButton
+          address: M100
+          direction: Input
+          type: bit
+          default: false
+      io:
+        - id: sensor_load
+          name: SensorLoad
+          address: M200
+          direction: Input
+          type: bit
+          default: false
+

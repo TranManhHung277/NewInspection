@@ -6,6 +6,11 @@ public static class IOMapExtensions
 {
     public static IReadOnlyList<string> GetInputAddresses(this IOMap ioMap)
     {
+        if (ioMap is IDynamicIOMap dynamicMap)
+        {
+            return dynamicMap.InputAddresses.ToList();
+        }
+
         var addresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         AddAddresses(addresses, ioMap.CommonInputs);
         AddAddresses(addresses, ioMap.Inputs);
@@ -14,6 +19,11 @@ public static class IOMapExtensions
 
     public static IReadOnlyList<string> GetOutputAddresses(this IOMap ioMap)
     {
+        if (ioMap is IDynamicIOMap dynamicMap)
+        {
+            return dynamicMap.OutputAddresses.ToList();
+        }
+
         var addresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         AddAddresses(addresses, ioMap.CommonOutputs);
         AddAddresses(addresses, ioMap.Outputs);
