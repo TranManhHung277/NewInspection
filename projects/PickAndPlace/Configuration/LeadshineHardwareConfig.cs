@@ -1,6 +1,9 @@
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using System.Globalization;
+using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace PickAndPlace.Configuration;
 
@@ -34,18 +37,17 @@ public class LeadshineHardwareSettings
 
     public static LeadshineHardwareSettings Load(string path)
     {
-        var json = File.ReadAllText(path);
-        var settings = JsonSerializer.Deserialize<LeadshineHardwareSettings>(json, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
+        var yaml = File.ReadAllText(path);
+        return DeserializeYaml(yaml);
+    }
 
-        if (settings == null)
-        {
-            throw new InvalidOperationException("Failed to load hardware config");
-        }
+    public static LeadshineHardwareSettings LoadFromYamlNode(YamlNode node)
+    {
+        var stream = new YamlStream(new YamlDocument(node));
+        using var writer = new StringWriter(CultureInfo.InvariantCulture);
+        stream.Save(writer, false);
 
-        return settings;
+        return DeserializeYaml(writer.ToString());
     }
 
     public IReadOnlyList<LeadshineHardwareConfig> ResolveUsedCards()
@@ -67,6 +69,17 @@ public class LeadshineHardwareSettings
     public LeadshineHardwareConfig BuildMergedConfig()
     {
         var usedCards = ResolveUsedCards();
+        return BuildMergedConfig(usedCards);
+    }
+
+    public static LeadshineHardwareConfig BuildMergedConfig(IEnumerable<LeadshineHardwareConfig> cards)
+    {
+        var usedCards = cards.ToList();
+        if (usedCards.Count == 0)
+        {
+            throw new InvalidOperationException("Hardware config contains no enabled cards");
+        }
+
         var merged = new LeadshineHardwareConfig
         {
             CardNo = usedCards[0].CardNo,
@@ -94,6 +107,22 @@ public class LeadshineHardwareSettings
             }
             target[entry.Key] = entry.Value;
         }
+    }
+
+    private static LeadshineHardwareSettings DeserializeYaml(string yaml)
+    {
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+
+        var settings = deserializer.Deserialize<LeadshineHardwareSettings>(new StringReader(yaml));
+        if (settings == null)
+        {
+            throw new InvalidOperationException("Failed to load Leadshine hardware config");
+        }
+
+        return settings;
     }
 }
 

@@ -49,20 +49,40 @@ public partial class App : Application
 
                 services.AddSingleton(sp =>
                 {
-                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware.leadshine.json");
-                    return LeadshineHardwareSettings.Load(configPath);
+                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
+                    return HardwareCatalogSettings.Load(configPath);
+                });
+
+                services.AddSingleton<IReadOnlyList<LeadshineHardwareSettings>>(sp =>
+                {
+                    var catalog = sp.GetRequiredService<HardwareCatalogSettings>();
+                    var entries = catalog.FindByType("leadshine").ToList();
+                    if (entries.Count == 0)
+                    {
+                        throw new InvalidOperationException("No leadshine hardware configured");
+                    }
+
+                    return entries
+                        .Select(entry => LeadshineHardwareSettings.LoadFromYamlNode(entry.ConfigNode))
+                        .ToList();
+                });
+
+                services.AddSingleton<IReadOnlyList<LeadshineHardwareConfig>>(sp =>
+                {
+                    var settings = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareSettings>>();
+                    var cards = settings.SelectMany(entry => entry.ResolveUsedCards()).ToList();
+                    if (cards.Count == 0)
+                    {
+                        throw new InvalidOperationException("Hardware config contains no enabled cards");
+                    }
+
+                    return cards;
                 });
 
                 services.AddSingleton(sp =>
                 {
-                    var settings = sp.GetRequiredService<LeadshineHardwareSettings>();
-                    return settings.BuildMergedConfig();
-                });
-
-                services.AddSingleton(sp =>
-                {
-                    var settings = sp.GetRequiredService<LeadshineHardwareSettings>();
-                    return settings.ResolveUsedCards();
+                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
+                    return LeadshineHardwareSettings.BuildMergedConfig(cards);
                 });
 
                 services.AddSingleton<PickAndPlaceProfile>(sp =>

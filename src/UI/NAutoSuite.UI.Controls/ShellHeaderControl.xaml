@@ -34,7 +34,7 @@
                         <!-- Machine Number -->
                         <TextBlock x:Name="MachineNumber"
                                    Text="99"
-                                   FontSize="36"
+                                   FontSize="50"
                                    FontWeight="Bold"
                                    Foreground="White"
                                    VerticalAlignment="Center"/>
