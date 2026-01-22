@@ -842,7 +842,7 @@ public static partial class LTDMC
     public static extern short dmc_write_erc_pin(UInt16 CardNo, UInt16 axis, UInt16 sel);
     [DllImport("LTDMC.dll", EntryPoint = "dmc_read_erc_pin", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
     public static extern short dmc_read_erc_pin(UInt16 CardNo, UInt16 axis);
-    // Đọc trạng thái RDY (Áp dụng cho tất cả các thẻ Pulse)
+    // Đọc trạng thái RDY (Áp dụng cho tất cả các thẻ Pul se)
     [DllImport("LTDMC.dll", EntryPoint = "dmc_read_rdy_pin", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
     public static extern short dmc_read_rdy_pin(UInt16 CardNo, UInt16 axis);
     // Xuất tín hiệu reset Servo (Dành riêng)

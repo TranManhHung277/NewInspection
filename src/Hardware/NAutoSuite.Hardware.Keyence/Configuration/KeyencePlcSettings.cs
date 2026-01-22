@@ -1,19 +1,19 @@
 using System.Globalization;
-using System.IO;
+using NAutoSuite.Core.Configuration;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PickAndPlace.Configuration;
+namespace NAutoSuite.Hardware.Keyence.Configuration;
 
 public class KeyencePlcSettings
 {
     public string Ip { get; set; } = "127.0.0.1";
     public int Port { get; set; } = 8501;
-    public bool UsePlc { get; set; } = true;
     public string Name { get; set; } = "KeyencePLC";
-    public List<IoPointConfig> IoPoints { get; set; } = new();
-    public RegisterConfig Registers { get; set; } = new();
+    public List<KeyenceDataConfig> Data { get; set; } = new();
+    public List<KeyenceIoConfig> CommonIo { get; set; } = new();
+    public List<KeyenceIoConfig> Io { get; set; } = new();
 
     public static KeyencePlcSettings LoadFromYamlNode(YamlNode node)
     {
@@ -22,7 +22,7 @@ public class KeyencePlcSettings
         stream.Save(writer, false);
 
         var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .IgnoreUnmatchedProperties()
             .Build();
 
@@ -34,4 +34,23 @@ public class KeyencePlcSettings
 
         return settings;
     }
+}
+
+public class KeyenceDataConfig
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string Type { get; set; } = "int32";
+    public double Default { get; set; }
+}
+
+public class KeyenceIoConfig
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string Direction { get; set; } = "Input";
+    public string Type { get; set; } = "bit";
+    public bool Default { get; set; }
 }

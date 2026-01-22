@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
@@ -20,13 +21,38 @@ public class UISink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        var message = logEvent.RenderMessage(_formatProvider);
+        var callerType = GetScalarProperty(logEvent, "CallerType");
+        var prefix = BuildPrefix(callerType);
+        var message = prefix + logEvent.RenderMessage(_formatProvider);
         var level = logEvent.Level.ToString();
         var timestamp = logEvent.Timestamp.DateTime;
         var exception = logEvent.Exception?.ToString();
 
         // Forward to UILogService
         UILogService.Instance.AddLog(timestamp, level, message, exception);
+    }
+
+    private static string? GetScalarProperty(LogEvent logEvent, string propertyName)
+    {
+        if (logEvent.Properties.TryGetValue(propertyName, out var value) &&
+            value is ScalarValue scalar &&
+            scalar.Value != null)
+        {
+            return scalar.Value.ToString();
+        }
+
+        return null;
+    }
+
+    private static string BuildPrefix(string? callerType)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(callerType))
+        {
+            parts.Add(callerType);
+        }
+
+        return parts.Count == 0 ? string.Empty : $"[{string.Join("][", parts)}] ";
     }
 }
 

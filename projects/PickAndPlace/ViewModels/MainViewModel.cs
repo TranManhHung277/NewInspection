@@ -24,6 +24,7 @@ public partial class MainViewModel : ObservableObject
     private readonly SettingsService _settingsService;
     private readonly MachineSettings _machineSettings;
     private readonly ModelService<PickAndPlaceModel> _modelService;
+    private readonly ConfigReloadService _configReloadService;
 
     [ObservableProperty]
     private MachineState _machineState = MachineState.Uninitialized;
@@ -167,11 +168,13 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(
         PickAndPlaceMachine machine,
         ISimulatedIO simIo,
-        IEnumerable<IAxis> axes)
+        IEnumerable<IAxis> axes,
+        ConfigReloadService configReloadService)
     {
         _machine = machine;
         _simIo = simIo;
         _ = axes;
+        _configReloadService = configReloadService;
 
         // Initialize settings service and load saved settings
         _settingsService = new SettingsService(Log.Logger);
@@ -701,6 +704,29 @@ public partial class MainViewModel : ObservableObject
         {
             StatusMessage = $"Homing error: {ex.Message}";
             Log.Error(ex, "Homing error");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ReloadConfigAsync()
+    {
+        try
+        {
+            StatusMessage = "Reloading config...";
+            var result = await _configReloadService.ReloadAsync();
+            if (!result.IsSuccess)
+            {
+                StatusMessage = $"Reload failed: {result.Message}";
+                Log.Error("Reload config failed: {Message}", result.Message);
+                return;
+            }
+
+            StatusMessage = "Config reloaded";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Reload error: {ex.Message}";
+            Log.Error(ex, "Reload config error");
         }
     }
 

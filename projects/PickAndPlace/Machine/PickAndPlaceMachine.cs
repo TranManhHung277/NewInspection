@@ -3,6 +3,7 @@ using NAutoSuite.Core.Alarm;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Devices;
+using NAutoSuite.Core.Entities;
 using NAutoSuite.Core.Hardware;
 using NAutoSuite.Core.Interlock;
 using NAutoSuite.Core.IO;
@@ -22,8 +23,11 @@ public class PickAndPlaceMachine : MachineBase
     private readonly IAxis _axisZ;
     private readonly IReadOnlyList<IEtherCATMaster> _masters;
     private readonly IReadOnlyList<IIO> _ioDevices;
+    private readonly IReadOnlyList<IRegisterIO> _registerDevices;
     private readonly PickAndPlaceProfile _profile;
     private readonly PickAndPlaceIOMap _ioMap;
+    private readonly EntityStateService? _entityStateService;
+    private readonly DataStateService? _dataStateService;
     private readonly Cylinder _rejectCylinder;
     private readonly SensorWaiter _sensorWaiter;
 
@@ -47,7 +51,10 @@ public class PickAndPlaceMachine : MachineBase
         IAxis axisZ,
         IEnumerable<IEtherCATMaster>? masters = null,
         IEnumerable<IIO>? ioDevices = null,
+        IEnumerable<IRegisterIO>? registerDevices = null,
         PickAndPlaceProfile? profile = null,
+        EntityStateService? entityStateService = null,
+        DataStateService? dataStateService = null,
         ILogger? logger = null)
         : base("PAP_SIM", "PickAndPlace Simulator", profile ?? new PickAndPlaceProfile(), logger)
     {
@@ -57,7 +64,10 @@ public class PickAndPlaceMachine : MachineBase
         _axisZ = axisZ;
         _masters = masters?.ToList() ?? new List<IEtherCATMaster>();
         _ioDevices = ioDevices?.ToList() ?? new List<IIO>();
+        _registerDevices = registerDevices?.ToList() ?? new List<IRegisterIO>();
         _ioMap = (PickAndPlaceIOMap)_profile.IOMap;
+        _entityStateService = entityStateService;
+        _dataStateService = dataStateService;
         _rejectCylinder = new Cylinder(
             IO,
             _ioMap.MachineOutputs.CylinderExtend,
@@ -103,6 +113,11 @@ public class PickAndPlaceMachine : MachineBase
         {
             hardwareManager.RegisterDevice(ioDevice);
         }
+
+        foreach (var registerDevice in _registerDevices)
+        {
+            hardwareManager.RegisterDevice(registerDevice);
+        }
     }
 
     protected override void OnRegisterProfileAxes(HardwareManager hardwareManager, IReadOnlyList<AxisDefinition> axes)
@@ -132,6 +147,23 @@ public class PickAndPlaceMachine : MachineBase
     {
         RaiseAlarm(1001, $"Failed to connect hardware: {result.Message}", AlarmSeverity.Critical);
         return Task.CompletedTask;
+    }
+
+    protected override void OnRegisterBackgroundTasks(BackgroundTaskManager taskManager)
+    {
+        base.OnRegisterBackgroundTasks(taskManager);
+
+        if (_entityStateService == null)
+        {
+            return;
+        }
+
+        taskManager.RegisterTask("EntityStateScan", ct => _entityStateService.UpdateAsync(ct), 100);
+
+        if (_dataStateService != null)
+        {
+            taskManager.RegisterTask("EntityDataScan", ct => _dataStateService.UpdateAsync(ct), 200);
+        }
     }
 
     protected override async Task OnInitializingAsync()

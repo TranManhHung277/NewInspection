@@ -5,10 +5,14 @@ using PickAndPlace.Machine;
 using PickAndPlace.Configuration;
 using PickAndPlace.Services;
 using NAutoSuite.Core.Abstractions;
+using NAutoSuite.Core.Configuration;
+using NAutoSuite.Core.Entities;
 using NAutoSuite.Core.Services;
+using NAutoSuite.Hardware.Abstractions.Hardware;
 using NAutoSuite.Hardware.Abstractions.EtherCAT;
-using NAutoSuite.Hardware.Leadshine;
 using NAutoSuite.Hardware.Keyence;
+using NAutoSuite.Hardware.Leadshine;
+using NAutoSuite.Hardware.Simulator;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
@@ -51,127 +55,105 @@ public partial class App : Application
                 services.AddSingleton(sp =>
                 {
                     var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
-                    return HardwareCatalogSettings.Load(configPath);
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return HardwareCatalogSettings.LoadSafe(configPath, logger);
                 });
 
-                services.AddSingleton<IReadOnlyList<LeadshineHardwareSettings>>(sp =>
+                services.AddSingleton<IEnumerable<IHardwareModule>>(sp =>
+                {
+                    var logger = sp.GetRequiredService<Serilog.ILogger>();
+                    return new IHardwareModule[]
+                    {
+                        new LeadshineHardwareModule(logger),
+                        new KeyenceHardwareModule(logger)
+                    };
+                });
+
+                services.AddSingleton<HardwareBootstrap>(sp =>
                 {
                     var catalog = sp.GetRequiredService<HardwareCatalogSettings>();
-                    var entries = catalog.FindByType("leadshine").ToList();
-                    if (entries.Count == 0)
+                    var modules = sp.GetRequiredService<IEnumerable<IHardwareModule>>().ToList();
+                    var devices = new List<IDevice>();
+                    var profile = new HardwareProfileConfig();
+
+                    foreach (var entry in catalog.Hardware)
                     {
-                        throw new InvalidOperationException("No leadshine hardware configured");
+                        var module = modules.FirstOrDefault(m =>
+                            string.Equals(m.Type, entry.Type, StringComparison.OrdinalIgnoreCase));
+                        if (module == null)
+                        {
+                            throw new InvalidOperationException($"No hardware module registered for '{entry.Type}'");
+                        }
+
+                        var result = module.LoadFromConfig(entry.ConfigNode);
+                        devices.AddRange(result.Devices);
+                        profile.AddAxes(result.Axes);
+                        profile.AddIoPoints(entry.Name, result.IoPoints);
+                        profile.AddDataPoints(entry.Name, result.DataPoints);
+                        profile.MergeRegisters(result.Registers);
                     }
 
-                    return entries
-                        .Select(entry => LeadshineHardwareSettings.LoadFromYamlNode(entry.ConfigNode))
-                        .ToList();
+                    return new HardwareBootstrap(devices, profile);
                 });
 
-                services.AddSingleton<IReadOnlyList<KeyencePlcSettings>>(sp =>
+                services.AddSingleton<EntityRegistry>(sp =>
                 {
-                    var catalog = sp.GetRequiredService<HardwareCatalogSettings>();
-                    var entries = catalog.FindByType("keyence").ToList();
-                    if (entries.Count == 0)
-                    {
-                        return Array.Empty<KeyencePlcSettings>();
-                    }
-
-                    return entries
-                        .Select(entry => KeyencePlcSettings.LoadFromYamlNode(entry.ConfigNode))
-                        .ToList();
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return new EntityRegistry(bootstrap.Profile.IoPoints);
                 });
 
-                services.AddSingleton<IReadOnlyList<LeadshineHardwareConfig>>(sp =>
+                services.AddSingleton<EntityEventBus>();
+                services.AddSingleton<EntityStateService>();
+                services.AddSingleton<EntityCommandService>();
+                services.AddSingleton<DataEntityRegistry>(sp =>
                 {
-                    var settings = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareSettings>>();
-                    var cards = settings.SelectMany(entry => entry.ResolveUsedCards()).ToList();
-                    if (cards.Count == 0)
-                    {
-                        throw new InvalidOperationException("Hardware config contains no enabled cards");
-                    }
-
-                    return cards;
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return new DataEntityRegistry(bootstrap.Profile.DataPoints);
                 });
-
-                services.AddSingleton(sp =>
-                {
-                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
-                    return LeadshineHardwareSettings.BuildMergedConfig(cards);
-                });
+                services.AddSingleton<DataEventBus>();
+                services.AddSingleton<DataStateService>();
+                services.AddSingleton<ConfigReloadService>();
 
                 services.AddSingleton<PickAndPlaceProfile>(sp =>
                 {
-                    var profileConfig = new HardwareProfileConfig();
-                    var leadshineCards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
-                    var keyenceConfigs = sp.GetRequiredService<IReadOnlyList<KeyencePlcSettings>>();
-
-                    foreach (var card in leadshineCards)
-                    {
-                        profileConfig.AddLeadshine(card);
-                    }
-
-                    foreach (var plc in keyenceConfigs.Where(plc => plc.UsePlc))
-                    {
-                        profileConfig.AddKeyence(plc);
-                    }
-
-                    return new PickAndPlaceProfile(profileConfig);
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return new PickAndPlaceProfile(bootstrap.Profile);
                 });
 
                 services.AddSingleton<IEnumerable<IEtherCATMaster>>(sp =>
                 {
-                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return cards.Select(card =>
-                        (IEtherCATMaster)new LeadshineMaster((ushort)card.CardNo, card.EthercatIp, logger)).ToList();
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return bootstrap.Devices.OfType<IEtherCATMaster>().ToList();
                 });
 
                 services.AddSingleton<IEnumerable<IIO>>(sp =>
                 {
-                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    var ioDevices = new List<IIO>();
-                    ioDevices.AddRange(cards.Select(card =>
-                    {
-                        var points = card.IoPoints.Select(point =>
-                        {
-                            var address = LeadshineHardwareConfig.ResolveAddress(point);
-                            return new RemoteIoPoint
-                            {
-                                Address = address,
-                                NodeId = (ushort)point.NodeId,
-                                IoBit = (ushort)point.IoBit,
-                                IsOutput = string.Equals(point.Direction, "Output", StringComparison.OrdinalIgnoreCase)
-                            };
-                        }).ToList();
-
-                        return (IIO)new LeadshineRemoteIO(card.CardNo, points, logger);
-                    }));
-
-                    var keyenceConfigs = sp.GetRequiredService<IReadOnlyList<KeyencePlcSettings>>();
-                    foreach (var plcConfig in keyenceConfigs.Where(plc => plc.UsePlc))
-                    {
-                        ioDevices.Add(new KeyencePlc(plcConfig.Ip, plcConfig.Port, plcConfig.Name, logger));
-                    }
-
-                    return ioDevices;
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return bootstrap.Devices.OfType<IIO>().ToList();
+                });
+                services.AddSingleton<IEnumerable<IRegisterIO>>(sp =>
+                {
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    return bootstrap.Devices.OfType<IRegisterIO>().ToList();
                 });
                 services.AddSingleton<ISimulatedIO, NullSimulatedIO>();
 
                 // Register simulated axes from profile
                 services.AddSingleton<IEnumerable<IAxis>>(sp =>
                 {
-                    var cards = sp.GetRequiredService<IReadOnlyList<LeadshineHardwareConfig>>();
-                    var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return cards.SelectMany(card => card.Axes.Select(axis =>
-                            (IAxis)new LeadshineAxis((ushort)card.CardNo,
-                                (ushort)axis.AxisIndex,
-                                axis.Id,
-                                axis.Name,
-                                null,
-                                logger)))
-                        .ToList();
+                    var bootstrap = sp.GetRequiredService<HardwareBootstrap>();
+                    var axes = bootstrap.Devices.OfType<IAxis>().ToList();
+                    if (axes.Count == 0)
+                    {
+                        return new List<IAxis>
+                        {
+                            new SimulatorAxis("AxisX", "AxisX", Log.Logger),
+                            new SimulatorAxis("AxisY", "AxisY", Log.Logger),
+                            new SimulatorAxis("AxisZ", "AxisZ", Log.Logger)
+                        };
+                    }
+
+                    return axes;
                 });
 
                 services.AddSingleton<PickAndPlaceMachine>(sp =>
@@ -183,9 +165,12 @@ public partial class App : Application
                     var axisZ = axisMap["AxisZ"];
                     var masters = sp.GetRequiredService<IEnumerable<IEtherCATMaster>>();
                     var ioDevices = sp.GetRequiredService<IEnumerable<IIO>>();
+                    var registerDevices = sp.GetRequiredService<IEnumerable<IRegisterIO>>();
                     var profile = sp.GetRequiredService<PickAndPlaceProfile>();
+                    var entityStateService = sp.GetRequiredService<EntityStateService>();
+                    var dataStateService = sp.GetRequiredService<DataStateService>();
                     var logger = sp.GetRequiredService<Serilog.ILogger>();
-                    return new PickAndPlaceMachine(axisX, axisY, axisZ, masters, ioDevices, profile, logger);
+                    return new PickAndPlaceMachine(axisX, axisY, axisZ, masters, ioDevices, registerDevices, profile, entityStateService, dataStateService, logger);
                 });
 
                 // Register ViewModels
@@ -234,13 +219,14 @@ public partial class App : Application
             .MinimumLevel.Is(LogEventLevel.Debug) // Show all logs including Debug
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .Enrich.FromLogContext()
+            .Enrich.With<CallerTypeEnricher>()
             .WriteTo.Console(
-                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{CallerType}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.File(
                 logPath,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 30,
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] [{CallerType}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.UISink() // Forward logs to UI
             .CreateLogger();
 

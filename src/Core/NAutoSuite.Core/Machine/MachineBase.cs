@@ -204,7 +204,7 @@ public abstract class MachineBase : IMachine
     /// Start the main loop - automatically scans IO and handles buttons/lights
     /// Called automatically in InitializeAsync()
     /// </summary>
-    private void StartMainLoop()
+    protected void StartMainLoop()
     {
         if (_mainLoopCts != null)
         {
@@ -234,7 +234,7 @@ public abstract class MachineBase : IMachine
         }
         else
         {
-            _ioScanService = new IOScanService(ioMap, _hardwareManager, _ioImage);
+            _ioScanService = new IOScanService(ioMap, _hardwareManager, _ioImage, _profile?.DefaultIoValues);
             _commonIOHandler = new CommonIOHandler(
                 machine: this,
                 ioMap: ioMap,
@@ -276,7 +276,7 @@ public abstract class MachineBase : IMachine
     /// Stop the main loop
     /// Called automatically in Dispose
     /// </summary>
-    private void StopMainLoop()
+    protected void StopMainLoop()
     {
         if (_mainLoopCts == null) return;
 
@@ -461,6 +461,12 @@ public abstract class MachineBase : IMachine
     {
         _logger.Information("Initializing machine {Name}", Name);
         return Task.CompletedTask;
+    }
+
+    public void ReloadIoScan()
+    {
+        StopMainLoop();
+        StartMainLoop();
     }
 
     private async Task OnInitializingInternalAsync()

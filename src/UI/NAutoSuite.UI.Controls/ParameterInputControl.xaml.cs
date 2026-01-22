@@ -54,7 +54,7 @@ public partial class ParameterInputControl : UserControl
         DependencyProperty.Register(nameof(TextAlignment), typeof(TextAlignment), typeof(ParameterInputControl),
             new PropertyMetadata(TextAlignment.Right));
 
-    public static readonly DependencyProperty BorderBrushProperty =
+    public static new readonly DependencyProperty BorderBrushProperty =
         DependencyProperty.Register(nameof(BorderBrush), typeof(Brush), typeof(ParameterInputControl),
             new PropertyMetadata(NormalBorder));
 

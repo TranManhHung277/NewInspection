@@ -40,4 +40,8 @@
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Target Name="GenerateEntityIds" BeforeTargets="BeforeBuild">
+    <Exec Command="dotnet run --project &quot;..\..\tools\EntityIdGenerator\EntityIdGenerator.csproj&quot; -- &quot;$(MSBuildProjectDirectory)\Configs\hardware_config.yaml&quot; &quot;$(MSBuildProjectDirectory)\Generated\EntityIds.g.cs&quot;" />
+  </Target>
+
 </Project>

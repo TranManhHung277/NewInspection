@@ -1,194 +1,247 @@
 app:
-  name: PickAndPlace1
+  name: PickAndPlace
   version: 1.0.0
   machine: 10
 hardware:
   leadshine:
-    type: leadshine
+    type: ethercat_card
     config:
-      hardwareType: EtherCATCardMaster_Leadshine
-      cards:
-        - cardNo: 0
-          useCard: true
-          ethercatIp: ""
-          axes:
-            - id: AXIS_X
-              name: AxisX
-              axisIndex: 0
-              description: Pick X axis
-            - id: AXIS_Y
-              name: AxisY
-              axisIndex: 1
-              description: Pick Y axis
-            - id: AXIS_Z
-              name: AxisZ
-              axisIndex: 2
-              description: Pick Z axis
-          ioPoints:
-            - name: EmergencyStop
-              direction: Input
-              nodeId: 3
-              ioBit: 0
-              address: IX1.0
-            - name: StartButton
-              direction: Input
-              nodeId: 3
-              ioBit: 1
-              address: IX1.1
-            - name: StopButton
-              direction: Input
-              nodeId: 3
-              ioBit: 2
-              address: IX1.2
-            - name: ResetButton
-              direction: Input
-              nodeId: 3
-              ioBit: 3
-              address: IX1.3
-            - name: SafetyDoor
-              direction: Input
-              nodeId: 3
-              ioBit: 4
-              address: IX1.4
-            - name: AirPressure
-              direction: Input
-              nodeId: 3
-              ioBit: 5
-              address: IX1.5
-            - name: HomeButton
-              direction: Input
-              nodeId: 3
-              ioBit: 6
-              address: IX1.6
-            - name: AutoModeSwitch
-              direction: Input
-              nodeId: 3
-              ioBit: 7
-              address: IX1.7
-            - name: ManualModeSwitch
-              direction: Input
-              nodeId: 3
-              ioBit: 8
-              address: IX1.8
-            - name: MaterialLow
-              direction: Input
-              nodeId: 3
-              ioBit: 9
-              address: IX1.9
-            - name: TowerLightRed
-              direction: Output
-              nodeId: 3
-              ioBit: 0
-              address: QX1.0
-            - name: TowerLightYellow
-              direction: Output
-              nodeId: 3
-              ioBit: 1
-              address: QX1.1
-            - name: TowerLightGreen
-              direction: Output
-              nodeId: 3
-              ioBit: 2
-              address: QX1.2
-            - name: Buzzer
-              direction: Output
-              nodeId: 3
-              ioBit: 3
-              address: QX1.3
-            - name: MainPowerEnable
-              direction: Output
-              nodeId: 3
-              ioBit: 4
-              address: QX1.4
-            - name: PartPresent
-              direction: Input
-              nodeId: 3
-              ioBit: 10
-              address: IX1.10
-            - name: TestOk
-              direction: Input
-              nodeId: 3
-              ioBit: 11
-              address: IX1.11
-            - name: TestNg
-              direction: Input
-              nodeId: 3
-              ioBit: 12
-              address: IX1.12
-            - name: CylinderExtended
-              direction: Input
-              nodeId: 3
-              ioBit: 13
-              address: IX1.13
-            - name: CylinderRetracted
-              direction: Input
-              nodeId: 3
-              ioBit: 14
-              address: IX1.14
-            - name: VacuumOk
-              direction: Input
-              nodeId: 3
-              ioBit: 15
-              address: IX1.15
-            - name: CylinderExtend
-              direction: Output
-              nodeId: 3
-              ioBit: 10
-              address: QX1.10
-            - name: VacuumOn
-              direction: Output
-              nodeId: 3
-              ioBit: 11
-              address: QX1.11
-          registers:
-            inputs:
-              PRODUCT_COUNT: R1000
-              LAST_RESULT: R1001
-            outputs:
-              TARGET_RECIPE: R2000
-              START_BATCH: R2001
-        - cardNo: 1
-          useCard: false
-          ethercatIp: ""
-          axes: []
-          ioPoints: []
-          registers: {}
+      card_no: 0
+      name: "Card EtherCAT Leadshine"
+      axes:
+        - id: AXIS_X
+          name: AxisX
+          axis_index: 0
+          description: Pick X axis
+        - id: AXIS_Y
+          name: AxisY
+          axis_index: 1
+          description: Pick Y axis
+        - id: AXIS_Z
+          name: AxisZ
+          axis_index: 2
+          description: Pick Z axis
+      data:
+        - id: current_pos_x
+          name: Pos X
+          axis: 0
+          type: int32
+          default: 0
+        - id: current_pos_y
+          name: Pos Y
+          axis: 1
+          type: int32
+          default: 0
+      common_io:
+        - id: emergency_stop
+          name: EmergencyStop
+          node_id: 3
+          io_bit: 0
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: start_button
+          name: StartButton
+          node_id: 3
+          io_bit: 1
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: stop_button
+          name: StopButton
+          node_id: 3
+          io_bit: 2
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: reset_button
+          name: ResetButton
+          node_id: 3
+          io_bit: 3
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: safety_door
+          name: SafetyDoor
+          node_id: 3
+          io_bit: 4
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: air_pressure
+          name: AirPressure
+          node_id: 3
+          io_bit: 5
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: home_button
+          name: HomeButton
+          node_id: 3
+          io_bit: 6
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: auto_mode_switch
+          name: AutoModeSwitch
+          node_id: 3
+          io_bit: 7
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: manual_mode_switch
+          name: ManualModeSwitch
+          node_id: 3
+          io_bit: 8
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: material_low
+          name: MaterialLow
+          node_id: 3
+          io_bit: 9
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: tower_light_red
+          name: TowerLightRed
+          node_id: 3
+          io_bit: 0
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: tower_light_yellow
+          name: TowerLightYellow
+          node_id: 3
+          io_bit: 1
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: tower_light_green
+          name: TowerLightGreen
+          node_id: 3
+          io_bit: 2
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: buzzer
+          name: Buzzer
+          node_id: 3
+          io_bit: 3
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: main_power_enable
+          name: MainPowerEnable
+          node_id: 3
+          io_bit: 4
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+      io:
+        - id: part_present
+          name: PartPresent
+          node_id: 3
+          io_bit: 10
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: test_ok
+          name: TestOk
+          node_id: 3
+          io_bit: 11
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: test_ng
+          name: TestNg
+          node_id: 3
+          io_bit: 12
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_extended
+          name: CylinderExtended
+          node_id: 3
+          io_bit: 13
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_retracted
+          name: CylinderRetracted
+          node_id: 3
+          io_bit: 14
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: vacuum_ok
+          name: VacuumOk
+          node_id: 3
+          io_bit: 15
+          address: 0
+          direction: Input
+          type: bit
+          default: false
+        - id: cylinder_extend
+          name: CylinderExtend
+          node_id: 3
+          io_bit: 10
+          address: 0
+          direction: Output
+          type: bit
+          default: false
+        - id: vacuum_on
+          name: VacuumOn
+          node_id: 3
+          io_bit: 11
+          address: 0
+          direction: Output
+          type: bit
+          default: false
   keyence:
     type: keyence
     config:
       ip: "192.168.0.10"
       port: 8501
-      usePlc: false
       name: "KeyencePLC"
-      ioPoints:
-        - name: EmergencyStop
+      data:
+        - id: nhiet_do
+          name: Nhiet do
+          address: D1200
+          type: int32
+          default: 0
+      common_io:
+        - id: stop_plc
+          name: StopButton
+          address: M100
           direction: Input
-          address: X0
-        - name: StartButton
+          type: bit
+          default: false
+      io:
+        - id: sensor_load
+          name: SensorLoad
+          address: M200
           direction: Input
-          address: X1
-        - name: StopButton
-          direction: Input
-          address: X2
-        - name: ResetButton
-          direction: Input
-          address: X3
-        - name: TowerLightRed
-          direction: Output
-          address: Y0
-        - name: TowerLightYellow
-          direction: Output
-          address: Y1
-        - name: TowerLightGreen
-          direction: Output
-          address: Y2
-        - name: Buzzer
-          direction: Output
-          address: Y3
-      registers:
-        inputs:
-          PRODUCT_COUNT: R1000
-          LAST_RESULT: R1001
-        outputs:
-          TARGET_RECIPE: R2000
-          START_BATCH: R2001
+          type: bit
+          default: false
+

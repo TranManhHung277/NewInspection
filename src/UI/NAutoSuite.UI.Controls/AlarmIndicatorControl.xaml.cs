@@ -65,7 +65,7 @@ public partial class AlarmIndicatorControl : UserControl
         DependencyProperty.Register(nameof(BackgroundBrush), typeof(Brush), typeof(AlarmIndicatorControl),
             new PropertyMetadata(NoneBackground));
 
-    public static readonly DependencyProperty BorderBrushProperty =
+    public static new readonly DependencyProperty BorderBrushProperty =
         DependencyProperty.Register(nameof(BorderBrush), typeof(Brush), typeof(AlarmIndicatorControl),
             new PropertyMetadata(NoneBorder));
 

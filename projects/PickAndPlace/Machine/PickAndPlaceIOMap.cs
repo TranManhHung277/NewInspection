@@ -16,16 +16,16 @@ public class PickAndPlaceIOMap : IOMap
 
 public class PickAndPlaceInputs : InputMap
 {
-    public string PartPresent { get; set; } = "IX1.0";
-    public string TestOk { get; set; } = "IX1.1";
-    public string TestNg { get; set; } = "IX1.2";
-    public string CylinderExtended { get; set; } = "IX1.3";
-    public string CylinderRetracted { get; set; } = "IX1.4";
-    public string VacuumOk { get; set; } = "IX1.5";
+    public string PartPresent { get; set; } = string.Empty;
+    public string TestOk { get; set; } = string.Empty;
+    public string TestNg { get; set; } = string.Empty;
+    public string CylinderExtended { get; set; } = string.Empty;
+    public string CylinderRetracted { get; set; } = string.Empty;
+    public string VacuumOk { get; set; } = string.Empty;
 }
 
 public class PickAndPlaceOutputs : OutputMap
 {
-    public string CylinderExtend { get; set; } = "QX1.0";
-    public string VacuumOn { get; set; } = "QX1.1";
+    public string CylinderExtend { get; set; } = string.Empty;
+    public string VacuumOn { get; set; } = string.Empty;
 }

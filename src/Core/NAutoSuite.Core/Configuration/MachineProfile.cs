@@ -7,15 +7,24 @@ namespace NAutoSuite.Core.Configuration;
 /// </summary>
 public class MachineProfile
 {
+    private readonly Dictionary<string, bool> _defaultIoValues;
+
     public MachineProfile(IOMap ioMap)
-        : this(ioMap, new RegisterMap(), Array.Empty<AxisDefinition>())
+        : this(ioMap, new RegisterMap(), Array.Empty<AxisDefinition>(), null)
     {
     }
 
-    public MachineProfile(IOMap ioMap, RegisterMap registerMap, IEnumerable<AxisDefinition> axes)
+    public MachineProfile(
+        IOMap ioMap,
+        RegisterMap registerMap,
+        IEnumerable<AxisDefinition> axes,
+        IReadOnlyDictionary<string, bool>? defaultIoValues)
     {
         IOMap = ioMap ?? throw new ArgumentNullException(nameof(ioMap));
         RegisterMap = registerMap ?? throw new ArgumentNullException(nameof(registerMap));
+        _defaultIoValues = defaultIoValues != null
+            ? new Dictionary<string, bool>(defaultIoValues, StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         var list = axes?.ToList() ?? new List<AxisDefinition>();
         Axes = list.AsReadOnly();
     }
@@ -25,6 +34,17 @@ public class MachineProfile
     public RegisterMap RegisterMap { get; }
 
     public IReadOnlyList<AxisDefinition> Axes { get; }
+
+    public IReadOnlyDictionary<string, bool> DefaultIoValues => _defaultIoValues;
+
+    public void UpdateDefaultIoValues(IReadOnlyDictionary<string, bool> values)
+    {
+        _defaultIoValues.Clear();
+        foreach (var entry in values)
+        {
+            _defaultIoValues[entry.Key] = entry.Value;
+        }
+    }
 }
 
 /// <summary>

@@ -12,11 +12,17 @@ public class IOScanService
     private readonly IOImage _ioImage;
     private readonly IReadOnlyList<string> _inputAddresses;
     private readonly IReadOnlyList<string> _outputAddresses;
+    private readonly IReadOnlyDictionary<string, bool> _defaultValues;
 
-    public IOScanService(IOMap ioMap, HardwareManager hardwareManager, IOImage ioImage)
+    public IOScanService(
+        IOMap ioMap,
+        HardwareManager hardwareManager,
+        IOImage ioImage,
+        IReadOnlyDictionary<string, bool>? defaultValues = null)
     {
         _hardwareManager = hardwareManager ?? throw new ArgumentNullException(nameof(hardwareManager));
         _ioImage = ioImage ?? throw new ArgumentNullException(nameof(ioImage));
+        _defaultValues = defaultValues ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         if (ioMap == null) throw new ArgumentNullException(nameof(ioMap));
 
@@ -25,6 +31,22 @@ public class IOScanService
 
         _ioImage.EnsureInputs(_inputAddresses);
         _ioImage.EnsureOutputs(_outputAddresses);
+
+        foreach (var address in _inputAddresses)
+        {
+            if (_defaultValues.TryGetValue(address, out var value))
+            {
+                _ioImage.SetInput(address, value);
+            }
+        }
+
+        foreach (var address in _outputAddresses)
+        {
+            if (_defaultValues.TryGetValue(address, out var value))
+            {
+                _ioImage.SetOutput(address, value);
+            }
+        }
     }
 
     public async Task UpdateInputsAsync(CancellationToken ct = default)
@@ -37,6 +59,10 @@ public class IOScanService
             if (result.IsSuccess)
             {
                 _ioImage.SetInput(address, result.Value);
+            }
+            else if (_defaultValues.TryGetValue(address, out var fallback))
+            {
+                _ioImage.SetInput(address, fallback);
             }
         }
     }

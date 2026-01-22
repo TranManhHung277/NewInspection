@@ -17,8 +17,24 @@ public class LeadshineRemoteIO : IIO
     public LeadshineRemoteIO(int cardNo, IEnumerable<RemoteIoPoint> points, ILogger? logger = null)
     {
         _cardNo = cardNo;
-        _points = points.ToDictionary(p => p.Address, StringComparer.OrdinalIgnoreCase);
         _logger = logger ?? Log.Logger;
+        _points = new Dictionary<string, RemoteIoPoint>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var point in points)
+        {
+            if (string.IsNullOrWhiteSpace(point.Address))
+            {
+                continue;
+            }
+
+            if (_points.ContainsKey(point.Address))
+            {
+                _logger.Warning("Duplicate Leadshine IO address '{Address}' ignored", point.Address);
+                continue;
+            }
+
+            _points[point.Address] = point;
+        }
     }
 
     public string Id => $"LeadshineRemoteIO_Card{_cardNo}";

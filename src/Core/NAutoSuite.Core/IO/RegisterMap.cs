@@ -22,4 +22,10 @@ public class RegisterMap
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(address)) return;
         OutputRegisters[name] = address;
     }
+
+    public void Clear()
+    {
+        InputRegisters.Clear();
+        OutputRegisters.Clear();
+    }
 }
