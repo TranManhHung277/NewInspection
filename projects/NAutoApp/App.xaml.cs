@@ -30,12 +30,7 @@ public partial class App : Application
         base.OnStartup(e);
 
         // Initialize logging with UI sink FIRST
-        InitializeLogging("logs/pickandplace-.log");
-
-        // Test logs at different levels
-        Log.Debug("App startup - Debug level test");
-        Log.Information("Pick and Place Machine Application started (Simulation Mode)");
-        Log.Information("Configuring dependency injection container...");
+        InitializeLogging("logs/nautoapp-.log");
 
         // Build host with DI
         _host = Host.CreateDefaultBuilder()
@@ -44,14 +39,10 @@ public partial class App : Application
             {
                 Log.Information("Registering services in DI container...");
 
-                // Register Core Services
-                services.AddSingleton<TimeService>();
-
-                // ===== HARDWARE CONFIGURATION (Leadshine EtherCAT) =====
-
                 // Register Serilog ILogger for injection
                 services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
 
+                // Load configurations
                 services.AddSingleton(sp =>
                 {
                     var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");

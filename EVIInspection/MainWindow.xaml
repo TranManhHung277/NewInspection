@@ -1,0 +1,44 @@
+﻿<Window x:Class="EVIInspection.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
+        xmlns:local="clr-namespace:EVIInspection"
+        mc:Ignorable="d"
+        Title="EVI Inspection" Height="1080" Width="1920"
+        WindowState="Maximized"
+        WindowStyle="None">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/NAutoSuite.UI.Themes;component/Theme.Dark.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Header -->
+            <RowDefinition Height="Auto"/>
+            <!-- Content -->
+            <RowDefinition Height="*"/>
+            <!-- Footer -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <controls:ShellHeaderControl Grid.Row="0" x:Name="HeaderControl"
+                        
+                                    StatusLevel="{Binding HeaderStatusLevel}"
+                           />
+
+        <!-- Content Area -->
+        <Border Grid.Row="1" Background="#1E1E1E">
+            <ContentControl x:Name="ContentArea" Content="{Binding CurrentView}"/>
+        </Border>
+
+        <!-- Footer Navigation -->
+        <controls:ShellFooterControl Grid.Row="2" x:Name="FooterControl"
+                                   />
+    </Grid>
+</Window>
