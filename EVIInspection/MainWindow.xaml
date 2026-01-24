@@ -28,9 +28,14 @@
 
         <!-- Header -->
         <controls:ShellHeaderControl Grid.Row="0" x:Name="HeaderControl"
-                        
+                                    MachineNumberValue="{Binding MachineNumber}"
+                                    MachineState="{Binding MachineState}"
+                                    ProjectNameValue="{Binding ProjectName}"
+                                    ModelNameValue="{Binding ModelName}"
+                                    RunModeValue="{Binding RunMode}"
                                     StatusLevel="{Binding HeaderStatusLevel}"
-                           />
+                                    HeaderClicked="HeaderControl_HeaderClicked"
+                                    CloseClicked="HeaderControl_CloseClicked"/>
 
         <!-- Content Area -->
         <Border Grid.Row="1" Background="#1E1E1E">
@@ -39,6 +44,6 @@
 
         <!-- Footer Navigation -->
         <controls:ShellFooterControl Grid.Row="2" x:Name="FooterControl"
-                                   />
+                                    TabChanged="FooterControl_TabChanged"/>
     </Grid>
 </Window>

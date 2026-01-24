@@ -14,4 +14,8 @@
     <ProjectReference Include="..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Machine\" />
+  </ItemGroup>
+
 </Project>
