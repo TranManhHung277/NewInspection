@@ -115,6 +115,37 @@
                     </StackPanel>
                 </StackPanel>
 
+                <!-- Minimize Button -->
+                <Border Background="#3E3E42" Width="70">
+                    <Button Content="-"
+                            FontSize="36" FontWeight="Bold"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            x:Name="MinimizeButton" Width="70">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4B4B50"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Border>
+
                 <!-- Close Button -->
                 <Border Background="#F44336" Width="70">
                     <Button Content="✕"

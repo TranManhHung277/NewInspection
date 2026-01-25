@@ -96,6 +96,7 @@ public partial class ShellHeaderControl : UserControl
     }
 
     public event RoutedEventHandler? CloseClicked;
+    public event RoutedEventHandler? MinimizeClicked;
     public event RoutedEventHandler? HeaderClicked;
 
     public ShellHeaderControl()
@@ -111,6 +112,7 @@ public partial class ShellHeaderControl : UserControl
         _timer.Start();
 
         CloseButton.Click += (s, e) => CloseClicked?.Invoke(this, e);
+        MinimizeButton.Click += (s, e) => MinimizeClicked?.Invoke(this, e);
 
         UpdateTime();
     }

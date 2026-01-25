@@ -92,6 +92,11 @@ public partial class MainWindow : Window
         }
     }
 
+    private void HeaderControl_MinimizeClicked(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
     private void HeaderControl_HeaderClicked(object sender, RoutedEventArgs e)
     {
         var hasError = _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Error

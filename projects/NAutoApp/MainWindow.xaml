@@ -37,6 +37,7 @@
                                     RunModeValue="{Binding RunMode}"
                                     StatusLevel="{Binding HeaderStatusLevel}"
                                     HeaderClicked="HeaderControl_HeaderClicked"
+                                    MinimizeClicked="HeaderControl_MinimizeClicked"
                                     CloseClicked="HeaderControl_CloseClicked"/>
 
         <!-- Content Area -->
