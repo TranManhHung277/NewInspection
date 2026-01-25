@@ -8,7 +8,11 @@ public partial class KeyboardInput : UserControl
 {
     public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(KeyboardInput),
-            new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnTextChanged));
+
+    public static readonly DependencyProperty PendingTextProperty =
+        DependencyProperty.Register(nameof(PendingText), typeof(string), typeof(KeyboardInput),
+            new PropertyMetadata(string.Empty, OnPendingTextChanged));
 
     public static readonly DependencyProperty KeyboardTypeProperty =
         DependencyProperty.Register(nameof(KeyboardType), typeof(KeyboardInputType), typeof(KeyboardInput),
@@ -34,12 +38,17 @@ public partial class KeyboardInput : UserControl
         DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(KeyboardInput),
             new PropertyMetadata(false));
 
+    public static readonly DependencyProperty CommitOnEnterProperty =
+        DependencyProperty.Register(nameof(CommitOnEnter), typeof(bool), typeof(KeyboardInput),
+            new PropertyMetadata(false, OnCommitOnEnterChanged));
+
     public static readonly DependencyProperty TextBoxStyleProperty =
         DependencyProperty.Register(nameof(TextBoxStyle), typeof(Style), typeof(KeyboardInput),
             new PropertyMetadata(null));
 
     private bool _isDialogOpen;
     private bool _suppressNextFocus;
+    private bool _isSyncing;
 
     public KeyboardInput()
     {
@@ -50,6 +59,12 @@ public partial class KeyboardInput : UserControl
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+
+    public string PendingText
+    {
+        get => (string)GetValue(PendingTextProperty);
+        set => SetValue(PendingTextProperty, value);
     }
 
     public KeyboardInputType KeyboardType
@@ -88,10 +103,64 @@ public partial class KeyboardInput : UserControl
         set => SetValue(IsReadOnlyProperty, value);
     }
 
+    public bool CommitOnEnter
+    {
+        get => (bool)GetValue(CommitOnEnterProperty);
+        set => SetValue(CommitOnEnterProperty, value);
+    }
+
     public Style? TextBoxStyle
     {
         get => (Style?)GetValue(TextBoxStyleProperty);
         set => SetValue(TextBoxStyleProperty, value);
+    }
+
+    private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not KeyboardInput control || control._isSyncing)
+        {
+            return;
+        }
+
+        control._isSyncing = true;
+        control.PendingText = e.NewValue?.ToString() ?? string.Empty;
+        control._isSyncing = false;
+    }
+
+    private static void OnPendingTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not KeyboardInput control || control._isSyncing)
+        {
+            return;
+        }
+
+        if (!control.CommitOnEnter)
+        {
+            control._isSyncing = true;
+            control.Text = e.NewValue?.ToString() ?? string.Empty;
+            control._isSyncing = false;
+        }
+    }
+
+    private static void OnCommitOnEnterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not KeyboardInput control)
+        {
+            return;
+        }
+
+        if (!(bool)e.NewValue)
+        {
+            control._isSyncing = true;
+            control.Text = control.PendingText;
+            control._isSyncing = false;
+        }
+        else
+        {
+            control._isSyncing = true;
+            control.PendingText = control.Text;
+            control._isSyncing = false;
+        }
     }
 
     private void InputBox_GotKeyboardFocus(object sender, RoutedEventArgs e)
@@ -108,6 +177,17 @@ public partial class KeyboardInput : UserControl
         }
 
         OpenKeyboard();
+    }
+
+    private void InputBox_OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (!CommitOnEnter || e.Key != System.Windows.Input.Key.Enter)
+        {
+            return;
+        }
+
+        Text = PendingText;
+        e.Handled = true;
     }
 
     private void KeyboardButton_Click(object sender, RoutedEventArgs e)

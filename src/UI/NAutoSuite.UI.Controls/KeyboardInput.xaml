@@ -26,9 +26,10 @@
         <TextBox x:Name="InputBox"
                  Grid.Column="0"
                  Style="{Binding TextBoxStyle, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Text="{Binding PendingText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                  IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                 GotKeyboardFocus="InputBox_GotKeyboardFocus"/>
+                 GotKeyboardFocus="InputBox_GotKeyboardFocus"
+                 PreviewKeyDown="InputBox_OnPreviewKeyDown"/>
 
         <Button Grid.Column="1"
                 Style="{StaticResource KeyboardButtonStyle}"
