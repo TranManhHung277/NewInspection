@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
-    <ProjectReference Include="..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
-    <ProjectReference Include="..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -29,7 +29,6 @@ namespace EVIInspection
         private readonly LogView _logView;
         private readonly TeachView _teachView;
         private string _lastTab = "Auto";
-        private bool _suppressTabChange;
         public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
@@ -81,10 +80,6 @@ namespace EVIInspection
 
         private void FooterControl_TabChanged(object? sender, string tabName)
         {
-            if (_suppressTabChange)
-            {
-                return;
-            }
             _lastTab = tabName;
 
             object view = tabName switch

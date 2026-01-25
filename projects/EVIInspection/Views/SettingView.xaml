@@ -34,6 +34,10 @@
                                         KeyboardType="Numeric"
                                         AllowDecimal="False"
                                         ShowKeyboardButton="True"/>
+                <controls:ValueDisplay Value="{Binding MachineNumber}"
+                       ValueType="Int32"
+                       DisplayDecimals="2"/>
+
             </StackPanel>
                
 
