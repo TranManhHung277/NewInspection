@@ -21,7 +21,10 @@
         <Grid Grid.Row="1">
             <StackPanel Orientation="Vertical" VerticalAlignment="Center">
                 
-                <controls:InputField Value="{Binding MachineNumber}"
+                <controls:InputField x:Name="MachineNumberInput"
+                                     Value="{Binding MachineNumber}"
+                                     MaxValue="100"
+                                     MinValue="40"
                                         InputHeight="100"
                                         InputFontSize="20"
                                         HorizontalTextAlignment="Center"
@@ -30,6 +33,21 @@
                                         KeyboardType="Numeric"
                                         AllowDecimal="False"
                                         ShowKeyboardButton="True"/>
+                <TextBlock Foreground="#E53935"
+                           FontSize="14"
+                           Margin="4,6,0,0"
+                           Text="{Binding ValidationErrorMessage, ElementName=MachineNumberInput}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsValid, ElementName=MachineNumberInput}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <controls:InputField Value="{Binding MachineNumber}"
                                         Padding="0,10"
                                         IsEnabled="False"
@@ -45,6 +63,13 @@
                                        InputFontWeight="Bold"
                        ValueType="Int32"
                        DisplayDecimals="2"/>
+                <controls:DisplayField Value="{Binding MachineNumber}" 
+                       ValueType="Int32"
+                       ColorZoneTarget="Border"
+                                       InputFontWeight="Bold"
+                       Threshold1="10" Threshold2="25" Threshold3="35"
+                       ZoneColor1="Blue" ZoneColor2="Green" 
+                       ZoneColor3="Orange" ZoneColor4="Red"/>
 
             </StackPanel>
                

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -7,6 +8,16 @@ using System.Windows.Media;
 using NAutoSuite.UI.Controls.Dialogs;
 
 namespace NAutoSuite.UI.Controls;
+
+public enum InputFieldValidationMode
+{
+    None,
+    Uppercase,
+    Phone,
+    IpAddress,
+    MacAddress,
+    Email
+}
 
 public partial class InputField : UserControl
 {
@@ -105,15 +116,48 @@ public partial class InputField : UserControl
         DependencyProperty.Register(nameof(InputForeground), typeof(Brush), typeof(InputField),
             new PropertyMetadata(null));
 
+    public static readonly DependencyProperty ValidationModeProperty =
+        DependencyProperty.Register(nameof(ValidationMode), typeof(InputFieldValidationMode), typeof(InputField),
+            new PropertyMetadata(InputFieldValidationMode.None));
+
+    public static readonly DependencyProperty MinValueProperty =
+        DependencyProperty.Register(nameof(MinValue), typeof(double?), typeof(InputField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty MaxValueProperty =
+        DependencyProperty.Register(nameof(MaxValue), typeof(double?), typeof(InputField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty IsValidProperty =
+        DependencyProperty.Register(nameof(IsValid), typeof(bool), typeof(InputField),
+            new PropertyMetadata(true));
+
+    public static readonly DependencyProperty ValidationErrorMessageProperty =
+        DependencyProperty.Register(nameof(ValidationErrorMessage), typeof(string), typeof(InputField),
+            new PropertyMetadata(string.Empty));
+
+    public static readonly DependencyProperty InvalidBorderBrushProperty =
+        DependencyProperty.Register(nameof(InvalidBorderBrush), typeof(Brush), typeof(InputField),
+            new PropertyMetadata(null));
+
     private bool _isDialogOpen;
     private bool _suppressNextFocus;
     private bool _isSyncing;
     private bool _suppressValueFormat;
+    private string _lastCommittedText = string.Empty;
 
     public InputField()
     {
         InitializeComponent();
         UpdateActualFontSize();
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Validate initial value and store it
+        _lastCommittedText = PendingText;
+        ValidateInput();
     }
 
     private static void OnFontSizeRelatedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -268,6 +312,42 @@ public partial class InputField : UserControl
         set => SetValue(InputForegroundProperty, value);
     }
 
+    public InputFieldValidationMode ValidationMode
+    {
+        get => (InputFieldValidationMode)GetValue(ValidationModeProperty);
+        set => SetValue(ValidationModeProperty, value);
+    }
+
+    public double? MinValue
+    {
+        get => (double?)GetValue(MinValueProperty);
+        set => SetValue(MinValueProperty, value);
+    }
+
+    public double? MaxValue
+    {
+        get => (double?)GetValue(MaxValueProperty);
+        set => SetValue(MaxValueProperty, value);
+    }
+
+    public bool IsValid
+    {
+        get => (bool)GetValue(IsValidProperty);
+        private set => SetValue(IsValidProperty, value);
+    }
+
+    public string ValidationErrorMessage
+    {
+        get => (string)GetValue(ValidationErrorMessageProperty);
+        private set => SetValue(ValidationErrorMessageProperty, value);
+    }
+
+    public Brush? InvalidBorderBrush
+    {
+        get => (Brush?)GetValue(InvalidBorderBrushProperty);
+        set => SetValue(InvalidBorderBrushProperty, value);
+    }
+
     private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not InputField control || control._isSyncing)
@@ -283,12 +363,26 @@ public partial class InputField : UserControl
         control._isSyncing = true;
         control.PendingText = e.NewValue?.ToString() ?? string.Empty;
         control._isSyncing = false;
+        control._lastCommittedText = control.PendingText;
+        control.ValidateInput();
     }
 
     private static void OnPendingTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not InputField control || control._isSyncing)
         {
+            return;
+        }
+
+        // Apply text transformation (e.g., uppercase)
+        control.ApplyTextTransformation();
+
+        // Validate input
+        var isValid = control.ValidateInput();
+
+        if (!isValid && !control.CommitOnEnter)
+        {
+            control.RevertToLastCommitted();
             return;
         }
 
@@ -423,6 +517,12 @@ public partial class InputField : UserControl
 
     private void CommitPendingText(bool formatAfterCommit)
     {
+        if (!ValidateInput(PendingText))
+        {
+            RevertToLastCommitted();
+            return;
+        }
+
         if (!TryConvert(PendingText, out var converted))
         {
             if (BindingOperations.IsDataBound(this, ValueProperty))
@@ -437,12 +537,17 @@ public partial class InputField : UserControl
             _suppressValueFormat = !formatAfterCommit;
             Value = converted;
             _suppressValueFormat = false;
+            if (!formatAfterCommit)
+            {
+                _lastCommittedText = PendingText;
+            }
             return;
         }
 
         _isSyncing = true;
         Text = converted?.ToString() ?? string.Empty;
         _isSyncing = false;
+        _lastCommittedText = Text;
     }
 
     private void SetPendingFromValue(object? value)
@@ -456,6 +561,8 @@ public partial class InputField : UserControl
             Text = formatted;
         }
         _isSyncing = false;
+        _lastCommittedText = formatted;
+        ValidateInput();
     }
 
     private string FormatValue(object? value)
@@ -539,6 +646,149 @@ public partial class InputField : UserControl
             default:
                 return false;
         }
+    }
+
+    private bool ValidateInput()
+    {
+        return ValidateInput(PendingText);
+    }
+
+    private bool ValidateInput(string text)
+    {
+        // Pattern validation for string types
+        if (ValueType == InputFieldValueType.String)
+        {
+            var (isValid, errorMessage) = ValidatePattern(text);
+            IsValid = isValid;
+            ValidationErrorMessage = errorMessage;
+            return isValid;
+        }
+
+        // Numeric range validation
+        if (ValueType != InputFieldValueType.String && !string.IsNullOrWhiteSpace(text))
+        {
+            if (!double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out var numericValue))
+            {
+                IsValid = false;
+                ValidationErrorMessage = "Invalid number format";
+                return false;
+            }
+
+            var (isValid, errorMessage) = ValidateNumericRange(numericValue);
+            IsValid = isValid;
+            ValidationErrorMessage = errorMessage;
+            return isValid;
+        }
+
+        IsValid = true;
+        ValidationErrorMessage = string.Empty;
+        return true;
+    }
+
+    private (bool isValid, string errorMessage) ValidatePattern(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return (true, string.Empty);
+        }
+
+        return ValidationMode switch
+        {
+            InputFieldValidationMode.Phone => ValidatePhone(text),
+            InputFieldValidationMode.IpAddress => ValidateIpAddress(text),
+            InputFieldValidationMode.MacAddress => ValidateMacAddress(text),
+            InputFieldValidationMode.Email => ValidateEmail(text),
+            _ => (true, string.Empty)
+        };
+    }
+
+    private static (bool isValid, string errorMessage) ValidatePhone(string text)
+    {
+        // Supports formats: +84123456789, 0123456789, 123-456-7890, (123) 456-7890
+        var pattern = @"^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$";
+        var isValid = Regex.IsMatch(text, pattern);
+        return (isValid, isValid ? string.Empty : "Invalid phone number format");
+    }
+
+    private static (bool isValid, string errorMessage) ValidateIpAddress(string text)
+    {
+        // IPv4: 192.168.1.1
+        var ipv4Pattern = @"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+        var isValid = Regex.IsMatch(text, ipv4Pattern);
+        return (isValid, isValid ? string.Empty : "Invalid IP address format");
+    }
+
+    private static (bool isValid, string errorMessage) ValidateMacAddress(string text)
+    {
+        // Supports: AA:BB:CC:DD:EE:FF, AA-BB-CC-DD-EE-FF, AABBCCDDEEFF
+        var pattern = @"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$|^([0-9A-Fa-f]{12})$";
+        var isValid = Regex.IsMatch(text, pattern);
+        return (isValid, isValid ? string.Empty : "Invalid MAC address format");
+    }
+
+    private static (bool isValid, string errorMessage) ValidateEmail(string text)
+    {
+        var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        var isValid = Regex.IsMatch(text, pattern);
+        return (isValid, isValid ? string.Empty : "Invalid email format");
+    }
+
+    private (bool isValid, string errorMessage) ValidateNumericRange(double value)
+    {
+        var min = MinValue;
+        var max = MaxValue;
+
+        // No validation if both are null
+        if (!min.HasValue && !max.HasValue)
+            return (true, string.Empty);
+
+        // Only Max: value <= Max
+        if (!min.HasValue)
+            return value <= max!.Value ? (true, string.Empty) : (false, $"Value must be ≤ {max.Value}");
+
+        // Only Min: value >= Min
+        if (!max.HasValue)
+            return value >= min.Value ? (true, string.Empty) : (false, $"Value must be ≥ {min.Value}");
+
+        // Both Min and Max - Normal range: value in [Min, Max]
+        if (max.Value >= min.Value)
+            return value >= min.Value && value <= max.Value
+                ? (true, string.Empty)
+                : (false, $"Value must be between {min.Value} and {max.Value}");
+
+        // Inverted range: value outside (Max, Min) - i.e., value <= Max OR value >= Min
+        return value <= max.Value || value >= min.Value
+            ? (true, string.Empty)
+            : (false, $"Value must be ≤ {max.Value} or ≥ {min.Value}");
+    }
+
+    private void ApplyTextTransformation()
+    {
+        if (ValidationMode == InputFieldValidationMode.Uppercase && ValueType == InputFieldValueType.String)
+        {
+            var currentText = PendingText;
+            var upperText = currentText.ToUpperInvariant();
+            if (currentText != upperText)
+            {
+                var caretIndex = InputBox.CaretIndex;
+                _isSyncing = true;
+                PendingText = upperText;
+                _isSyncing = false;
+                InputBox.CaretIndex = caretIndex;
+            }
+        }
+    }
+
+    private void RevertToLastCommitted()
+    {
+        _isSyncing = true;
+        PendingText = _lastCommittedText;
+        if (!BindingOperations.IsDataBound(this, TextProperty))
+        {
+            Text = _lastCommittedText;
+        }
+        _isSyncing = false;
+        ValidateInput();
     }
 }
 

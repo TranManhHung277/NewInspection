@@ -3,23 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:NAutoSuite.UI.Controls"
              mc:Ignorable="d"
              MinHeight="36"
              d:DesignHeight="36" d:DesignWidth="200">
-    <Border Background="{Binding InputBackground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource SurfaceBrush}}"
-            BorderBrush="{Binding InputBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BorderBrush}}"
-            BorderThickness="1"
+    <UserControl.Resources>
+        <local:CoalesceBrushConverter x:Key="CoalesceBrushConverter"/>
+    </UserControl.Resources>
+    <Border BorderThickness="1"
             CornerRadius="8"
             Height="{Binding InputHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
             Padding="10,0">
+        <Border.Background>
+            <MultiBinding Converter="{StaticResource CoalesceBrushConverter}">
+                <Binding Path="ActiveZoneBackground" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                <Binding Path="InputBackground" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                <Binding Source="{StaticResource SurfaceBrush}"/>
+            </MultiBinding>
+        </Border.Background>
+        <Border.BorderBrush>
+            <MultiBinding Converter="{StaticResource CoalesceBrushConverter}">
+                <Binding Path="ActiveZoneBorderBrush" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                <Binding Path="InputBorderBrush" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                <Binding Source="{StaticResource BorderBrush}"/>
+            </MultiBinding>
+        </Border.BorderBrush>
         <TextBlock Text="{Binding DisplayText, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                   Foreground="{Binding InputForeground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource TextPrimaryBrush}}"
                    FontSize="{Binding ActualFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    FontFamily="{Binding InputFontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    FontWeight="{Binding InputFontWeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    TextAlignment="{Binding HorizontalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    VerticalAlignment="{Binding VerticalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    TextTrimming="CharacterEllipsis"
-                   Style="{Binding TextStyle, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                   Style="{Binding TextStyle, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <TextBlock.Foreground>
+                <MultiBinding Converter="{StaticResource CoalesceBrushConverter}">
+                    <Binding Path="ActiveZoneForeground" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                    <Binding Path="InputForeground" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                    <Binding Source="{StaticResource TextPrimaryBrush}"/>
+                </MultiBinding>
+            </TextBlock.Foreground>
+        </TextBlock>
     </Border>
 </UserControl>

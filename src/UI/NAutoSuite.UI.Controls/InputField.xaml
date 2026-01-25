@@ -16,14 +16,28 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
+        <SolidColorBrush x:Key="DefaultInvalidBrush" Color="#E53935"/>
     </UserControl.Resources>
 
-    <Border Background="{Binding InputBackground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource SurfaceBrush}}"
-            BorderBrush="{Binding InputBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BorderBrush}}"
+    <Border x:Name="MainBorder"
+            Background="{Binding InputBackground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource SurfaceBrush}}"
             BorderThickness="1"
             CornerRadius="8"
             Height="{Binding InputHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
-            Padding="0,2">
+            Padding="0,2"
+            ToolTip="{Binding ValidationErrorMessage, RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="BorderBrush" Value="{Binding InputBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BorderBrush}}"/>
+                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsValid, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                        <Setter Property="BorderBrush" Value="{Binding InvalidBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource DefaultInvalidBrush}}"/>
+                        <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>

@@ -1,9 +1,28 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace NAutoSuite.UI.Controls;
+
+public class CoalesceBrushConverter : IMultiValueConverter
+{
+    public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        foreach (var value in values)
+        {
+            if (value is Brush brush)
+                return brush;
+        }
+        return null;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
 
 public enum DisplayFieldValueType
 {
@@ -13,6 +32,14 @@ public enum DisplayFieldValueType
     Double,
     Decimal,
     DateTime
+}
+
+public enum ColorZoneTarget
+{
+    None,
+    Border,
+    Background,
+    Text
 }
 
 public partial class DisplayField : UserControl
@@ -82,6 +109,51 @@ public partial class DisplayField : UserControl
 
     public static readonly DependencyProperty InputForegroundProperty =
         DependencyProperty.Register(nameof(InputForeground), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    // Color Zone Properties
+    public static readonly DependencyProperty ColorZoneTargetProperty =
+        DependencyProperty.Register(nameof(ColorZoneTarget), typeof(ColorZoneTarget), typeof(DisplayField),
+            new PropertyMetadata(ColorZoneTarget.None, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty Threshold1Property =
+        DependencyProperty.Register(nameof(Threshold1), typeof(double?), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty Threshold2Property =
+        DependencyProperty.Register(nameof(Threshold2), typeof(double?), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty Threshold3Property =
+        DependencyProperty.Register(nameof(Threshold3), typeof(double?), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty ZoneColor1Property =
+        DependencyProperty.Register(nameof(ZoneColor1), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty ZoneColor2Property =
+        DependencyProperty.Register(nameof(ZoneColor2), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty ZoneColor3Property =
+        DependencyProperty.Register(nameof(ZoneColor3), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty ZoneColor4Property =
+        DependencyProperty.Register(nameof(ZoneColor4), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null, OnColorZonePropertyChanged));
+
+    public static readonly DependencyProperty ActiveZoneBorderBrushProperty =
+        DependencyProperty.Register(nameof(ActiveZoneBorderBrush), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty ActiveZoneBackgroundProperty =
+        DependencyProperty.Register(nameof(ActiveZoneBackground), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty ActiveZoneForegroundProperty =
+        DependencyProperty.Register(nameof(ActiveZoneForeground), typeof(Brush), typeof(DisplayField),
             new PropertyMetadata(null));
 
     public DisplayField()
@@ -201,11 +273,86 @@ public partial class DisplayField : UserControl
         set => SetValue(InputForegroundProperty, value);
     }
 
+    public ColorZoneTarget ColorZoneTarget
+    {
+        get => (ColorZoneTarget)GetValue(ColorZoneTargetProperty);
+        set => SetValue(ColorZoneTargetProperty, value);
+    }
+
+    public double? Threshold1
+    {
+        get => (double?)GetValue(Threshold1Property);
+        set => SetValue(Threshold1Property, value);
+    }
+
+    public double? Threshold2
+    {
+        get => (double?)GetValue(Threshold2Property);
+        set => SetValue(Threshold2Property, value);
+    }
+
+    public double? Threshold3
+    {
+        get => (double?)GetValue(Threshold3Property);
+        set => SetValue(Threshold3Property, value);
+    }
+
+    public Brush? ZoneColor1
+    {
+        get => (Brush?)GetValue(ZoneColor1Property);
+        set => SetValue(ZoneColor1Property, value);
+    }
+
+    public Brush? ZoneColor2
+    {
+        get => (Brush?)GetValue(ZoneColor2Property);
+        set => SetValue(ZoneColor2Property, value);
+    }
+
+    public Brush? ZoneColor3
+    {
+        get => (Brush?)GetValue(ZoneColor3Property);
+        set => SetValue(ZoneColor3Property, value);
+    }
+
+    public Brush? ZoneColor4
+    {
+        get => (Brush?)GetValue(ZoneColor4Property);
+        set => SetValue(ZoneColor4Property, value);
+    }
+
+    public Brush? ActiveZoneBorderBrush
+    {
+        get => (Brush?)GetValue(ActiveZoneBorderBrushProperty);
+        private set => SetValue(ActiveZoneBorderBrushProperty, value);
+    }
+
+    public Brush? ActiveZoneBackground
+    {
+        get => (Brush?)GetValue(ActiveZoneBackgroundProperty);
+        private set => SetValue(ActiveZoneBackgroundProperty, value);
+    }
+
+    public Brush? ActiveZoneForeground
+    {
+        get => (Brush?)GetValue(ActiveZoneForegroundProperty);
+        private set => SetValue(ActiveZoneForegroundProperty, value);
+    }
+
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is DisplayField control)
         {
             control.UpdateDisplayText();
+            control.UpdateColorZone();
+        }
+    }
+
+    private static void OnColorZonePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is DisplayField control)
+        {
+            control.UpdateColorZone();
         }
     }
 
@@ -282,5 +429,120 @@ public partial class DisplayField : UserControl
         }
 
         return value.ToString() ?? string.Empty;
+    }
+
+    private void UpdateColorZone()
+    {
+        // Reset active zone colors
+        ActiveZoneBorderBrush = null;
+        ActiveZoneBackground = null;
+        ActiveZoneForeground = null;
+
+        if (ColorZoneTarget == ColorZoneTarget.None || Value == null)
+        {
+            return;
+        }
+
+        // Try to get numeric value
+        if (!TryGetNumericValue(out var numericValue))
+        {
+            return;
+        }
+
+        // Get and sort thresholds
+        var thresholds = GetSortedThresholds();
+        if (thresholds.Count == 0)
+        {
+            return;
+        }
+
+        // Determine which zone the value falls into
+        var zoneColor = DetermineZoneColor(numericValue, thresholds);
+        if (zoneColor == null)
+        {
+            return;
+        }
+
+        // Apply color to the target
+        switch (ColorZoneTarget)
+        {
+            case ColorZoneTarget.Border:
+                ActiveZoneBorderBrush = zoneColor;
+                break;
+            case ColorZoneTarget.Background:
+                ActiveZoneBackground = zoneColor;
+                break;
+            case ColorZoneTarget.Text:
+                ActiveZoneForeground = zoneColor;
+                break;
+        }
+    }
+
+    private bool TryGetNumericValue(out double numericValue)
+    {
+        numericValue = 0;
+
+        if (Value == null)
+            return false;
+
+        var culture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            switch (ValueType)
+            {
+                case DisplayFieldValueType.Int32:
+                    numericValue = Convert.ToInt32(Value, culture);
+                    return true;
+                case DisplayFieldValueType.Float:
+                    numericValue = Convert.ToSingle(Value, culture);
+                    return !double.IsNaN(numericValue);
+                case DisplayFieldValueType.Double:
+                    numericValue = Convert.ToDouble(Value, culture);
+                    return !double.IsNaN(numericValue);
+                case DisplayFieldValueType.Decimal:
+                    numericValue = (double)Convert.ToDecimal(Value, culture);
+                    return true;
+                default:
+                    return double.TryParse(Value.ToString(), NumberStyles.Float, culture, out numericValue);
+            }
+        }
+        catch
+        {
+            return double.TryParse(Value.ToString(), NumberStyles.Float, culture, out numericValue);
+        }
+    }
+
+    private List<double> GetSortedThresholds()
+    {
+        var thresholds = new List<double>();
+
+        if (Threshold1.HasValue) thresholds.Add(Threshold1.Value);
+        if (Threshold2.HasValue) thresholds.Add(Threshold2.Value);
+        if (Threshold3.HasValue) thresholds.Add(Threshold3.Value);
+
+        thresholds.Sort();
+        return thresholds;
+    }
+
+    private Brush? DetermineZoneColor(double value, List<double> thresholds)
+    {
+        // Colors array corresponding to zones (before first threshold, between thresholds, after last threshold)
+        var colors = new[] { ZoneColor1, ZoneColor2, ZoneColor3, ZoneColor4 };
+
+        // Find the zone index based on thresholds
+        var zoneIndex = 0;
+        foreach (var threshold in thresholds)
+        {
+            if (value >= threshold)
+                zoneIndex++;
+            else
+                break;
+        }
+
+        // Ensure we don't exceed available colors
+        zoneIndex = Math.Min(zoneIndex, colors.Length - 1);
+
+        return colors[zoneIndex];
     }
 }
