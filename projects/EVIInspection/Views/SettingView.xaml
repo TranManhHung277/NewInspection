@@ -23,8 +23,8 @@
                 
                 <controls:InputField x:Name="MachineNumberInput"
                                      Value="{Binding MachineNumber}"
-                                     MaxValue="100"
-                                     MinValue="40"
+                                     MaxValue="99"
+                                     MinValue="0"
                                         InputHeight="100"
                                         InputFontSize="20"
                                         HorizontalTextAlignment="Center"

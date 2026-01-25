@@ -141,7 +141,9 @@ public partial class ShellHeaderControl : UserControl
     {
         if (d is ShellHeaderControl control)
         {
-            control.MachineNumber.Text = e.NewValue?.ToString() ?? "1";
+            var number = e.NewValue is int value ? value : 0;
+            var formatted = Math.Abs(number % 100).ToString("D2");
+            control.MachineNumber.Text = formatted;
         }
     }
 

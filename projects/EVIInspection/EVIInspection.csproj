@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Configs\hardware_config.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
