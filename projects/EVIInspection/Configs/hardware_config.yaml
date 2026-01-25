@@ -7,6 +7,77 @@ hardware:
     type: ethercat_card
     config:
       card_no: 0
+      name: Card EtherCAT Leadshine
+      axes:
+        - id: AXIS_X
+          name: AxisX
+          axis_index: 0
+          description: Pick X axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          gear_master_type: 0
+          gear_master_index: 0
+          gear_master_even: 0
+          gear_slave_even: 0
+          gear_master_slope: 0
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
+        - id: AXIS_Y
+          name: AxisY
+          axis_index: 1
+          description: Pick Y axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          gear_master_type: 0
+          gear_master_index: 0
+          gear_master_even: 0
+          gear_slave_even: 0
+          gear_master_slope: 0
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
+        - id: AXIS_Z
+          name: AxisZ
+          axis_index: 2
+          description: Pick Z axis
+          min_vel: 0.1
+          max_vel: 100.0
+          acc: 0.2
+          dec: 0.2
+          stop_vel: 0.0
+          jog_vel: 50.0
+          run_mode: 8
+          gear_equiv: 0.0
+          servo_on_connect: true
+          enable_gear: false
+          gear_master_type: 0
+          gear_master_index: 0
+          gear_master_even: 0
+          gear_slave_even: 0
+          gear_master_slope: 0
+          home_dir: 0
+          home_vel: 10.0
+          home_mode: 0
+          home_ez_count: 0
       data:
         - id: axis_x_pos
           name: Axis X Position
@@ -32,10 +103,22 @@ hardware:
           address: axis:0:speed
           type: int32
           default: 0
+        - id: axis_x_enc_pos
+          name: Axis X Encoder Position
+          axis: 0
+          address: axis:0:enc_pos
+          type: int32
+          default: 0
         - id: axis_x_status_word
           name: Axis X Status Word
           axis: 0
           address: axis:0:status_word
+          type: int32
+          default: 0
+        - id: axis_x_state_machine
+          name: Axis X State Machine
+          axis: 0
+          address: axis:0:state_machine
           type: int32
           default: 0
         - id: axis_x_io_status
@@ -80,10 +163,22 @@ hardware:
           address: axis:1:speed
           type: int32
           default: 0
+        - id: axis_y_enc_pos
+          name: Axis Y Encoder Position
+          axis: 1
+          address: axis:1:enc_pos
+          type: int32
+          default: 0
         - id: axis_y_status_word
           name: Axis Y Status Word
           axis: 1
           address: axis:1:status_word
+          type: int32
+          default: 0
+        - id: axis_y_state_machine
+          name: Axis Y State Machine
+          axis: 1
+          address: axis:1:state_machine
           type: int32
           default: 0
         - id: axis_y_io_status
@@ -128,10 +223,22 @@ hardware:
           address: axis:2:speed
           type: int32
           default: 0
+        - id: axis_z_enc_pos
+          name: Axis Z Encoder Position
+          axis: 2
+          address: axis:2:enc_pos
+          type: int32
+          default: 0
         - id: axis_z_status_word
           name: Axis Z Status Word
           axis: 2
           address: axis:2:status_word
+          type: int32
+          default: 0
+        - id: axis_z_state_machine
+          name: Axis Z State Machine
+          axis: 2
+          address: axis:2:state_machine
           type: int32
           default: 0
         - id: axis_z_io_status
