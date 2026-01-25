@@ -1,6 +1,7 @@
 ﻿using EVIInspection.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Services;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
@@ -36,13 +37,9 @@ namespace EVIInspection
                     // Register Serilog ILogger for injection
                     services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
 
-                    // Load configurations
-                    services.AddSingleton(sp =>
-                    {
-                        var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
-                        var logger = sp.GetRequiredService<Serilog.ILogger>();
-                        return HardwareCatalogSettings.LoadSafe(configPath, logger);
-                    });
+                    // Load hardware configuration and register entities
+                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
+                    services.AddHardwareConfig(configPath);
 
                     // Register ViewModels
                     services.AddSingleton<MainViewModel>();
