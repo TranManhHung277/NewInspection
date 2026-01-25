@@ -236,7 +236,8 @@
                                                             KeyboardType="Text"
                                                             AutoShowOnFocus="False"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding EditModelName, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding EditModelName}"
+                                                            ValueType="String"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Description:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
                                     <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
@@ -244,7 +245,8 @@
                                                             KeyboardType="Text"
                                                             AutoShowOnFocus="False"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding EditDescription}"
+                                                            ValueType="String"/>
                                 </Grid>
                             </Border>
 
@@ -279,17 +281,23 @@
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding HomePositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding HomePositionX}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding HomePositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding HomePositionY}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding HomePositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding HomePositionZ}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
 
                                     <!-- Pick Position -->
                                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Pick:" Style="{StaticResource FieldLabel}"/>
@@ -297,17 +305,23 @@
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PickPositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickPositionX}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="4" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PickPositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickPositionY}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="4" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PickPositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickPositionZ}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
 
                                     <!-- Place Position -->
                                     <TextBlock Grid.Row="6" Grid.Column="0" Text="Place:" Style="{StaticResource FieldLabel}"/>
@@ -315,17 +329,23 @@
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PlacePositionX, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PlacePositionX}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="6" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PlacePositionY, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PlacePositionY}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                     <controls:KeyboardInput Grid.Row="6" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PlacePositionZ, StringFormat='{}{0:F2}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PlacePositionZ}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="2"/>
                                 </Grid>
                             </Border>
 
@@ -350,28 +370,36 @@
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding MoveSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding MoveSpeed}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Approach:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
                                     <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding ApproachSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding ApproachSpeed}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Speed:" Style="{StaticResource FieldLabel}"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PickSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickSpeed}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Speed:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
-                                                            Text="{Binding PlaceSpeed, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PlaceSpeed}"
+                                                            ValueType="Double"
+                                                            DisplayDecimals="1"/>
                                 </Grid>
                             </Border>
 
@@ -397,7 +425,8 @@
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             AllowDecimal="False"
-                                                            Text="{Binding VacuumOnDelay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding VacuumOnDelay}"
+                                                            ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Vacuum Off:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
                                     <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
@@ -405,7 +434,8 @@
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             AllowDecimal="False"
-                                                            Text="{Binding VacuumOffDelay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding VacuumOffDelay}"
+                                                            ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Delay:" Style="{StaticResource FieldLabel}"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="1"
@@ -413,7 +443,8 @@
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             AllowDecimal="False"
-                                                            Text="{Binding PickDelay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickDelay}"
+                                                            ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Delay:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
                                     <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
@@ -421,7 +452,8 @@
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             AllowDecimal="False"
-                                                            Text="{Binding PlaceDelay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PlaceDelay}"
+                                                            ValueType="Int32"/>
                                 </Grid>
                             </Border>
 
@@ -448,7 +480,8 @@
                                                                 KeyboardType="Numeric"
                                                                 ShowKeyboardButton="True"
                                                                 AllowDecimal="False"
-                                                                Text="{Binding VacuumThreshold, UpdateSourceTrigger=PropertyChanged}"/>
+                                                                Value="{Binding VacuumThreshold}"
+                                                                ValueType="Int32"/>
                                         <TextBlock Text="%" Foreground="#808080" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     </StackPanel>
 
@@ -458,7 +491,8 @@
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             AllowDecimal="False"
-                                                            Text="{Binding PickRetryCount, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            Value="{Binding PickRetryCount}"
+                                                            ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Target Cycle Time:" Style="{StaticResource FieldLabel}"/>
                                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
@@ -466,7 +500,9 @@
                                                                 Width="120"
                                                                 KeyboardType="Numeric"
                                                                 ShowKeyboardButton="True"
-                                                                Text="{Binding TargetCycleTime, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}"/>
+                                                                Value="{Binding TargetCycleTime}"
+                                                                ValueType="Double"
+                                                                DisplayDecimals="1"/>
                                         <TextBlock Text="sec" Foreground="#808080" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                     </StackPanel>
 
