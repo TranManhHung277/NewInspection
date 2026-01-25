@@ -47,7 +47,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
                 <UniformGrid Rows="1" Columns="6" Height="100">
                     <!-- Auto Tab -->
                     <Border x:Name="AutoTab" Background="#1E1E1E" BorderBrush="#3E3E42"
