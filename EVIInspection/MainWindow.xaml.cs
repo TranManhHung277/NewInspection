@@ -1,4 +1,8 @@
-﻿using System.Text;
+﻿using EVIInspection.ViewModels;
+using EVIInspection.Views;
+using NAutoSuite.Core.Model;
+using System.Data;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,6 +20,13 @@ namespace EVIInspection
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly MainViewMdel _viewModel;
+        private readonly AutoView _autoView;
+        private readonly ManualView _manualView;
+        private readonly IOView _ioView;
+        private readonly SettingView _settingView;
+        private readonly LogView _logView;
+        private readonly TeachView _teachView;
         public MainWindow()
         {
             InitializeComponent();

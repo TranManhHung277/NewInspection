@@ -32,8 +32,8 @@ public partial class ShellFooterControl : UserControl
             "Auto" => AutoTab,
             "Manual" => ManualTab,
             "IO" => IOTab,
+            "Teach" => TeachTab,
             "Setting" => SettingTab,
-            "Data" => DataTab,
             "Log" => LogTab,
             _ => AutoTab
         };

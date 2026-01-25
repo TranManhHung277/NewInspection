@@ -3,16 +3,15 @@ using NAutoApp.ViewModels;
 
 namespace NAutoApp.Views;
 
-public partial class DataView : UserControl
+public partial class TeachView : UserControl
 {
-    public DataView()
+    public TeachView()
     {
         InitializeComponent();
     }
 
-    public DataView(ModelManagementViewModel viewModel) : this()
+    public TeachView(ModelManagementViewModel viewModel) : this()
     {
         DataContext = viewModel;
     }
 }
-

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EVIInspection.Pages
+namespace EVIInspection.Views
 {
     /// <summary>
-    /// Interaction logic for DataPage.xaml
+    /// Interaction logic for TeachView.xaml
     /// </summary>
-    public partial class DataPage : UserControl
+    public partial class TeachView : UserControl
     {
-        public DataPage()
+        public TeachView()
         {
             InitializeComponent();
         }

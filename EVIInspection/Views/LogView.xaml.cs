@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EVIInspection.Pages
+namespace EVIInspection.Views
 {
     /// <summary>
-    /// Interaction logic for LogPage.xaml
+    /// Interaction logic for LogView.xaml
     /// </summary>
-    public partial class LogPage : UserControl
+    public partial class LogView : UserControl
     {
-        public LogPage()
+        public LogView()
         {
             InitializeComponent();
         }

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EVIInspection.Pages
+namespace EVIInspection.Views
 {
     /// <summary>
-    /// Interaction logic for SettingPage.xaml
+    /// Interaction logic for AutoView.xaml
     /// </summary>
-    public partial class SettingPage : UserControl
+    public partial class AutoView : UserControl
     {
-        public SettingPage()
+        public AutoView()
         {
             InitializeComponent();
         }

@@ -11,8 +11,8 @@ public partial class MainWindow : Window
     private readonly AutoView _autoView;
     private readonly ManualView _manualView;
     private readonly IOView _ioView;
+    private readonly TeachView _teachView;
     private readonly SettingView _settingView;
-    private readonly DataView _dataView;
     private readonly LogView _logView;
     private string _lastTab = "Auto";
     private bool _suppressTabChange;
@@ -24,15 +24,15 @@ public partial class MainWindow : Window
         _viewModel = viewModel;
         DataContext = _viewModel;
 
-        // Create Model Management ViewModel for DATA tab
+        // Create Model Management ViewModel for TEACH tab
         var modelManagementViewModel = new ModelManagementViewModel(_viewModel.ModelService);
 
         // Create all views
         _autoView = new AutoView { DataContext = _viewModel };
         _manualView = new ManualView { DataContext = _viewModel };
         _ioView = new IOView { DataContext = _viewModel };
+        _teachView = new TeachView(modelManagementViewModel);
         _settingView = new SettingView { DataContext = _viewModel };
-        _dataView = new DataView(modelManagementViewModel);
         _logView = new LogView();
 
         // Show Auto view by default
@@ -50,7 +50,7 @@ public partial class MainWindow : Window
 
         if (_viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Running &&
             _viewModel.RunMode == NAutoSuite.Core.Machine.MachineRunMode.Auto &&
-            tabName is "Manual" or "IO" or "Data" or "Setting")
+            tabName is "Manual" or "IO" or "Teach" or "Setting")
         {
             _viewModel.StatusMessage = "Stop machine before switching tabs";
             _suppressTabChange = true;
@@ -66,8 +66,8 @@ public partial class MainWindow : Window
             "Auto" => (object)_autoView,
             "Manual" => (object)_manualView,
             "IO" => (object)_ioView,
+            "Teach" => (object)_teachView,
             "Setting" => (object)_settingView,
-            "Data" => (object)_dataView,
             "Log" => (object)_logView,
             _ => (object)_autoView
         };
