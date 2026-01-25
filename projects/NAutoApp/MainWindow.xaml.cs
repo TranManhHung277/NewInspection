@@ -77,12 +77,14 @@ public partial class MainWindow : Window
 
     private void HeaderControl_CloseClicked(object sender, RoutedEventArgs e)
     {
+        ModernMessageBox.TitleYesButton = "Có";
+        ModernMessageBox.TitleNoButton = "Không";
         var result = ModernMessageBox.Show(
-            "Bạn có chắc chắn muốn thoát chương trình không?",
-            "Xác nhận thoát ứng dụng",
+            "B?n có ch?c ch?n mu?n thoát chương tr?nh không?",
+            "Xác nh?n thoát ?ng d?ng",
             ModernMessageBox.MessageBoxType.Question,
             ModernMessageBox.MessageBoxButtons.YesNo,
-            ModernMessageBox.ButtonStyle.Danger);  // Yes button is RED (dangerous action)
+            ModernMessageBox.ButtonStyle.Danger);
 
         if (result == MessageBoxResult.Yes)
         {
@@ -102,4 +104,6 @@ public partial class MainWindow : Window
         FooterControl.SelectTab(targetTab);
     }
 }
+
+
 

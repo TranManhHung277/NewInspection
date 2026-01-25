@@ -16,7 +16,7 @@ public partial class ManualView : UserControl
         // Cách 1: Sử dụng embedded resource (pack URI)
         // Assembly name là "NAutoApp.Frontend" (tên file .csproj)
         var testImageUri = new Uri("pack://application:,,,/NAutoApp;component/Assets/error.jpg", UriKind.Absolute);
-
+        ImageMessageBox.TitleOkButton = "Đồng ý";
         ImageMessageBox.Show(
             message: "Phát hiện lỗi sensor tại vị trí Pick.\n\n" +
                      "Hướng dẫn khắc phục:\n" +

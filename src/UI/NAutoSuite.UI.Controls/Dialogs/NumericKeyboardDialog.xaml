@@ -69,12 +69,12 @@
                 <Button Grid.Row="0" Grid.Column="0" Content="7" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="7"/>
                 <Button Grid.Row="0" Grid.Column="1" Content="8" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="8"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="9" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="9"/>
-                <Button Grid.Row="0" Grid.Column="3" Content="Back" Style="{StaticResource KeyButtonStyle}" Click="BackspaceButton_Click"/>
+                <Button x:Name="BackButton" Grid.Row="0" Grid.Column="3" Content="Back" Style="{StaticResource KeyButtonStyle}" Click="BackspaceButton_Click"/>
 
                 <Button Grid.Row="1" Grid.Column="0" Content="4" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="4"/>
                 <Button Grid.Row="1" Grid.Column="1" Content="5" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="5"/>
                 <Button Grid.Row="1" Grid.Column="2" Content="6" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="6"/>
-                <Button Grid.Row="1" Grid.Column="3" Content="Clear" Style="{StaticResource KeyButtonStyle}" Click="ClearButton_Click"/>
+                <Button x:Name="ClearButton" Grid.Row="1" Grid.Column="3" Content="Clear" Style="{StaticResource KeyButtonStyle}" Click="ClearButton_Click"/>
 
                 <Button Grid.Row="2" Grid.Column="0" Content="1" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="1"/>
                 <Button Grid.Row="2" Grid.Column="1" Content="2" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="2"/>
@@ -83,8 +83,8 @@
 
                 <Button Grid.Row="3" Grid.Column="0" Content="0" Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="0"/>
                 <Button Grid.Row="3" Grid.Column="1" Content="." Style="{StaticResource KeyButtonStyle}" Click="KeyButton_Click" Tag="."/>
-                <Button Grid.Row="3" Grid.Column="2" Content="OK" Style="{StaticResource PrimaryButton}" Click="OkButton_Click" Margin="2"/>
-                <Button Grid.Row="3" Grid.Column="3" Content="Cancel" Style="{StaticResource ErrorButton}" Click="CancelButton_Click" Margin="2"/>
+                <Button x:Name="OkButton" Grid.Row="3" Grid.Column="2" Content="OK" Style="{StaticResource PrimaryButton}" Click="OkButton_Click" Margin="2"/>
+                <Button x:Name="CancelButton" Grid.Row="3" Grid.Column="3" Content="Cancel" Style="{StaticResource ErrorButton}" Click="CancelButton_Click" Margin="2"/>
             </Grid>
 
         </Grid>

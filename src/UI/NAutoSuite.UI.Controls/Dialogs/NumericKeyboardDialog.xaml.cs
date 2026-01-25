@@ -6,6 +6,11 @@ namespace NAutoSuite.UI.Controls.Dialogs;
 
 public partial class NumericKeyboardDialog : Window
 {
+    public static string? TitleOkButton { get; set; }
+    public static string? TitleCancelButton { get; set; }
+    public static string? TitleClearButton { get; set; }
+    public static string? TitleBackButton { get; set; }
+
     private string _value;
     private readonly bool _allowDecimal;
     private readonly bool _allowNegative;
@@ -13,6 +18,7 @@ public partial class NumericKeyboardDialog : Window
     public NumericKeyboardDialog(string title, string initialValue, bool allowDecimal, bool allowNegative)
     {
         InitializeComponent();
+        ApplyButtonTextOverrides();
         TitleText.Text = title;
         _allowDecimal = allowDecimal;
         _allowNegative = allowNegative;
@@ -115,5 +121,18 @@ public partial class NumericKeyboardDialog : Window
     {
         DisplayBox.Text = _value;
         DisplayBox.CaretIndex = DisplayBox.Text.Length;
+    }
+
+    private void ApplyButtonTextOverrides()
+    {
+        OkButton.Content = GetText("OK", TitleOkButton);
+        CancelButton.Content = GetText("Cancel", TitleCancelButton);
+        ClearButton.Content = GetText("Clear", TitleClearButton);
+        BackButton.Content = GetText("Back", TitleBackButton);
+    }
+
+    private static string GetText(string defaultText, string? overrideText)
+    {
+        return string.IsNullOrWhiteSpace(overrideText) ? defaultText : overrideText;
     }
 }

@@ -7,6 +7,13 @@ namespace NAutoSuite.UI.Controls.Dialogs;
 
 public partial class TextKeyboardDialog : Window
 {
+    public static string? TitleOkButton { get; set; }
+    public static string? TitleCancelButton { get; set; }
+    public static string? TitleClearButton { get; set; }
+    public static string? TitleBackButton { get; set; }
+    public static string? TitleSpaceButton { get; set; }
+    public static string? TitleCapsButton { get; set; }
+
     private string _value;
     private bool _isCaps = true;
     private bool _suppressTextChange;
@@ -14,6 +21,7 @@ public partial class TextKeyboardDialog : Window
     public TextKeyboardDialog(string title, string initialValue)
     {
         InitializeComponent();
+        ApplyButtonTextOverrides();
         TitleText.Text = title;
         _value = initialValue ?? string.Empty;
         UpdateDisplay();
@@ -131,6 +139,21 @@ public partial class TextKeyboardDialog : Window
 
             button.Content = _isCaps ? key.ToUpperInvariant() : key.ToLowerInvariant();
         }
+    }
+
+    private void ApplyButtonTextOverrides()
+    {
+        OkButton.Content = GetText("OK", TitleOkButton);
+        CancelButton.Content = GetText("Cancel", TitleCancelButton);
+        ClearButton.Content = GetText("Clear", TitleClearButton);
+        BackButton.Content = GetText("Back", TitleBackButton);
+        SpaceButton.Content = GetText("Space", TitleSpaceButton);
+        CapsButton.Content = GetText("Caps", TitleCapsButton);
+    }
+
+    private static string GetText(string defaultText, string? overrideText)
+    {
+        return string.IsNullOrWhiteSpace(overrideText) ? defaultText : overrideText;
     }
 
     private static IEnumerable<Button> FindLetterButtons(DependencyObject parent)

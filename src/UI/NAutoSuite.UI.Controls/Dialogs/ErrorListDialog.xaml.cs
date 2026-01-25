@@ -14,9 +14,13 @@ public class ErrorInfo
 
 public partial class ErrorListDialog : Window
 {
+    public static string? TitleClearButton { get; set; }
+    public static string? TitleCloseButton { get; set; }
+
     public ErrorListDialog()
     {
         InitializeComponent();
+        ApplyButtonTextOverrides();
     }
 
     /// <summary>
@@ -39,5 +43,16 @@ public partial class ErrorListDialog : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void ApplyButtonTextOverrides()
+    {
+        ClearButton.Content = GetText("Clear All", TitleClearButton);
+        CloseButton.Content = GetText("Close", TitleCloseButton);
+    }
+
+    private static string GetText(string defaultText, string? overrideText)
+    {
+        return string.IsNullOrWhiteSpace(overrideText) ? defaultText : overrideText;
     }
 }

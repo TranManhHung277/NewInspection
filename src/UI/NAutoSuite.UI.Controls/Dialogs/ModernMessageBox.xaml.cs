@@ -43,6 +43,11 @@ public partial class ModernMessageBox : Window
     public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
     private ButtonStyle _primaryButtonStyle = ButtonStyle.Default;
 
+    public static string? TitleOkButton { get; set; }
+    public static string? TitleCancelButton { get; set; }
+    public static string? TitleYesButton { get; set; }
+    public static string? TitleNoButton { get; set; }
+
     private ModernMessageBox()
     {
         InitializeComponent();
@@ -55,7 +60,7 @@ public partial class ModernMessageBox : Window
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK)
     {
-        return Show(message, title, type, buttons, ButtonStyle.Default);
+        return Show(message, title, type, buttons, ButtonStyle.Default, null);
     }
 
     /// <summary>
@@ -66,69 +71,33 @@ public partial class ModernMessageBox : Window
     /// <param name="type">Icon type (Information, Warning, Error, Question, Success)</param>
     /// <param name="buttons">Which buttons to show</param>
     /// <param name="primaryStyle">Style for the primary button (Yes/OK)</param>
-    public static MessageBoxResult Show(string message, string title,
-        MessageBoxType type, MessageBoxButtons buttons, ButtonStyle primaryStyle)
+    public static MessageBoxResult Show(
+        string message,
+        string title,
+        MessageBoxType type,
+        MessageBoxButtons buttons,
+        ButtonStyle primaryStyle,
+        Dictionary<string, string>? buttonTexts = null)
     {
         var dialog = new ModernMessageBox();
         dialog._primaryButtonStyle = primaryStyle;
         dialog.TitleText.Text = title;
         dialog.MessageText.Text = message;
 
-        // Set icon and color based on type
-        switch (type)
-        {
-            case MessageBoxType.Information:
-                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(31, 111, 235)); // Blue
-                dialog.IconPath.Data = Geometry.Parse("M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z");
-                break;
-
-            case MessageBoxType.Warning:
-                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(219, 154, 4)); // Orange
-                dialog.IconPath.Data = Geometry.Parse("M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z");
-                break;
-
-            case MessageBoxType.Error:
-                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(218, 54, 51)); // Red
-                dialog.IconPath.Data = Geometry.Parse("M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z");
-                break;
-
-            case MessageBoxType.Question:
-                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(88, 166, 255)); // Light Blue
-                dialog.IconPath.Data = Geometry.Parse("M10,19H13V22H10V19M12,2C17.35,2.22 19.68,7.62 16.5,11.67C15.67,12.67 14.33,13.33 13.67,14.17C13,15 13,16 13,17H10C10,15.33 10,13.92 10.67,12.92C11.33,11.92 12.67,11.33 13.5,10.67C15.92,8.43 15.32,5.26 12,5A3,3 0 0,0 9,8H6A6,6 0 0,1 12,2Z");
-                break;
-
-            case MessageBoxType.Success:
-                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(35, 134, 54)); // Green
-                dialog.IconPath.Data = Geometry.Parse("M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z");
-                break;
-        }
-
-        // Add buttons
-        switch (buttons)
-        {
-            case MessageBoxButtons.OK:
-                dialog.AddButton("OK", MessageBoxResult.OK, true);
-                break;
-
-            case MessageBoxButtons.OKCancel:
-                dialog.AddButton("Cancel", MessageBoxResult.Cancel, false);
-                dialog.AddButton("OK", MessageBoxResult.OK, true);
-                break;
-
-            case MessageBoxButtons.YesNo:
-                dialog.AddButton("No", MessageBoxResult.No, false);
-                dialog.AddButton("Yes", MessageBoxResult.Yes, true);
-                break;
-
-            case MessageBoxButtons.YesNoCancel:
-                dialog.AddButton("Cancel", MessageBoxResult.Cancel, false);
-                dialog.AddButton("No", MessageBoxResult.No, false);
-                dialog.AddButton("Yes", MessageBoxResult.Yes, true);
-                break;
-        }
-
+        SetupDialog(dialog, type, buttons, buttonTexts);
         dialog.ShowDialog();
         return dialog.Result;
+    }
+
+    public static MessageBoxResult Show(
+        string message,
+        string title,
+        Dictionary<string, string> dictionary,
+        MessageBoxType type,
+        MessageBoxButtons buttons,
+        ButtonStyle primaryStyle)
+    {
+        return Show(message, title, type, buttons, primaryStyle, dictionary);
     }
 
     private void AddButton(string text, MessageBoxResult result, bool isPrimary)
@@ -146,17 +115,15 @@ public partial class ModernMessageBox : Window
 
         if (isPrimary)
         {
-            // Primary button color based on style
             var (normal, hover, pressed) = GetPrimaryButtonColors();
             button.Style = CreateButtonStyle(normal, hover, pressed);
         }
         else
         {
-            // Secondary button (Gray - neutral)
             button.Style = CreateButtonStyle(
-                Color.FromRgb(55, 62, 71),   // #373E47
-                Color.FromRgb(68, 76, 86),   // #444C56
-                Color.FromRgb(45, 51, 59));  // #2D333B
+                Color.FromRgb(55, 62, 71),
+                Color.FromRgb(68, 76, 86),
+                Color.FromRgb(45, 51, 59));
         }
 
         button.Click += (s, e) =>
@@ -168,29 +135,102 @@ public partial class ModernMessageBox : Window
         ButtonPanel.Children.Add(button);
     }
 
+    private static void SetupDialog(ModernMessageBox dialog, MessageBoxType type, MessageBoxButtons buttons, Dictionary<string, string>? buttonTexts = null)
+    {
+        string GetText(string defaultText)
+        {
+            if (buttonTexts != null && buttonTexts.TryGetValue(defaultText, out var custom) && !string.IsNullOrWhiteSpace(custom))
+            {
+                return custom;
+            }
+
+            string? overrideText = defaultText switch
+            {
+                "OK" => TitleOkButton,
+                "Cancel" => TitleCancelButton,
+                "Yes" => TitleYesButton,
+                "No" => TitleNoButton,
+                _ => null
+            };
+
+            return string.IsNullOrWhiteSpace(overrideText) ? defaultText : overrideText;
+        }
+
+        switch (type)
+        {
+            case MessageBoxType.Information:
+                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(31, 111, 235));
+                dialog.IconPath.Data = Geometry.Parse("M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z");
+                break;
+
+            case MessageBoxType.Warning:
+                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(219, 154, 4));
+                dialog.IconPath.Data = Geometry.Parse("M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z");
+                break;
+
+            case MessageBoxType.Error:
+                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(218, 54, 51));
+                dialog.IconPath.Data = Geometry.Parse("M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z");
+                break;
+
+            case MessageBoxType.Question:
+                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(88, 166, 255));
+                dialog.IconPath.Data = Geometry.Parse("M10,19H13V22H10V19M12,2C17.35,2.22 19.68,7.62 16.5,11.67C15.67,12.67 14.33,13.33 13.67,14.17C13,15 13,16 13,17H10C10,15.33 10,13.92 10.67,12.92C11.33,11.92 12.67,11.33 13.5,10.67C15.92,8.43 15.32,5.26 12,5A3,3 0 0,0 9,8H6A6,6 0 0,1 12,2Z");
+                break;
+
+            case MessageBoxType.Success:
+                dialog.IconBorder.Background = new SolidColorBrush(Color.FromRgb(35, 134, 54));
+                dialog.IconPath.Data = Geometry.Parse("M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z");
+                break;
+        }
+
+        switch (buttons)
+        {
+            case MessageBoxButtons.OK:
+                dialog.AddButton(GetText("OK"), MessageBoxResult.OK, true);
+                break;
+
+            case MessageBoxButtons.OKCancel:
+                dialog.AddButton(GetText("Cancel"), MessageBoxResult.Cancel, false);
+                dialog.AddButton(GetText("OK"), MessageBoxResult.OK, true);
+                break;
+
+            case MessageBoxButtons.YesNo:
+                dialog.AddButton(GetText("No"), MessageBoxResult.No, false);
+                dialog.AddButton(GetText("Yes"), MessageBoxResult.Yes, true);
+                break;
+
+            case MessageBoxButtons.YesNoCancel:
+                dialog.AddButton(GetText("Cancel"), MessageBoxResult.Cancel, false);
+                dialog.AddButton(GetText("No"), MessageBoxResult.No, false);
+                dialog.AddButton(GetText("Yes"), MessageBoxResult.Yes, true);
+                break;
+        }
+    }
+
     private (Color normal, Color hover, Color pressed) GetPrimaryButtonColors()
     {
         return _primaryButtonStyle switch
         {
             ButtonStyle.Danger => (
-                Color.FromRgb(218, 54, 51),   // Red - #DA3633
-                Color.FromRgb(240, 70, 67),   // Lighter red
-                Color.FromRgb(182, 35, 36)),  // Darker red
+                Color.FromRgb(218, 54, 51),
+                Color.FromRgb(240, 70, 67),
+                Color.FromRgb(182, 35, 36)),
 
             ButtonStyle.Success => (
-                Color.FromRgb(35, 134, 54),   // Green - #238636
-                Color.FromRgb(46, 160, 67),   // Lighter green
-                Color.FromRgb(28, 110, 44)),  // Darker green
+                Color.FromRgb(35, 134, 54),
+                Color.FromRgb(46, 160, 67),
+                Color.FromRgb(28, 110, 44)),
 
             ButtonStyle.Warning => (
-                Color.FromRgb(219, 154, 4),   // Orange - #DB9A04
-                Color.FromRgb(240, 175, 25),  // Lighter orange
-                Color.FromRgb(180, 125, 0)),  // Darker orange
+                Color.FromRgb(219, 154, 4),
+                Color.FromRgb(240, 175, 25),
+                Color.FromRgb(180, 125, 0)),
 
-            _ => (                             // Default/Primary - Blue
-                Color.FromRgb(31, 111, 235),  // Blue - #1F6FEB
-                Color.FromRgb(48, 126, 245),  // Lighter blue
-                Color.FromRgb(22, 93, 207))   // Darker blue
+            _ => (
+                Color.FromRgb(31, 111, 235),
+                Color.FromRgb(48, 126, 245),
+                Color.FromRgb(22, 93, 207))
         };
     }
 
@@ -212,7 +252,6 @@ public partial class ModernMessageBox : Window
 
         template.VisualTree = factory;
 
-        // Triggers
         var hoverTrigger = new Trigger { Property = IsMouseOverProperty, Value = true };
         hoverTrigger.Setters.Add(new Setter(Border.BackgroundProperty, new SolidColorBrush(hover), "border"));
 

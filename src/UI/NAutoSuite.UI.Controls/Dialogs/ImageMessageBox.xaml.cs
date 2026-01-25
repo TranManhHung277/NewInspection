@@ -41,6 +41,11 @@ public partial class ImageMessageBox : Window
     public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
     private ButtonStyle _primaryButtonStyle = ButtonStyle.Default;
 
+    public static string? TitleOkButton { get; set; }
+    public static string? TitleCancelButton { get; set; }
+    public static string? TitleYesButton { get; set; }
+    public static string? TitleNoButton { get; set; }
+
     private ImageMessageBox()
     {
         InitializeComponent();
@@ -55,13 +60,15 @@ public partial class ImageMessageBox : Window
     /// <param name="type">Icon type</param>
     /// <param name="buttons">Which buttons to show</param>
     /// <param name="primaryStyle">Style for the primary button</param>
+    /// <param name="buttonTexts">Custom button texts. Keys: "OK", "Cancel", "Yes", "No"</param>
     public static MessageBoxResult Show(
         string message,
         string imagePath,
         string title = "Message",
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK,
-        ButtonStyle primaryStyle = ButtonStyle.Default)
+        ButtonStyle primaryStyle = ButtonStyle.Default,
+        Dictionary<string, string>? buttonTexts = null)
     {
         var dialog = new ImageMessageBox();
         dialog._primaryButtonStyle = primaryStyle;
@@ -90,7 +97,7 @@ public partial class ImageMessageBox : Window
             dialog.ImageContainer.Visibility = Visibility.Collapsed;
         }
 
-        SetupDialog(dialog, type, buttons);
+        SetupDialog(dialog, type, buttons, buttonTexts);
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -98,13 +105,15 @@ public partial class ImageMessageBox : Window
     /// <summary>
     /// Show message box with image from ImageSource (BitmapImage, etc.)
     /// </summary>
+    /// <param name="buttonTexts">Custom button texts. Keys: "OK", "Cancel", "Yes", "No"</param>
     public static MessageBoxResult Show(
         string message,
         ImageSource imageSource,
         string title = "Message",
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK,
-        ButtonStyle primaryStyle = ButtonStyle.Default)
+        ButtonStyle primaryStyle = ButtonStyle.Default,
+        Dictionary<string, string>? buttonTexts = null)
     {
         var dialog = new ImageMessageBox();
         dialog._primaryButtonStyle = primaryStyle;
@@ -120,7 +129,7 @@ public partial class ImageMessageBox : Window
             dialog.ImageContainer.Visibility = Visibility.Collapsed;
         }
 
-        SetupDialog(dialog, type, buttons);
+        SetupDialog(dialog, type, buttons, buttonTexts);
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -128,13 +137,15 @@ public partial class ImageMessageBox : Window
     /// <summary>
     /// Show message box with image from byte array (useful for embedded resources)
     /// </summary>
+    /// <param name="buttonTexts">Custom button texts. Keys: "OK", "Cancel", "Yes", "No"</param>
     public static MessageBoxResult Show(
         string message,
         byte[] imageData,
         string title = "Message",
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK,
-        ButtonStyle primaryStyle = ButtonStyle.Default)
+        ButtonStyle primaryStyle = ButtonStyle.Default,
+        Dictionary<string, string>? buttonTexts = null)
     {
         var dialog = new ImageMessageBox();
         dialog._primaryButtonStyle = primaryStyle;
@@ -165,7 +176,7 @@ public partial class ImageMessageBox : Window
             dialog.ImageContainer.Visibility = Visibility.Collapsed;
         }
 
-        SetupDialog(dialog, type, buttons);
+        SetupDialog(dialog, type, buttons, buttonTexts);
         dialog.ShowDialog();
         return dialog.Result;
     }
@@ -173,13 +184,15 @@ public partial class ImageMessageBox : Window
     /// <summary>
     /// Show message box with image from URI (for resources or web images)
     /// </summary>
+    /// <param name="buttonTexts">Custom button texts. Keys: "OK", "Cancel", "Yes", "No"</param>
     public static MessageBoxResult Show(
         string message,
         Uri imageUri,
         string title = "Message",
         MessageBoxType type = MessageBoxType.Information,
         MessageBoxButtons buttons = MessageBoxButtons.OK,
-        ButtonStyle primaryStyle = ButtonStyle.Default)
+        ButtonStyle primaryStyle = ButtonStyle.Default,
+        Dictionary<string, string>? buttonTexts = null)
     {
         var dialog = new ImageMessageBox();
         dialog._primaryButtonStyle = primaryStyle;
@@ -207,13 +220,33 @@ public partial class ImageMessageBox : Window
             dialog.ImageContainer.Visibility = Visibility.Collapsed;
         }
 
-        SetupDialog(dialog, type, buttons);
+        SetupDialog(dialog, type, buttons, buttonTexts);
         dialog.ShowDialog();
         return dialog.Result;
     }
 
-    private static void SetupDialog(ImageMessageBox dialog, MessageBoxType type, MessageBoxButtons buttons)
+    private static void SetupDialog(ImageMessageBox dialog, MessageBoxType type, MessageBoxButtons buttons, Dictionary<string, string>? buttonTexts = null)
     {
+        // Helper function to get button text
+        string GetText(string defaultText)
+        {
+            if (buttonTexts != null && buttonTexts.TryGetValue(defaultText, out var custom) && !string.IsNullOrWhiteSpace(custom))
+            {
+                return custom;
+            }
+
+            string? overrideText = defaultText switch
+            {
+                "OK" => TitleOkButton,
+                "Cancel" => TitleCancelButton,
+                "Yes" => TitleYesButton,
+                "No" => TitleNoButton,
+                _ => null
+            };
+
+            return string.IsNullOrWhiteSpace(overrideText) ? defaultText : overrideText;
+        }
+
         // Set icon and color based on type
         switch (type)
         {
@@ -247,23 +280,23 @@ public partial class ImageMessageBox : Window
         switch (buttons)
         {
             case MessageBoxButtons.OK:
-                dialog.AddButton("OK", MessageBoxResult.OK, true);
+                dialog.AddButton(GetText("OK"), MessageBoxResult.OK, true);
                 break;
 
             case MessageBoxButtons.OKCancel:
-                dialog.AddButton("Cancel", MessageBoxResult.Cancel, false);
-                dialog.AddButton("OK", MessageBoxResult.OK, true);
+                dialog.AddButton(GetText("Cancel"), MessageBoxResult.Cancel, false);
+                dialog.AddButton(GetText("OK"), MessageBoxResult.OK, true);
                 break;
 
             case MessageBoxButtons.YesNo:
-                dialog.AddButton("No", MessageBoxResult.No, false);
-                dialog.AddButton("Yes", MessageBoxResult.Yes, true);
+                dialog.AddButton(GetText("No"), MessageBoxResult.No, false);
+                dialog.AddButton(GetText("Yes"), MessageBoxResult.Yes, true);
                 break;
 
             case MessageBoxButtons.YesNoCancel:
-                dialog.AddButton("Cancel", MessageBoxResult.Cancel, false);
-                dialog.AddButton("No", MessageBoxResult.No, false);
-                dialog.AddButton("Yes", MessageBoxResult.Yes, true);
+                dialog.AddButton(GetText("Cancel"), MessageBoxResult.Cancel, false);
+                dialog.AddButton(GetText("No"), MessageBoxResult.No, false);
+                dialog.AddButton(GetText("Yes"), MessageBoxResult.Yes, true);
                 break;
         }
     }
