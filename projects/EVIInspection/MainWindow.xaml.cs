@@ -54,8 +54,8 @@ namespace EVIInspection
             ModernMessageBox.TitleYesButton = "Có";
             ModernMessageBox.TitleNoButton = "Không";
             var result = ModernMessageBox.Show(
-                "B?n có ch?c ch?n mu?n thoát chương tr?nh không?",
-                "Xác nh?n thoát ?ng d?ng",
+                "Bạn có chắc chắn muốn thoát chương trình không?",
+                "Xác nhận đóng chương trình",
                 ModernMessageBox.MessageBoxType.Question,
                 ModernMessageBox.MessageBoxButtons.YesNo,
                 ModernMessageBox.ButtonStyle.Danger);
@@ -68,14 +68,12 @@ namespace EVIInspection
 
         private void HeaderControl_HeaderClicked(object sender, RoutedEventArgs e)
         {
-            //var hasError = _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Error
-            //    || _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.EmergencyStop
-            //    || _viewModel.HasActiveAlarms
-            //    || _viewModel.HeaderStatusLevel == NAutoSuite.UI.Controls.HeaderStatusLevel.Error;
-            //var targetTab = hasError
-            //    ? "Log"
-            //    : "Auto";
-            //FooterControl.SelectTab(targetTab);
+            var hasError = _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Error
+                || _viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.EmergencyStop;
+            var targetTab = hasError
+                ? "Log"
+                : "Auto";
+            FooterControl.SelectTab(targetTab);
         }
 
         private void FooterControl_TabChanged(object? sender, string tabName)
