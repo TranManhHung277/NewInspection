@@ -47,67 +47,81 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <UniformGrid Rows="1" Columns="5" >
-                <!-- Auto Tab -->
-                <Border x:Name="AutoTab" Background="#1E1E1E" BorderBrush="#3E3E42"
-                        BorderThickness="0,0,1,0" Cursor="Hand" 
-                        MouseLeftButtonDown="Tab_Click" Tag="Auto">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Text="▶" FontSize="36" Foreground="#2196F3"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBlock Text="AUTO" FontSize="36" Foreground="White" FontWeight="Bold" Margin="0,0,10,0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                <UniformGrid Rows="1" Columns="6" Height="100">
+                    <!-- Auto Tab -->
+                    <Border x:Name="AutoTab" Background="#1E1E1E" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="Auto">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="▶" FontSize="28" Foreground="#2196F3"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="AUTO" FontSize="28" Foreground="White" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- Manual Tab -->
-                <Border x:Name="ManualTab" Background="Transparent" BorderBrush="#3E3E42"
-                        BorderThickness="0,0,1,0" Cursor="Hand" 
-                        MouseLeftButtonDown="Tab_Click" Tag="Manual">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Text="🎮" FontSize="36" Foreground="#B0B0B0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                        <TextBlock Text="MANUAL" FontSize="36" Foreground="#B0B0B0" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Manual Tab -->
+                    <Border x:Name="ManualTab" Background="Transparent" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="Manual">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="🎮" FontSize="28" Foreground="#B0B0B0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="MANUAL" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- Data Tab -->
-                <Border x:Name="DataTab" Background="Transparent" BorderBrush="#3E3E42"
-                        BorderThickness="0,0,1,0" Cursor="Hand" 
-                        MouseLeftButtonDown="Tab_Click" Tag="Data">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Text="📊" FontSize="36" Foreground="#B0B0B0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                        <TextBlock Text="DATA" FontSize="36" Foreground="#B0B0B0" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                    </StackPanel>
-                </Border>
+                    <!-- IO Tab -->
+                    <Border x:Name="IOTab" Background="Transparent" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="IO">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="🔌" FontSize="28" Foreground="#B0B0B0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="I/O" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- Setting Tab -->
-                <Border x:Name="SettingTab" Background="Transparent" BorderBrush="#3E3E42"
-                        BorderThickness="0,0,1,0" Cursor="Hand" 
-                        MouseLeftButtonDown="Tab_Click" Tag="Setting">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Text="⚙" FontSize="36" Foreground="#B0B0B0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                        <TextBlock Text="SETTING" FontSize="36" Foreground="#B0B0B0" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Data Tab -->
+                    <Border x:Name="DataTab" Background="Transparent" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="Data">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="📊" FontSize="28" Foreground="#B0B0B0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="DATA" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- Log Tab -->
-                <Border x:Name="LogTab" Background="Transparent" BorderBrush="#3E3E42"
-                        BorderThickness="0,0,1,0" Cursor="Hand"
-                        MouseLeftButtonDown="Tab_Click" Tag="Log">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Text="📝" FontSize="36" Foreground="#B0B0B0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                        <TextBlock Text="LOG" FontSize="36" Foreground="#B0B0B0" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
+                    <!-- Setting Tab -->
+                    <Border x:Name="SettingTab" Background="Transparent" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="Setting">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="⚙" FontSize="28" Foreground="#B0B0B0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="SETTING" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Log Tab -->
+                    <Border x:Name="LogTab" Background="Transparent" BorderBrush="#3E3E42"
+                            BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
+                            MouseLeftButtonDown="Tab_Click" Tag="Log">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="📝" FontSize="28" Foreground="#B0B0B0"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="LOG" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </Viewbox>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="30,0,0,0">
                 <Button Content="START" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StartCommand}" Background="#4CAF50" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
                 <Button Content="STOP" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StopCommand}" Background="#F44336" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />

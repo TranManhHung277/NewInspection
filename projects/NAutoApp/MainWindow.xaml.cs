@@ -10,6 +10,7 @@ public partial class MainWindow : Window
     private readonly MainViewModel _viewModel;
     private readonly AutoView _autoView;
     private readonly ManualView _manualView;
+    private readonly IOView _ioView;
     private readonly SettingView _settingView;
     private readonly DataView _dataView;
     private readonly LogView _logView;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
         // Create all views
         _autoView = new AutoView { DataContext = _viewModel };
         _manualView = new ManualView { DataContext = _viewModel };
+        _ioView = new IOView { DataContext = _viewModel };
         _settingView = new SettingView { DataContext = _viewModel };
         _dataView = new DataView(modelManagementViewModel);
         _logView = new LogView();
@@ -48,7 +50,7 @@ public partial class MainWindow : Window
 
         if (_viewModel.MachineState == NAutoSuite.Core.Machine.MachineState.Running &&
             _viewModel.RunMode == NAutoSuite.Core.Machine.MachineRunMode.Auto &&
-            tabName is "Manual" or "Data" or "Setting")
+            tabName is "Manual" or "IO" or "Data" or "Setting")
         {
             _viewModel.StatusMessage = "Stop machine before switching tabs";
             _suppressTabChange = true;
@@ -63,6 +65,7 @@ public partial class MainWindow : Window
         {
             "Auto" => (object)_autoView,
             "Manual" => (object)_manualView,
+            "IO" => (object)_ioView,
             "Setting" => (object)_settingView,
             "Data" => (object)_dataView,
             "Log" => (object)_logView,

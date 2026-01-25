@@ -1,0 +1,96 @@
+<UserControl x:Class="NAutoApp.Views.IOView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1920">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Text="IO Monitor" FontSize="28" FontWeight="Bold"
+                   Foreground="White" Margin="0,0,0,20"/>
+
+        <!-- Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Digital Inputs -->
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="DIGITAL INPUTS" FontSize="20" FontWeight="SemiBold"
+                               Foreground="#2196F3" Margin="0,0,0,16"/>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <UniformGrid Columns="4" x:Name="InputsGrid">
+                            <controls:IOIndicator LabelText="DI 00" IsActive="{Binding DI00}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 01" IsActive="{Binding DI01}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 02" IsActive="{Binding DI02}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 03" IsActive="{Binding DI03}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 04" IsActive="{Binding DI04}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 05" IsActive="{Binding DI05}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 06" IsActive="{Binding DI06}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 07" IsActive="{Binding DI07}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 08" IsActive="{Binding DI08}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 09" IsActive="{Binding DI09}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 10" IsActive="{Binding DI10}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 11" IsActive="{Binding DI11}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 12" IsActive="{Binding DI12}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 13" IsActive="{Binding DI13}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 14" IsActive="{Binding DI14}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DI 15" IsActive="{Binding DI15}" Margin="4"/>
+                        </UniformGrid>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right: Digital Outputs -->
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="DIGITAL OUTPUTS" FontSize="20" FontWeight="SemiBold"
+                               Foreground="#4CAF50" Margin="0,0,0,16"/>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <UniformGrid Columns="4" x:Name="OutputsGrid">
+                            <controls:IOIndicator LabelText="DO 00" IsActive="{Binding DO00}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 01" IsActive="{Binding DO01}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 02" IsActive="{Binding DO02}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 03" IsActive="{Binding DO03}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 04" IsActive="{Binding DO04}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 05" IsActive="{Binding DO05}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 06" IsActive="{Binding DO06}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 07" IsActive="{Binding DO07}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 08" IsActive="{Binding DO08}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 09" IsActive="{Binding DO09}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 10" IsActive="{Binding DO10}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 11" IsActive="{Binding DO11}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 12" IsActive="{Binding DO12}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 13" IsActive="{Binding DO13}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 14" IsActive="{Binding DO14}" Margin="4"/>
+                            <controls:IOIndicator LabelText="DO 15" IsActive="{Binding DO15}" Margin="4"/>
+                        </UniformGrid>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
