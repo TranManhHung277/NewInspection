@@ -5,6 +5,7 @@ using NAutoSuite.Core.Services;
 using NAutoSuite.UI.Controls.Services;
 using Serilog;
 using Serilog.Events;
+using System.IO;
 using System.Threading;
 using System.Windows;
 
@@ -34,6 +35,14 @@ namespace EVIInspection
 
                     // Register Serilog ILogger for injection
                     services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
+
+                    // Load configurations
+                    services.AddSingleton(sp =>
+                    {
+                        var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
+                        var logger = sp.GetRequiredService<Serilog.ILogger>();
+                        return HardwareCatalogSettings.LoadSafe(configPath, logger);
+                    });
 
                     // Register ViewModels
                     services.AddSingleton<MainViewModel>();

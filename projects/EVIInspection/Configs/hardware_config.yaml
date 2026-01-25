@@ -1,447 +1,213 @@
 app:
   name: EVI Inspection System
+  description: Configuration file for EVI Inspection hardware setup
   version: 1.0.0
-  machine: 1
+  machine: 10
+
 hardware:
   leadshine:
     type: ethercat_card
-    config:
-      card_no: 0
-      name: Card EtherCAT Leadshine
-      axes:
-        - id: AXIS_X
-          name: AxisX
-          axis_index: 0
-          description: Pick X axis
-          min_vel: 0.1
-          max_vel: 100.0
-          acc: 0.2
-          dec: 0.2
-          stop_vel: 0.0
-          jog_vel: 50.0
-          run_mode: 8
-          gear_equiv: 0.0
-          servo_on_connect: true
-          enable_gear: false
-          gear_master_type: 0
-          gear_master_index: 0
-          gear_master_even: 0
-          gear_slave_even: 0
-          gear_master_slope: 0
-          home_dir: 0
-          home_vel: 10.0
-          home_mode: 0
-          home_ez_count: 0
-        - id: AXIS_Y
-          name: AxisY
-          axis_index: 1
-          description: Pick Y axis
-          min_vel: 0.1
-          max_vel: 100.0
-          acc: 0.2
-          dec: 0.2
-          stop_vel: 0.0
-          jog_vel: 50.0
-          run_mode: 8
-          gear_equiv: 0.0
-          servo_on_connect: true
-          enable_gear: false
-          gear_master_type: 0
-          gear_master_index: 0
-          gear_master_even: 0
-          gear_slave_even: 0
-          gear_master_slope: 0
-          home_dir: 0
-          home_vel: 10.0
-          home_mode: 0
-          home_ez_count: 0
-        - id: AXIS_Z
-          name: AxisZ
-          axis_index: 2
-          description: Pick Z axis
-          min_vel: 0.1
-          max_vel: 100.0
-          acc: 0.2
-          dec: 0.2
-          stop_vel: 0.0
-          jog_vel: 50.0
-          run_mode: 8
-          gear_equiv: 0.0
-          servo_on_connect: true
-          enable_gear: false
-          gear_master_type: 0
-          gear_master_index: 0
-          gear_master_even: 0
-          gear_slave_even: 0
-          gear_master_slope: 0
-          home_dir: 0
-          home_vel: 10.0
-          home_mode: 0
-          home_ez_count: 0
-      data:
-        - id: axis_x_pos
-          name: Axis X Position
-          axis: 0
-          address: axis:0:pos
-          type: int32
-          default: 0
-        - id: axis_x_target_pos
-          name: Axis X Target Position
-          axis: 0
-          address: axis:0:target_pos
-          type: int32
-          default: 0
-        - id: axis_x_cmd_pos
-          name: Axis X Command Position
-          axis: 0
-          address: axis:0:cmd_pos
-          type: int32
-          default: 0
-        - id: axis_x_speed
-          name: Axis X Speed
-          axis: 0
-          address: axis:0:speed
-          type: int32
-          default: 0
-        - id: axis_x_enc_pos
-          name: Axis X Encoder Position
-          axis: 0
-          address: axis:0:enc_pos
-          type: int32
-          default: 0
-        - id: axis_x_status_word
-          name: Axis X Status Word
-          axis: 0
-          address: axis:0:status_word
-          type: int32
-          default: 0
-        - id: axis_x_state_machine
-          name: Axis X State Machine
-          axis: 0
-          address: axis:0:state_machine
-          type: int32
-          default: 0
-        - id: axis_x_io_status
-          name: Axis X IO Status
-          axis: 0
-          address: axis:0:io_status
-          type: int32
-          default: 0
-        - id: axis_x_error_code
-          name: Axis X Error Code
-          axis: 0
-          address: axis:0:error_code
-          type: int32
-          default: 0
-        - id: axis_x_done
-          name: Axis X Done
-          axis: 0
-          address: axis:0:done
-          type: bit
-          default: false
-        - id: axis_y_pos
-          name: Axis Y Position
-          axis: 1
-          address: axis:1:pos
-          type: int32
-          default: 0
-        - id: axis_y_target_pos
-          name: Axis Y Target Position
-          axis: 1
-          address: axis:1:target_pos
-          type: int32
-          default: 0
-        - id: axis_y_cmd_pos
-          name: Axis Y Command Position
-          axis: 1
-          address: axis:1:cmd_pos
-          type: int32
-          default: 0
-        - id: axis_y_speed
-          name: Axis Y Speed
-          axis: 1
-          address: axis:1:speed
-          type: int32
-          default: 0
-        - id: axis_y_enc_pos
-          name: Axis Y Encoder Position
-          axis: 1
-          address: axis:1:enc_pos
-          type: int32
-          default: 0
-        - id: axis_y_status_word
-          name: Axis Y Status Word
-          axis: 1
-          address: axis:1:status_word
-          type: int32
-          default: 0
-        - id: axis_y_state_machine
-          name: Axis Y State Machine
-          axis: 1
-          address: axis:1:state_machine
-          type: int32
-          default: 0
-        - id: axis_y_io_status
-          name: Axis Y IO Status
-          axis: 1
-          address: axis:1:io_status
-          type: int32
-          default: 0
-        - id: axis_y_error_code
-          name: Axis Y Error Code
-          axis: 1
-          address: axis:1:error_code
-          type: int32
-          default: 0
-        - id: axis_y_done
-          name: Axis Y Done
-          axis: 1
-          address: axis:1:done
-          type: bit
-          default: false
-        - id: axis_z_pos
-          name: Axis Z Position
-          axis: 2
-          address: axis:2:pos
-          type: int32
-          default: 0
-        - id: axis_z_target_pos
-          name: Axis Z Target Position
-          axis: 2
-          address: axis:2:target_pos
-          type: int32
-          default: 0
-        - id: axis_z_cmd_pos
-          name: Axis Z Command Position
-          axis: 2
-          address: axis:2:cmd_pos
-          type: int32
-          default: 0
-        - id: axis_z_speed
-          name: Axis Z Speed
-          axis: 2
-          address: axis:2:speed
-          type: int32
-          default: 0
-        - id: axis_z_enc_pos
-          name: Axis Z Encoder Position
-          axis: 2
-          address: axis:2:enc_pos
-          type: int32
-          default: 0
-        - id: axis_z_status_word
-          name: Axis Z Status Word
-          axis: 2
-          address: axis:2:status_word
-          type: int32
-          default: 0
-        - id: axis_z_state_machine
-          name: Axis Z State Machine
-          axis: 2
-          address: axis:2:state_machine
-          type: int32
-          default: 0
-        - id: axis_z_io_status
-          name: Axis Z IO Status
-          axis: 2
-          address: axis:2:io_status
-          type: int32
-          default: 0
-        - id: axis_z_error_code
-          name: Axis Z Error Code
-          axis: 2
-          address: axis:2:error_code
-          type: int32
-          default: 0
-        - id: axis_z_done
-          name: Axis Z Done
-          axis: 2
-          address: axis:2:done
-          type: bit
-          default: false
-      common_io:
-        - id: emergency_stop
-          name: EmergencyStop
-          node_id: 3
-          io_bit: 0
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: start_button
-          name: StartButton
-          node_id: 3
-          io_bit: 1
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: stop_button
-          name: StopButton
-          node_id: 3
-          io_bit: 2
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: reset_button
-          name: ResetButton
-          node_id: 3
-          io_bit: 3
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: safety_door
-          name: SafetyDoor
-          node_id: 3
-          io_bit: 4
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: air_pressure
-          name: AirPressure
-          node_id: 3
-          io_bit: 5
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: home_button
-          name: HomeButton
-          node_id: 3
-          io_bit: 6
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: auto_mode_switch
-          name: AutoModeSwitch
-          node_id: 3
-          io_bit: 7
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: manual_mode_switch
-          name: ManualModeSwitch
-          node_id: 3
-          io_bit: 8
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: material_low
-          name: MaterialLow
-          node_id: 3
-          io_bit: 9
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: tower_light_red
-          name: TowerLightRed
-          node_id: 3
-          io_bit: 0
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-        - id: tower_light_yellow
-          name: TowerLightYellow
-          node_id: 3
-          io_bit: 1
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-        - id: tower_light_green
-          name: TowerLightGreen
-          node_id: 3
-          io_bit: 2
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-        - id: buzzer
-          name: Buzzer
-          node_id: 3
-          io_bit: 3
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-        - id: main_power_enable
-          name: MainPowerEnable
-          node_id: 3
-          io_bit: 4
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-      io:
-        - id: part_present
-          name: PartPresent
-          node_id: 3
-          io_bit: 10
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: test_ok
-          name: TestOk
-          node_id: 3
-          io_bit: 11
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: test_ng
-          name: TestNg
-          node_id: 3
-          io_bit: 12
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: cylinder_extended
-          name: CylinderExtended
-          node_id: 3
-          io_bit: 13
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: cylinder_retracted
-          name: CylinderRetracted
-          node_id: 3
-          io_bit: 14
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: vacuum_ok
-          name: VacuumOk
-          node_id: 3
-          io_bit: 15
-          address: 0
-          direction: Input
-          type: bit
-          default: false
-        - id: cylinder_extend
-          name: CylinderExtend
-          node_id: 3
-          io_bit: 10
-          address: 0
-          direction: Output
-          type: bit
-          default: false
-        - id: vacuum_on
-          name: VacuumOn
-          node_id: 3
-          io_bit: 11
-          address: 0
-          direction: Output
-          type: bit
-          default: false
+    cards:
+      - card_no: 0 # dmc_*(CardNo, ...) - UInt16
+        name: "Card EtherCAT Leadshine"
+
+        # Danh sách các client trên bus EtherCAT
+        clients:
+          # ==================== SERVO AXIS ====================
+          # API: dmc_pmove_unit(CardNo, axis, Dist, posi_mode)
+          #      dmc_set_profile_unit(CardNo, Axis, Min_Vel, Max_Vel, Tacc, Tdec, Stop_Vel)
+          - id: axis_x # Entity ID dùng trong code
+            type: axis
+            node_id: 1 # EtherCAT node address
+            axis_no: 0 # axis param cho dmc_* functions
+            name: "Trục X"
+            config:
+              min_vel: 0.1 # Min_Vel
+              max_vel: 100.0 # Max_Vel
+              acc: 0.2 # Tacc
+              dec: 0.2 # Tdec
+              stop_vel: 0.0 # Stop_Vel
+              jog_vel: 50.0
+              run_mode: 8
+              gear_equiv: 0.0
+              servo_on_connect: true
+              enable_gear: false
+            home:
+              dir: 0 # home_dir
+              vel: 10.0 # vel
+              mode: 0 # home_mode
+              ez_count: 0 # EZ_count
+
+            # --- STATUS BITS: dmc_axis_io_status(CardNo, axis) -> UInt32 ---
+            # Đọc trạng thái IO vật lý của trục
+            status_bits:
+              - id: alarm
+                name: ALM
+                bit: 0
+                description: "Servo alarm signal"
+              - id: positive_limit
+                name: PEL
+                bit: 1
+                description: "Positive end limit"
+              - id: negative_limit
+                name: NEL
+                bit: 2
+                description: "Negative end limit"
+              - id: home_sensor
+                name: ORG
+                bit: 3
+                description: "Home/Origin sensor"
+              - id: emergency
+                name: EMG
+                bit: 4
+                description: "Emergency stop"
+              - id: encoder_z
+                name: EZ
+                bit: 5
+                description: "Encoder Z pulse"
+              - id: in_position
+                name: INP
+                bit: 6
+                description: "In position signal"
+              - id: servo_on
+                name: SVON
+                bit: 7
+                description: "Servo on status"
+              - id: moving
+                name: RUN
+                bit: 8
+                description: "Axis is moving"
+
+            # --- SERVO STATUSWORD: nmc_get_axis_statusword(CardNo, axis, ref statusword) ---
+            # Statusword theo chuẩn CiA 402 (CANopen/EtherCAT servo)
+            servo_statusword:
+              - id: ready_to_switch_on
+                name: ReadyToSwitchOn
+                bit: 0
+              - id: switched_on
+                name: SwitchedOn
+                bit: 1
+              - id: operation_enabled
+                name: OperationEnabled
+                bit: 2
+              - id: fault
+                name: Fault
+                bit: 3
+              - id: voltage_enabled
+                name: VoltageEnabled
+                bit: 4
+              - id: quick_stop
+                name: QuickStop
+                bit: 5
+              - id: switch_on_disabled
+                name: SwitchOnDisabled
+                bit: 6
+              - id: warning
+                name: Warning
+                bit: 7
+              - id: target_reached
+                name: TargetReached
+                bit: 10
+              - id: homing_attained
+                name: HomingAttained
+                bit: 12
+              - id: homing_error
+                name: HomingError
+                bit: 13
+
+          # ==================== REMOTE IO MODULE ====================
+          # API: nmc_read_inport(CardNo, NodeID, PortNo, ref IoValue)
+          #      nmc_write_outport(CardNo, NodeID, PortNo, IoValue)
+          - id: io_module_1 # Entity ID dùng trong code
+            type: remote_io
+            node_id: 2 # NodeID param cho nmc_* functions
+            name: "Remote IO Module 1"
+
+            # --- INPUTS: nmc_read_inport(CardNo, NodeID=2, PortNo, ...) ---
+            inputs:
+              # Port 0 (bit 0-31)
+              - port_no: 0
+                signals:
+                  # Common signals
+                  - id: emergency_stop
+                    name: EmergencyStop
+                    bit: 0 # Bit position trong port 32-bit
+                    category: common
+                    default: false
+                  - id: start_button
+                    name: StartButton
+                    bit: 1
+                    category: common
+                    default: false
+                  - id: stop_button
+                    name: StopButton
+                    bit: 2
+                    category: common
+                    default: false
+                  - id: reset_button
+                    name: ResetButton
+                    bit: 3
+                    category: common
+                    default: false
+                  - id: safety_door
+                    name: SafetyDoor
+                    bit: 4
+                    category: common
+                    default: false
+                  - id: air_pressure
+                    name: AirPressure
+                    bit: 5
+                    category: common
+                    default: false
+                  - id: home_button
+                    name: HomeButton
+                    bit: 6
+                    category: common
+                    default: false
+                  - id: auto_mode_switch
+                    name: AutoModeSwitch
+                    bit: 7
+                    category: common
+                    default: false
+                  - id: manual_mode_switch
+                    name: ManualModeSwitch
+                    bit: 8
+                    category: common
+                    default: false
+                  # Process signals
+                  - id: part_present
+                    name: PartPresent
+                    bit: 10
+                    category: process
+                    default: false
+                  - id: test_ok
+                    name: TestOK
+                    bit: 11
+                    category: process
+                    default: false
+                  - id: test_ng
+                    name: TestNG
+                    bit: 12
+                    category: process
+                    default: false
+
+            # --- OUTPUTS: nmc_write_outport(CardNo, NodeID=2, PortNo, IoValue) ---
+            outputs:
+              # Port 0 (bit 0-31)
+              - port_no: 0
+                signals:
+                  - id: indicator_green
+                    name: IndicatorGreen
+                    bit: 0
+                    category: common
+                    default: false
+                  - id: indicator_red
+                    name: IndicatorRed
+                    bit: 1
+                    category: common
+                    default: false
+                  - id: buzzer
+                    name: Buzzer
+                    bit: 2
+                    category: common
+                    default: false
