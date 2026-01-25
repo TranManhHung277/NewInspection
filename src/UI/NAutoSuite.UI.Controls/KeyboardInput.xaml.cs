@@ -40,7 +40,7 @@ public partial class KeyboardInput : UserControl
 
     public static readonly DependencyProperty CommitOnEnterProperty =
         DependencyProperty.Register(nameof(CommitOnEnter), typeof(bool), typeof(KeyboardInput),
-            new PropertyMetadata(false, OnCommitOnEnterChanged));
+            new PropertyMetadata(true, OnCommitOnEnterChanged));
 
     public static readonly DependencyProperty TextBoxStyleProperty =
         DependencyProperty.Register(nameof(TextBoxStyle), typeof(Style), typeof(KeyboardInput),
@@ -213,7 +213,12 @@ public partial class KeyboardInput : UserControl
 
             if (result != null)
             {
-                Text = result;
+                PendingText = result;
+
+                if (CommitOnEnter)
+                {
+                    Text = result;
+                }
             }
         }
         finally
