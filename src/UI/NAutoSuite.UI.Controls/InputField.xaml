@@ -1,29 +1,29 @@
-<UserControl x:Class="NAutoSuite.UI.Controls.KeyboardInput"
+<UserControl x:Class="NAutoSuite.UI.Controls.InputField"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             MinHeight="40"
+             MinHeight="36"
              d:DesignHeight="36" d:DesignWidth="260">
     <UserControl.Resources>
         <Style x:Key="KeyboardButtonStyle" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Margin" Value="4,0,4,0"/>
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
     </UserControl.Resources>
 
-    <Border Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
+    <Border Background="{Binding InputBackground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource SurfaceBrush}}"
+            BorderBrush="{Binding InputBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BorderBrush}}"
             BorderThickness="1"
             CornerRadius="8"
-            MinHeight="{Binding MinHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
-            Padding="6">
+            Height="{Binding InputHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Padding="0,2">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -34,9 +34,14 @@
                      Grid.Column="0"
                      Background="Transparent"
                      BorderThickness="0"
-                     Padding="10,7"
-                     FontSize="15"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Padding="10,0"
+                     FontSize="{Binding ActualFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     FontFamily="{Binding InputFontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     FontWeight="{Binding InputFontWeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     TextAlignment="{Binding HorizontalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     VerticalContentAlignment="{Binding VerticalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                     VerticalAlignment="Stretch"
+                     Foreground="{Binding InputForeground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource TextPrimaryBrush}}"
                      Style="{Binding TextBoxStyle, RelativeSource={RelativeSource AncestorType=UserControl}}"
                      Text="{Binding PendingText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"

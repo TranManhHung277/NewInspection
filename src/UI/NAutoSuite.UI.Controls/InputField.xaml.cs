@@ -3,62 +3,106 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using NAutoSuite.UI.Controls.Dialogs;
 
 namespace NAutoSuite.UI.Controls;
 
-public partial class KeyboardInput : UserControl
+public partial class InputField : UserControl
 {
     public static readonly DependencyProperty TextProperty =
-        DependencyProperty.Register(nameof(Text), typeof(string), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(Text), typeof(string), typeof(InputField),
             new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnTextChanged));
 
     public static readonly DependencyProperty PendingTextProperty =
-        DependencyProperty.Register(nameof(PendingText), typeof(string), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(PendingText), typeof(string), typeof(InputField),
             new PropertyMetadata(string.Empty, OnPendingTextChanged));
 
     public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(object), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(Value), typeof(object), typeof(InputField),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
     public static readonly DependencyProperty ValueTypeProperty =
-        DependencyProperty.Register(nameof(ValueType), typeof(KeyboardInputValueType), typeof(KeyboardInput),
-            new PropertyMetadata(KeyboardInputValueType.String));
+        DependencyProperty.Register(nameof(ValueType), typeof(InputFieldValueType), typeof(InputField),
+            new PropertyMetadata(InputFieldValueType.String));
 
     public static readonly DependencyProperty DisplayDecimalsProperty =
-        DependencyProperty.Register(nameof(DisplayDecimals), typeof(int), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(DisplayDecimals), typeof(int), typeof(InputField),
             new PropertyMetadata(-1, OnDisplayDecimalsChanged));
 
     public static readonly DependencyProperty KeyboardTypeProperty =
-        DependencyProperty.Register(nameof(KeyboardType), typeof(KeyboardInputType), typeof(KeyboardInput),
-            new PropertyMetadata(KeyboardInputType.Text));
+        DependencyProperty.Register(nameof(KeyboardType), typeof(InputFieldKeyboardType), typeof(InputField),
+            new PropertyMetadata(InputFieldKeyboardType.Text));
 
     public static readonly DependencyProperty AutoShowOnFocusProperty =
-        DependencyProperty.Register(nameof(AutoShowOnFocus), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(AutoShowOnFocus), typeof(bool), typeof(InputField),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty ShowKeyboardButtonProperty =
-        DependencyProperty.Register(nameof(ShowKeyboardButton), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(ShowKeyboardButton), typeof(bool), typeof(InputField),
             new PropertyMetadata(false));
 
     public static readonly DependencyProperty AllowDecimalProperty =
-        DependencyProperty.Register(nameof(AllowDecimal), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(AllowDecimal), typeof(bool), typeof(InputField),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty AllowNegativeProperty =
-        DependencyProperty.Register(nameof(AllowNegative), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(AllowNegative), typeof(bool), typeof(InputField),
             new PropertyMetadata(true));
 
     public static readonly DependencyProperty IsReadOnlyProperty =
-        DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(InputField),
             new PropertyMetadata(false));
 
     public static readonly DependencyProperty CommitOnEnterProperty =
-        DependencyProperty.Register(nameof(CommitOnEnter), typeof(bool), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(CommitOnEnter), typeof(bool), typeof(InputField),
             new PropertyMetadata(true, OnCommitOnEnterChanged));
 
     public static readonly DependencyProperty TextBoxStyleProperty =
-        DependencyProperty.Register(nameof(TextBoxStyle), typeof(Style), typeof(KeyboardInput),
+        DependencyProperty.Register(nameof(TextBoxStyle), typeof(Style), typeof(InputField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty InputHeightProperty =
+        DependencyProperty.Register(nameof(InputHeight), typeof(double), typeof(InputField),
+            new PropertyMetadata(36.0, OnFontSizeRelatedPropertyChanged));
+
+    public static readonly DependencyProperty InputFontSizeProperty =
+        DependencyProperty.Register(nameof(InputFontSize), typeof(double), typeof(InputField),
+            new PropertyMetadata(14.0, OnFontSizeRelatedPropertyChanged));
+
+    public static readonly DependencyProperty ActualFontSizeProperty =
+        DependencyProperty.Register(nameof(ActualFontSize), typeof(double), typeof(InputField),
+            new PropertyMetadata(14.0));
+
+    private const double VerticalPadding = 8.0;
+    private const double FontSizeRatio = 0.65;
+
+    public static readonly DependencyProperty InputFontFamilyProperty =
+        DependencyProperty.Register(nameof(InputFontFamily), typeof(FontFamily), typeof(InputField),
+            new PropertyMetadata(SystemFonts.MessageFontFamily));
+
+    public static readonly DependencyProperty InputFontWeightProperty =
+        DependencyProperty.Register(nameof(InputFontWeight), typeof(FontWeight), typeof(InputField),
+            new PropertyMetadata(FontWeights.Normal));
+
+    public static readonly DependencyProperty HorizontalTextAlignmentProperty =
+        DependencyProperty.Register(nameof(HorizontalTextAlignment), typeof(TextAlignment), typeof(InputField),
+            new PropertyMetadata(TextAlignment.Left));
+
+    public static readonly DependencyProperty VerticalTextAlignmentProperty =
+        DependencyProperty.Register(nameof(VerticalTextAlignment), typeof(VerticalAlignment), typeof(InputField),
+            new PropertyMetadata(VerticalAlignment.Center));
+
+    public static readonly DependencyProperty InputBackgroundProperty =
+        DependencyProperty.Register(nameof(InputBackground), typeof(Brush), typeof(InputField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty InputBorderBrushProperty =
+        DependencyProperty.Register(nameof(InputBorderBrush), typeof(Brush), typeof(InputField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty InputForegroundProperty =
+        DependencyProperty.Register(nameof(InputForeground), typeof(Brush), typeof(InputField),
             new PropertyMetadata(null));
 
     private bool _isDialogOpen;
@@ -66,9 +110,24 @@ public partial class KeyboardInput : UserControl
     private bool _isSyncing;
     private bool _suppressValueFormat;
 
-    public KeyboardInput()
+    public InputField()
     {
         InitializeComponent();
+        UpdateActualFontSize();
+    }
+
+    private static void OnFontSizeRelatedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is InputField control)
+        {
+            control.UpdateActualFontSize();
+        }
+    }
+
+    private void UpdateActualFontSize()
+    {
+        var maxFontSize = (InputHeight - VerticalPadding) * FontSizeRatio;
+        ActualFontSize = Math.Min(InputFontSize, maxFontSize);
     }
 
     public string Text
@@ -89,9 +148,9 @@ public partial class KeyboardInput : UserControl
         set => SetValue(ValueProperty, value);
     }
 
-    public KeyboardInputValueType ValueType
+    public InputFieldValueType ValueType
     {
-        get => (KeyboardInputValueType)GetValue(ValueTypeProperty);
+        get => (InputFieldValueType)GetValue(ValueTypeProperty);
         set => SetValue(ValueTypeProperty, value);
     }
 
@@ -101,9 +160,9 @@ public partial class KeyboardInput : UserControl
         set => SetValue(DisplayDecimalsProperty, value);
     }
 
-    public KeyboardInputType KeyboardType
+    public InputFieldKeyboardType KeyboardType
     {
-        get => (KeyboardInputType)GetValue(KeyboardTypeProperty);
+        get => (InputFieldKeyboardType)GetValue(KeyboardTypeProperty);
         set => SetValue(KeyboardTypeProperty, value);
     }
 
@@ -149,9 +208,69 @@ public partial class KeyboardInput : UserControl
         set => SetValue(TextBoxStyleProperty, value);
     }
 
+    public double InputHeight
+    {
+        get => (double)GetValue(InputHeightProperty);
+        set => SetValue(InputHeightProperty, value);
+    }
+
+    public double InputFontSize
+    {
+        get => (double)GetValue(InputFontSizeProperty);
+        set => SetValue(InputFontSizeProperty, value);
+    }
+
+    public double ActualFontSize
+    {
+        get => (double)GetValue(ActualFontSizeProperty);
+        private set => SetValue(ActualFontSizeProperty, value);
+    }
+
+    public FontFamily InputFontFamily
+    {
+        get => (FontFamily)GetValue(InputFontFamilyProperty);
+        set => SetValue(InputFontFamilyProperty, value);
+    }
+
+    public FontWeight InputFontWeight
+    {
+        get => (FontWeight)GetValue(InputFontWeightProperty);
+        set => SetValue(InputFontWeightProperty, value);
+    }
+
+    public TextAlignment HorizontalTextAlignment
+    {
+        get => (TextAlignment)GetValue(HorizontalTextAlignmentProperty);
+        set => SetValue(HorizontalTextAlignmentProperty, value);
+    }
+
+    public VerticalAlignment VerticalTextAlignment
+    {
+        get => (VerticalAlignment)GetValue(VerticalTextAlignmentProperty);
+        set => SetValue(VerticalTextAlignmentProperty, value);
+    }
+
+    public Brush? InputBackground
+    {
+        get => (Brush?)GetValue(InputBackgroundProperty);
+        set => SetValue(InputBackgroundProperty, value);
+    }
+
+    public Brush? InputBorderBrush
+    {
+        get => (Brush?)GetValue(InputBorderBrushProperty);
+        set => SetValue(InputBorderBrushProperty, value);
+    }
+
+    public Brush? InputForeground
+    {
+        get => (Brush?)GetValue(InputForegroundProperty);
+        set => SetValue(InputForegroundProperty, value);
+    }
+
     private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not KeyboardInput control || control._isSyncing)
+        if (d is not InputField control || control._isSyncing)
         {
             return;
         }
@@ -168,7 +287,7 @@ public partial class KeyboardInput : UserControl
 
     private static void OnPendingTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not KeyboardInput control || control._isSyncing)
+        if (d is not InputField control || control._isSyncing)
         {
             return;
         }
@@ -191,7 +310,7 @@ public partial class KeyboardInput : UserControl
 
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not KeyboardInput control || control._isSyncing)
+        if (d is not InputField control || control._isSyncing)
         {
             return;
         }
@@ -206,7 +325,7 @@ public partial class KeyboardInput : UserControl
 
     private static void OnDisplayDecimalsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not KeyboardInput control)
+        if (d is not InputField control)
         {
             return;
         }
@@ -221,7 +340,7 @@ public partial class KeyboardInput : UserControl
 
     private static void OnCommitOnEnterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not KeyboardInput control)
+        if (d is not InputField control)
         {
             return;
         }
@@ -248,7 +367,7 @@ public partial class KeyboardInput : UserControl
             return;
         }
 
-        if (!AutoShowOnFocus || KeyboardType != KeyboardInputType.Text || IsReadOnly || _isDialogOpen)
+        if (!AutoShowOnFocus || KeyboardType != InputFieldKeyboardType.Text || IsReadOnly || _isDialogOpen)
         {
             return;
         }
@@ -284,7 +403,7 @@ public partial class KeyboardInput : UserControl
         try
         {
             var owner = Window.GetWindow(this);
-            string? result = KeyboardType == KeyboardInputType.Numeric
+            string? result = KeyboardType == InputFieldKeyboardType.Numeric
                 ? NumericKeyboardDialog.Show(owner, PendingText, AllowDecimal, AllowNegative)
                 : TextKeyboardDialog.Show(owner, PendingText);
 
@@ -351,11 +470,11 @@ public partial class KeyboardInput : UserControl
 
         return ValueType switch
         {
-            KeyboardInputValueType.String => value.ToString() ?? string.Empty,
-            KeyboardInputValueType.Int32 => Convert.ToInt32(value, culture).ToString(culture),
-            KeyboardInputValueType.Float => FormatNumber(Convert.ToSingle(value, culture), decimals, culture),
-            KeyboardInputValueType.Double => FormatNumber(Convert.ToDouble(value, culture), decimals, culture),
-            KeyboardInputValueType.Decimal => FormatNumber(Convert.ToDecimal(value, culture), decimals, culture),
+            InputFieldValueType.String => value.ToString() ?? string.Empty,
+            InputFieldValueType.Int32 => Convert.ToInt32(value, culture).ToString(culture),
+            InputFieldValueType.Float => FormatNumber(Convert.ToSingle(value, culture), decimals, culture),
+            InputFieldValueType.Double => FormatNumber(Convert.ToDouble(value, culture), decimals, culture),
+            InputFieldValueType.Decimal => FormatNumber(Convert.ToDecimal(value, culture), decimals, culture),
             _ => value.ToString() ?? string.Empty
         };
     }
@@ -371,7 +490,7 @@ public partial class KeyboardInput : UserControl
     {
         converted = null;
 
-        if (ValueType == KeyboardInputValueType.String)
+        if (ValueType == InputFieldValueType.String)
         {
             converted = input;
             return true;
@@ -385,7 +504,7 @@ public partial class KeyboardInput : UserControl
         var culture = CultureInfo.CurrentCulture;
         switch (ValueType)
         {
-            case KeyboardInputValueType.Int32:
+            case InputFieldValueType.Int32:
                 if (int.TryParse(input, NumberStyles.Integer, culture, out var intValue))
                 {
                     converted = intValue;
@@ -393,7 +512,7 @@ public partial class KeyboardInput : UserControl
                 }
                 return false;
 
-            case KeyboardInputValueType.Float:
+            case InputFieldValueType.Float:
                 if (float.TryParse(input, NumberStyles.Float, culture, out var floatValue))
                 {
                     converted = floatValue;
@@ -401,7 +520,7 @@ public partial class KeyboardInput : UserControl
                 }
                 return false;
 
-            case KeyboardInputValueType.Double:
+            case InputFieldValueType.Double:
                 if (double.TryParse(input, NumberStyles.Float, culture, out var doubleValue))
                 {
                     converted = doubleValue;
@@ -409,7 +528,7 @@ public partial class KeyboardInput : UserControl
                 }
                 return false;
 
-            case KeyboardInputValueType.Decimal:
+            case InputFieldValueType.Decimal:
                 if (decimal.TryParse(input, NumberStyles.Number, culture, out var decimalValue))
                 {
                     converted = decimalValue;
@@ -423,13 +542,13 @@ public partial class KeyboardInput : UserControl
     }
 }
 
-public enum KeyboardInputType
+public enum InputFieldKeyboardType
 {
     Text,
     Numeric
 }
 
-public enum KeyboardInputValueType
+public enum InputFieldValueType
 {
     String,
     Int32,

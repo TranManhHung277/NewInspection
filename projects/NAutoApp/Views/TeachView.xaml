@@ -231,7 +231,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Model Name:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="1"
+                                    <controls:InputField Grid.Row="0" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Text"
                                                             AutoShowOnFocus="False"
@@ -240,7 +240,7 @@
                                                             ValueType="String"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Description:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
+                                    <controls:InputField Grid.Row="0" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Text"
                                                             AutoShowOnFocus="False"
@@ -277,21 +277,21 @@
 
                                     <!-- Home Position -->
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Home:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="1" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="2" Grid.Column="1" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding HomePositionX}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="2" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="2" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding HomePositionY}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
+                                    <controls:InputField Grid.Row="2" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -301,21 +301,21 @@
 
                                     <!-- Pick Position -->
                                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Pick:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="4" Grid.Column="1" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="4" Grid.Column="1" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding PickPositionX}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="4" Grid.Column="2" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="4" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding PickPositionY}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="4" Grid.Column="3"
+                                    <controls:InputField Grid.Row="4" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -325,21 +325,21 @@
 
                                     <!-- Place Position -->
                                     <TextBlock Grid.Row="6" Grid.Column="0" Text="Place:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="6" Grid.Column="1" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="6" Grid.Column="1" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding PlacePositionX}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="6" Grid.Column="2" Margin="0,0,8,0"
+                                    <controls:InputField Grid.Row="6" Grid.Column="2" Margin="0,0,8,0"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
                                                             Value="{Binding PlacePositionY}"
                                                             ValueType="Double"
                                                             DisplayDecimals="2"/>
-                                    <controls:KeyboardInput Grid.Row="6" Grid.Column="3"
+                                    <controls:InputField Grid.Row="6" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -366,7 +366,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Move Speed:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="1"
+                                    <controls:InputField Grid.Row="0" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -375,7 +375,7 @@
                                                             DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Approach:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
+                                    <controls:InputField Grid.Row="0" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -384,7 +384,7 @@
                                                             DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Speed:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="1"
+                                    <controls:InputField Grid.Row="2" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -393,7 +393,7 @@
                                                             DisplayDecimals="1"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Speed:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
+                                    <controls:InputField Grid.Row="2" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -420,7 +420,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Vacuum On:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="1"
+                                    <controls:InputField Grid.Row="0" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -429,7 +429,7 @@
                                                             ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Vacuum Off:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
+                                    <controls:InputField Grid.Row="0" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -438,7 +438,7 @@
                                                             ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick Delay:" Style="{StaticResource FieldLabel}"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="1"
+                                    <controls:InputField Grid.Row="2" Grid.Column="1"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -447,7 +447,7 @@
                                                             ValueType="Int32"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="Place Delay:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="2" Grid.Column="3"
+                                    <controls:InputField Grid.Row="2" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -475,7 +475,7 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Vacuum Threshold:" Style="{StaticResource FieldLabel}"/>
                                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                                        <controls:KeyboardInput TextBoxStyle="{StaticResource InputField}"
+                                        <controls:InputField TextBoxStyle="{StaticResource InputField}"
                                                                 Width="120"
                                                                 KeyboardType="Numeric"
                                                                 ShowKeyboardButton="True"
@@ -486,7 +486,7 @@
                                     </StackPanel>
 
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Pick Retry Count:" Style="{StaticResource FieldLabel}" Margin="20,0,10,0"/>
-                                    <controls:KeyboardInput Grid.Row="0" Grid.Column="3"
+                                    <controls:InputField Grid.Row="0" Grid.Column="3"
                                                             TextBoxStyle="{StaticResource InputField}"
                                                             KeyboardType="Numeric"
                                                             ShowKeyboardButton="True"
@@ -496,7 +496,7 @@
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Target Cycle Time:" Style="{StaticResource FieldLabel}"/>
                                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                                        <controls:KeyboardInput TextBoxStyle="{StaticResource InputField}"
+                                        <controls:InputField TextBoxStyle="{StaticResource InputField}"
                                                                 Width="120"
                                                                 KeyboardType="Numeric"
                                                                 ShowKeyboardButton="True"

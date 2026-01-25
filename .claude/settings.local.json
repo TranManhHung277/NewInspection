@@ -17,7 +17,8 @@
       "Bash(rename:*)",
       "Bash(cmd /c \"cd /d D:\\\\3. Program\\\\C#\\\\NAutoSuite\\\\projects && ren Machine.PickAndPlace.Frontend PickAndPlace\")",
       "Bash(cmd /c:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

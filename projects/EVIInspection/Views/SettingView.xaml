@@ -21,20 +21,28 @@
         <Grid Grid.Row="1">
             <StackPanel Orientation="Vertical" VerticalAlignment="Center">
                 
-                <controls:KeyboardInput Value="{Binding MachineNumber}"
+                <controls:InputField Value="{Binding MachineNumber}"
+                                        InputHeight="100"
+                                        InputFontSize="20"
+                                        HorizontalTextAlignment="Center"
                                         Padding="0,10"
                                         ValueType="Int32"
                                         KeyboardType="Numeric"
                                         AllowDecimal="False"
                                         ShowKeyboardButton="True"/>
-                <controls:KeyboardInput Value="{Binding MachineNumber}"
+                <controls:InputField Value="{Binding MachineNumber}"
                                         Padding="0,10"
                                         IsEnabled="False"
                                         ValueType="Int32"
                                         KeyboardType="Numeric"
                                         AllowDecimal="False"
                                         ShowKeyboardButton="True"/>
-                <controls:ValueDisplay Value="{Binding MachineNumber}"
+                <controls:DisplayField Value="{Binding MachineNumber}"
+                                       Padding="0,10"
+                                       InputHeight="100"
+                                       InputFontSize="100"
+                                       HorizontalTextAlignment="Center"
+                                       InputFontWeight="Bold"
                        ValueType="Int32"
                        DisplayDecimals="2"/>
 

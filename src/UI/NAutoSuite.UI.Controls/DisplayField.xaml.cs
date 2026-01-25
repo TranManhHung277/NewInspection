@@ -1,10 +1,11 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace NAutoSuite.UI.Controls;
 
-public enum ValueDisplayType
+public enum DisplayFieldValueType
 {
     String,
     Int32,
@@ -14,36 +15,94 @@ public enum ValueDisplayType
     DateTime
 }
 
-public partial class ValueDisplay : UserControl
+public partial class DisplayField : UserControl
 {
     public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(object), typeof(ValueDisplay),
+        DependencyProperty.Register(nameof(Value), typeof(object), typeof(DisplayField),
             new PropertyMetadata(null, OnValueChanged));
 
     public static readonly DependencyProperty ValueTypeProperty =
-        DependencyProperty.Register(nameof(ValueType), typeof(ValueDisplayType), typeof(ValueDisplay),
-            new PropertyMetadata(ValueDisplayType.String, OnValueTypeChanged));
+        DependencyProperty.Register(nameof(ValueType), typeof(DisplayFieldValueType), typeof(DisplayField),
+            new PropertyMetadata(DisplayFieldValueType.String, OnValueTypeChanged));
 
     public static readonly DependencyProperty DisplayDecimalsProperty =
-        DependencyProperty.Register(nameof(DisplayDecimals), typeof(int), typeof(ValueDisplay),
+        DependencyProperty.Register(nameof(DisplayDecimals), typeof(int), typeof(DisplayField),
             new PropertyMetadata(-1, OnDisplayFormatChanged));
 
     public static readonly DependencyProperty FormatStringProperty =
-        DependencyProperty.Register(nameof(FormatString), typeof(string), typeof(ValueDisplay),
+        DependencyProperty.Register(nameof(FormatString), typeof(string), typeof(DisplayField),
             new PropertyMetadata(string.Empty, OnDisplayFormatChanged));
 
     public static readonly DependencyProperty TextStyleProperty =
-        DependencyProperty.Register(nameof(TextStyle), typeof(Style), typeof(ValueDisplay),
+        DependencyProperty.Register(nameof(TextStyle), typeof(Style), typeof(DisplayField),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty DisplayTextProperty =
-        DependencyProperty.Register(nameof(DisplayText), typeof(string), typeof(ValueDisplay),
+        DependencyProperty.Register(nameof(DisplayText), typeof(string), typeof(DisplayField),
             new PropertyMetadata(string.Empty));
 
-    public ValueDisplay()
+    public static readonly DependencyProperty InputHeightProperty =
+        DependencyProperty.Register(nameof(InputHeight), typeof(double), typeof(DisplayField),
+            new PropertyMetadata(36.0, OnFontSizeRelatedPropertyChanged));
+
+    public static readonly DependencyProperty InputFontSizeProperty =
+        DependencyProperty.Register(nameof(InputFontSize), typeof(double), typeof(DisplayField),
+            new PropertyMetadata(14.0, OnFontSizeRelatedPropertyChanged));
+
+    public static readonly DependencyProperty ActualFontSizeProperty =
+        DependencyProperty.Register(nameof(ActualFontSize), typeof(double), typeof(DisplayField),
+            new PropertyMetadata(14.0));
+
+    private const double VerticalPadding = 8.0;
+    private const double FontSizeRatio = 0.65;
+
+    public static readonly DependencyProperty InputFontFamilyProperty =
+        DependencyProperty.Register(nameof(InputFontFamily), typeof(FontFamily), typeof(DisplayField),
+            new PropertyMetadata(SystemFonts.MessageFontFamily));
+
+    public static readonly DependencyProperty InputFontWeightProperty =
+        DependencyProperty.Register(nameof(InputFontWeight), typeof(FontWeight), typeof(DisplayField),
+            new PropertyMetadata(FontWeights.Normal));
+
+    public static readonly DependencyProperty HorizontalTextAlignmentProperty =
+        DependencyProperty.Register(nameof(HorizontalTextAlignment), typeof(TextAlignment), typeof(DisplayField),
+            new PropertyMetadata(TextAlignment.Left));
+
+    public static readonly DependencyProperty VerticalTextAlignmentProperty =
+        DependencyProperty.Register(nameof(VerticalTextAlignment), typeof(VerticalAlignment), typeof(DisplayField),
+            new PropertyMetadata(VerticalAlignment.Center));
+
+    public static readonly DependencyProperty InputBackgroundProperty =
+        DependencyProperty.Register(nameof(InputBackground), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty InputBorderBrushProperty =
+        DependencyProperty.Register(nameof(InputBorderBrush), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    public static readonly DependencyProperty InputForegroundProperty =
+        DependencyProperty.Register(nameof(InputForeground), typeof(Brush), typeof(DisplayField),
+            new PropertyMetadata(null));
+
+    public DisplayField()
     {
         InitializeComponent();
         UpdateDisplayText();
+        UpdateActualFontSize();
+    }
+
+    private static void OnFontSizeRelatedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is DisplayField control)
+        {
+            control.UpdateActualFontSize();
+        }
+    }
+
+    private void UpdateActualFontSize()
+    {
+        var maxFontSize = (InputHeight - VerticalPadding) * FontSizeRatio;
+        ActualFontSize = Math.Min(InputFontSize, maxFontSize);
     }
 
     public object? Value
@@ -52,9 +111,9 @@ public partial class ValueDisplay : UserControl
         set => SetValue(ValueProperty, value);
     }
 
-    public ValueDisplayType ValueType
+    public DisplayFieldValueType ValueType
     {
-        get => (ValueDisplayType)GetValue(ValueTypeProperty);
+        get => (DisplayFieldValueType)GetValue(ValueTypeProperty);
         set => SetValue(ValueTypeProperty, value);
     }
 
@@ -82,9 +141,69 @@ public partial class ValueDisplay : UserControl
         private set => SetValue(DisplayTextProperty, value);
     }
 
+    public double InputHeight
+    {
+        get => (double)GetValue(InputHeightProperty);
+        set => SetValue(InputHeightProperty, value);
+    }
+
+    public double InputFontSize
+    {
+        get => (double)GetValue(InputFontSizeProperty);
+        set => SetValue(InputFontSizeProperty, value);
+    }
+
+    public double ActualFontSize
+    {
+        get => (double)GetValue(ActualFontSizeProperty);
+        private set => SetValue(ActualFontSizeProperty, value);
+    }
+
+    public FontFamily InputFontFamily
+    {
+        get => (FontFamily)GetValue(InputFontFamilyProperty);
+        set => SetValue(InputFontFamilyProperty, value);
+    }
+
+    public FontWeight InputFontWeight
+    {
+        get => (FontWeight)GetValue(InputFontWeightProperty);
+        set => SetValue(InputFontWeightProperty, value);
+    }
+
+    public TextAlignment HorizontalTextAlignment
+    {
+        get => (TextAlignment)GetValue(HorizontalTextAlignmentProperty);
+        set => SetValue(HorizontalTextAlignmentProperty, value);
+    }
+
+    public VerticalAlignment VerticalTextAlignment
+    {
+        get => (VerticalAlignment)GetValue(VerticalTextAlignmentProperty);
+        set => SetValue(VerticalTextAlignmentProperty, value);
+    }
+
+    public Brush? InputBackground
+    {
+        get => (Brush?)GetValue(InputBackgroundProperty);
+        set => SetValue(InputBackgroundProperty, value);
+    }
+
+    public Brush? InputBorderBrush
+    {
+        get => (Brush?)GetValue(InputBorderBrushProperty);
+        set => SetValue(InputBorderBrushProperty, value);
+    }
+
+    public Brush? InputForeground
+    {
+        get => (Brush?)GetValue(InputForegroundProperty);
+        set => SetValue(InputForegroundProperty, value);
+    }
+
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ValueDisplay control)
+        if (d is DisplayField control)
         {
             control.UpdateDisplayText();
         }
@@ -92,7 +211,7 @@ public partial class ValueDisplay : UserControl
 
     private static void OnValueTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ValueDisplay control)
+        if (d is DisplayField control)
         {
             control.UpdateDisplayText();
         }
@@ -100,7 +219,7 @@ public partial class ValueDisplay : UserControl
 
     private static void OnDisplayFormatChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is ValueDisplay control)
+        if (d is DisplayField control)
         {
             control.UpdateDisplayText();
         }
@@ -128,12 +247,12 @@ public partial class ValueDisplay : UserControl
 
         return ValueType switch
         {
-            ValueDisplayType.String => value.ToString() ?? string.Empty,
-            ValueDisplayType.Int32 => Convert.ToInt32(value, culture).ToString(culture),
-            ValueDisplayType.Float => FormatNumber(Convert.ToSingle(value, culture), DisplayDecimals, culture),
-            ValueDisplayType.Double => FormatNumber(Convert.ToDouble(value, culture), DisplayDecimals, culture),
-            ValueDisplayType.Decimal => FormatNumber(Convert.ToDecimal(value, culture), DisplayDecimals, culture),
-            ValueDisplayType.DateTime => FormatDateTime(value, culture),
+            DisplayFieldValueType.String => value.ToString() ?? string.Empty,
+            DisplayFieldValueType.Int32 => Convert.ToInt32(value, culture).ToString(culture),
+            DisplayFieldValueType.Float => FormatNumber(Convert.ToSingle(value, culture), DisplayDecimals, culture),
+            DisplayFieldValueType.Double => FormatNumber(Convert.ToDouble(value, culture), DisplayDecimals, culture),
+            DisplayFieldValueType.Decimal => FormatNumber(Convert.ToDecimal(value, culture), DisplayDecimals, culture),
+            DisplayFieldValueType.DateTime => FormatDateTime(value, culture),
             _ => value.ToString() ?? string.Empty
         };
     }

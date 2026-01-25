@@ -1,20 +1,24 @@
-<UserControl x:Class="NAutoSuite.UI.Controls.ValueDisplay"
+<UserControl x:Class="NAutoSuite.UI.Controls.DisplayField"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             MinHeight="32"
+             MinHeight="36"
              d:DesignHeight="36" d:DesignWidth="200">
-    <Border Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
+    <Border Background="{Binding InputBackground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource SurfaceBrush}}"
+            BorderBrush="{Binding InputBorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource BorderBrush}}"
             BorderThickness="1"
             CornerRadius="8"
-            Padding="10,6">
+            Height="{Binding InputHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Padding="10,0">
         <TextBlock Text="{Binding DisplayText, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                   Foreground="{StaticResource TextPrimaryBrush}"
-                   FontSize="14"
-                   VerticalAlignment="Center"
+                   Foreground="{Binding InputForeground, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={StaticResource TextPrimaryBrush}}"
+                   FontSize="{Binding ActualFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   FontFamily="{Binding InputFontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   FontWeight="{Binding InputFontWeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   TextAlignment="{Binding HorizontalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   VerticalAlignment="{Binding VerticalTextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
                    TextTrimming="CharacterEllipsis"
                    Style="{Binding TextStyle, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
     </Border>
