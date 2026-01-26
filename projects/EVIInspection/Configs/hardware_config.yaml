@@ -4,210 +4,204 @@ app:
   version: 1.0.0
   machine: 10
 
-hardware:
-  leadshine:
-    type: ethercat_card
-    cards:
-      - card_no: 0 # dmc_*(CardNo, ...) - UInt16
-        name: "Card EtherCAT Leadshine"
+axis:
+  - id: axis_x
+    name: Truc X
+    node_id: 1
+    axis_no: 0
+    config:
+      min_vel: 0.1
+      max_vel: 100.0
+      acc: 0.2
+      dec: 0.2
+      stop_vel: 0.0
+      jog_vel: 50.0
+      run_mode: 8
+      gear_equiv: 233.0168888888889
+      servo_on_connect: true
+      enable_gear: false
+    home:
+      dir: 0
+      vel: 10.0
+      mode: 0
+      ez_count: 0
+    status_bits:
+      - id: alarm
+        name: ALM
+        bit: 0
+        description: Servo alarm signal
+      - id: positive_limit
+        name: PEL
+        bit: 1
+        description: Positive end limit
+      - id: negative_limit
+        name: NEL
+        bit: 2
+        description: Negative end limit
+      - id: home_sensor
+        name: ORG
+        bit: 3
+        description: Home/Origin sensor
+      - id: emergency
+        name: EMG
+        bit: 4
+        description: Emergency stop
+      - id: encoder_z
+        name: EZ
+        bit: 5
+        description: Encoder Z pulse
+      - id: in_position
+        name: INP
+        bit: 6
+        description: In position signal
+      - id: servo_on
+        name: SVON
+        bit: 7
+        description: Servo on status
+      - id: moving
+        name: RUN
+        bit: 8
+        description: Axis is moving
+    servo_statusword:
+      - id: ready_to_switch_on
+        name: ReadyToSwitchOn
+        bit: 0
+      - id: switched_on
+        name: SwitchedOn
+        bit: 1
+      - id: operation_enabled
+        name: OperationEnabled
+        bit: 2
+      - id: fault
+        name: Fault
+        bit: 3
+      - id: voltage_enabled
+        name: VoltageEnabled
+        bit: 4
+      - id: quick_stop
+        name: QuickStop
+        bit: 5
+      - id: switch_on_disabled
+        name: SwitchOnDisabled
+        bit: 6
+      - id: warning
+        name: Warning
+        bit: 7
+      - id: target_reached
+        name: TargetReached
+        bit: 10
+      - id: homing_attained
+        name: HomingAttained
+        bit: 12
+      - id: homing_error
+        name: HomingError
+        bit: 13
 
-        # Danh sách các client trên bus EtherCAT
-        clients:
-          # ==================== SERVO AXIS ====================
-          # API: dmc_pmove_unit(CardNo, axis, Dist, posi_mode)
-          #      dmc_set_profile_unit(CardNo, Axis, Min_Vel, Max_Vel, Tacc, Tdec, Stop_Vel)
-          - id: axis_x # Entity ID dùng trong code
-            type: axis
-            node_id: 1 # EtherCAT node address
-            axis_no: 0 # axis param cho dmc_* functions
-            name: "Trục X"
-            config:
-              min_vel: 0.1 # Min_Vel
-              max_vel: 100.0 # Max_Vel
-              acc: 0.2 # Tacc
-              dec: 0.2 # Tdec
-              stop_vel: 0.0 # Stop_Vel
-              jog_vel: 50.0
-              run_mode: 8
-              gear_equiv: 0.0
-              servo_on_connect: true
-              enable_gear: false
-            home:
-              dir: 0 # home_dir
-              vel: 10.0 # vel
-              mode: 0 # home_mode
-              ez_count: 0 # EZ_count
-
-            # --- STATUS BITS: dmc_axis_io_status(CardNo, axis) -> UInt32 ---
-            # Đọc trạng thái IO vật lý của trục
-            status_bits:
-              - id: alarm
-                name: ALM
-                bit: 0
-                description: "Servo alarm signal"
-              - id: positive_limit
-                name: PEL
-                bit: 1
-                description: "Positive end limit"
-              - id: negative_limit
-                name: NEL
-                bit: 2
-                description: "Negative end limit"
-              - id: home_sensor
-                name: ORG
-                bit: 3
-                description: "Home/Origin sensor"
-              - id: emergency
-                name: EMG
-                bit: 4
-                description: "Emergency stop"
-              - id: encoder_z
-                name: EZ
-                bit: 5
-                description: "Encoder Z pulse"
-              - id: in_position
-                name: INP
-                bit: 6
-                description: "In position signal"
-              - id: servo_on
-                name: SVON
-                bit: 7
-                description: "Servo on status"
-              - id: moving
-                name: RUN
-                bit: 8
-                description: "Axis is moving"
-
-            # --- SERVO STATUSWORD: nmc_get_axis_statusword(CardNo, axis, ref statusword) ---
-            # Statusword theo chuẩn CiA 402 (CANopen/EtherCAT servo)
-            servo_statusword:
-              - id: ready_to_switch_on
-                name: ReadyToSwitchOn
-                bit: 0
-              - id: switched_on
-                name: SwitchedOn
-                bit: 1
-              - id: operation_enabled
-                name: OperationEnabled
-                bit: 2
-              - id: fault
-                name: Fault
-                bit: 3
-              - id: voltage_enabled
-                name: VoltageEnabled
-                bit: 4
-              - id: quick_stop
-                name: QuickStop
-                bit: 5
-              - id: switch_on_disabled
-                name: SwitchOnDisabled
-                bit: 6
-              - id: warning
-                name: Warning
-                bit: 7
-              - id: target_reached
-                name: TargetReached
-                bit: 10
-              - id: homing_attained
-                name: HomingAttained
-                bit: 12
-              - id: homing_error
-                name: HomingError
-                bit: 13
-
-          # ==================== REMOTE IO MODULE ====================
-          # API: nmc_read_inport(CardNo, NodeID, PortNo, ref IoValue)
-          #      nmc_write_outport(CardNo, NodeID, PortNo, IoValue)
-          - id: io_module_1 # Entity ID dùng trong code
-            type: remote_io
-            node_id: 2 # NodeID param cho nmc_* functions
-            name: "Remote IO Module 1"
-
-            # --- INPUTS: nmc_read_inport(CardNo, NodeID=2, PortNo, ...) ---
-            inputs:
-              # Port 0 (bit 0-31)
-              - port_no: 0
-                signals:
-                  # Common signals
-                  - id: emergency_stop
-                    name: EmergencyStop
-                    bit: 0 # Bit position trong port 32-bit
-                    category: common
-                    default: false
-                  - id: start_button
-                    name: StartButton
-                    bit: 1
-                    category: common
-                    default: false
-                  - id: stop_button
-                    name: StopButton
-                    bit: 2
-                    category: common
-                    default: false
-                  - id: reset_button
-                    name: ResetButton
-                    bit: 3
-                    category: common
-                    default: false
-                  - id: safety_door
-                    name: SafetyDoor
-                    bit: 4
-                    category: common
-                    default: false
-                  - id: air_pressure
-                    name: AirPressure
-                    bit: 5
-                    category: common
-                    default: false
-                  - id: home_button
-                    name: HomeButton
-                    bit: 6
-                    category: common
-                    default: false
-                  - id: auto_mode_switch
-                    name: AutoModeSwitch
-                    bit: 7
-                    category: common
-                    default: false
-                  - id: manual_mode_switch
-                    name: ManualModeSwitch
-                    bit: 8
-                    category: common
-                    default: false
-                  # Process signals
-                  - id: part_present
-                    name: PartPresent
-                    bit: 10
-                    category: process
-                    default: false
-                  - id: test_ok
-                    name: TestOK
-                    bit: 11
-                    category: process
-                    default: false
-                  - id: test_ng
-                    name: TestNG
-                    bit: 12
-                    category: process
-                    default: false
-
-            # --- OUTPUTS: nmc_write_outport(CardNo, NodeID=2, PortNo, IoValue) ---
-            outputs:
-              # Port 0 (bit 0-31)
-              - port_no: 0
-                signals:
-                  - id: indicator_green
-                    name: IndicatorGreen
-                    bit: 0
-                    category: common
-                    default: false
-                  - id: indicator_red
-                    name: IndicatorRed
-                    bit: 1
-                    category: common
-                    default: false
-                  - id: buzzer
-                    name: Buzzer
-                    bit: 2
-                    category: common
-                    default: false
+signal:
+  input:
+    - id: emergency_stop
+      name: EmergencyStop
+      node_id: 2
+      port_no: 0
+      bit: 0
+      category: common
+      default: false
+    - id: start_button
+      name: StartButton
+      node_id: 2
+      port_no: 0
+      bit: 1
+      category: common
+      default: false
+    - id: stop_button
+      name: StopButton
+      node_id: 2
+      port_no: 0
+      bit: 2
+      category: common
+      default: false
+    - id: reset_button
+      name: ResetButton
+      node_id: 2
+      port_no: 0
+      bit: 3
+      category: common
+      default: false
+    - id: safety_door
+      name: SafetyDoor
+      node_id: 2
+      port_no: 0
+      bit: 4
+      category: common
+      default: false
+    - id: air_pressure
+      name: AirPressure
+      node_id: 2
+      port_no: 0
+      bit: 5
+      category: common
+      default: false
+    - id: home_button
+      name: HomeButton
+      node_id: 2
+      port_no: 0
+      bit: 6
+      category: common
+      default: false
+    - id: auto_mode_switch
+      name: AutoModeSwitch
+      node_id: 2
+      port_no: 0
+      bit: 7
+      category: common
+      default: false
+    - id: manual_mode_switch
+      name: ManualModeSwitch
+      node_id: 2
+      port_no: 0
+      bit: 8
+      category: common
+      default: false
+    - id: part_present
+      name: PartPresent
+      node_id: 2
+      port_no: 0
+      bit: 10
+      category: process
+      default: false
+    - id: test_ok
+      name: TestOK
+      node_id: 2
+      port_no: 0
+      bit: 11
+      category: process
+      default: false
+    - id: test_ng
+      name: TestNG
+      node_id: 2
+      port_no: 0
+      bit: 12
+      category: process
+      default: false
+  output:
+    - id: indicator_green
+      name: IndicatorGreen
+      node_id: 2
+      port_no: 0
+      bit: 0
+      category: common
+      default: false
+    - id: indicator_red
+      name: IndicatorRed
+      node_id: 2
+      port_no: 0
+      bit: 1
+      category: common
+      default: false
+    - id: buzzer
+      name: Buzzer
+      node_id: 2
+      port_no: 0
+      bit: 2
+      category: common
+      default: false

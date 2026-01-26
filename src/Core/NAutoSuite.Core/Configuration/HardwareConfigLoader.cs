@@ -46,6 +46,30 @@ public sealed class HardwareConfigLoader
     }
 
     /// <summary>
+    /// Load minimal axis/signal configuration from YAML file.
+    /// </summary>
+    public HardwareMinimalConfig LoadMinimal(string path)
+    {
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException($"Hardware config file not found: {path}");
+        }
+
+        var yaml = File.ReadAllText(path);
+        var config = _deserializer.Deserialize<HardwareMinimalConfig>(yaml);
+
+        if (config == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize minimal hardware config");
+        }
+
+        _logger.Information("Loaded minimal hardware config from {Path}", path);
+        _logger.Debug("App: {AppName} v{Version}", config.App.Name, config.App.Version);
+
+        return config;
+    }
+
+    /// <summary>
     /// Load configuration safely, returning empty config on error
     /// </summary>
     public HardwareRootConfig LoadSafe(string path)
@@ -58,6 +82,22 @@ public sealed class HardwareConfigLoader
         {
             _logger.Error(ex, "Failed to load hardware config from {Path}", path);
             return new HardwareRootConfig();
+        }
+    }
+
+    /// <summary>
+    /// Load minimal configuration safely, returning empty config on error.
+    /// </summary>
+    public HardwareMinimalConfig LoadMinimalSafe(string path)
+    {
+        try
+        {
+            return LoadMinimal(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to load minimal hardware config from {Path}", path);
+            return new HardwareMinimalConfig();
         }
     }
 
@@ -132,6 +172,151 @@ public sealed class HardwareConfigLoader
             axes.Count, remoteIOs.Count, allInputs.Count, allOutputs.Count);
 
         return new HardwareEntityCollection(config.App, axes, remoteIOs, allInputs, allOutputs, allStatusBits);
+    }
+
+    /// <summary>
+    /// Load and flatten minimal configuration into entity collections.
+    /// </summary>
+    public HardwareEntityCollection LoadMinimalEntities(string path)
+    {
+        var config = LoadMinimal(path);
+        return FlattenMinimalToEntities(config);
+    }
+
+    /// <summary>
+    /// Load and flatten minimal configuration safely.
+    /// </summary>
+    public HardwareEntityCollection LoadMinimalEntitiesSafe(string path)
+    {
+        try
+        {
+            return LoadMinimalEntities(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to load minimal hardware entities from {Path}", path);
+            return HardwareEntityCollection.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Flatten minimal axis/signal config into entity collections.
+    /// </summary>
+    public HardwareEntityCollection FlattenMinimalToEntities(HardwareMinimalConfig config)
+    {
+        var axes = new List<AxisEntity>();
+        var remoteIOs = new List<RemoteIOEntity>();
+        var allInputs = new List<IOSignalEntity>();
+        var allOutputs = new List<IOSignalEntity>();
+        var allStatusBits = new List<StatusBitEntity>();
+        var remoteIoByNode = new Dictionary<ushort, RemoteIOEntity>();
+
+        foreach (var axis in config.Axes)
+        {
+            var axisEntity = new AxisEntity
+            {
+                EntityId = axis.Id,
+                HardwareName = "axis",
+                CardNo = 0,
+                NodeId = axis.NodeId,
+                AxisNo = axis.AxisNo,
+                Name = axis.Name,
+                Motion = axis.Config ?? new AxisMotionConfig(),
+                Home = axis.Home ?? new AxisHomeConfig(),
+                StatusBits = BuildStatusBits(axis.Id, axis.StatusBits, StatusBitType.AxisIO),
+                ServoStatusword = BuildStatusBits(axis.Id, axis.ServoStatusword, StatusBitType.ServoStatusword)
+            };
+
+            axes.Add(axisEntity);
+            allStatusBits.AddRange(axisEntity.StatusBits);
+            allStatusBits.AddRange(axisEntity.ServoStatusword);
+        }
+
+        AddSignals(config.Signals.Inputs, IODirection.Input, remoteIoByNode, remoteIOs, allInputs);
+        AddSignals(config.Signals.Outputs, IODirection.Output, remoteIoByNode, remoteIOs, allOutputs);
+
+        _logger.Information(
+            "Flattened minimal config: {AxisCount} axes, {IOModuleCount} IO modules, {InputCount} inputs, {OutputCount} outputs",
+            axes.Count, remoteIOs.Count, allInputs.Count, allOutputs.Count);
+
+        return new HardwareEntityCollection(config.App, axes, remoteIOs, allInputs, allOutputs, allStatusBits);
+    }
+
+    private static void AddSignals(
+        IEnumerable<SignalPointConfig> signals,
+        IODirection direction,
+        Dictionary<ushort, RemoteIOEntity> remoteIoByNode,
+        List<RemoteIOEntity> remoteIOs,
+        List<IOSignalEntity> allSignals)
+    {
+        foreach (var signal in signals)
+        {
+            if (!remoteIoByNode.TryGetValue(signal.NodeId, out var ioEntity))
+            {
+                ioEntity = new RemoteIOEntity
+                {
+                    EntityId = $"io_{signal.NodeId}",
+                    HardwareName = "signal",
+                    CardNo = 0,
+                    NodeId = signal.NodeId,
+                    Name = $"Remote IO {signal.NodeId}"
+                };
+                remoteIoByNode[signal.NodeId] = ioEntity;
+                remoteIOs.Add(ioEntity);
+            }
+
+            var entity = new IOSignalEntity
+            {
+                EntityId = $"{(direction == IODirection.Input ? "input" : "output")}.{signal.Id}",
+                ParentId = ioEntity.EntityId,
+                HardwareName = "signal",
+                CardNo = 0,
+                NodeId = signal.NodeId,
+                PortNo = signal.PortNo,
+                Bit = signal.Bit,
+                Name = signal.Name,
+                Category = signal.Category,
+                Default = signal.Default,
+                Direction = direction
+            };
+
+            allSignals.Add(entity);
+            if (direction == IODirection.Input)
+            {
+                ioEntity.Inputs.Add(entity);
+            }
+            else
+            {
+                ioEntity.Outputs.Add(entity);
+            }
+        }
+    }
+
+    private static List<StatusBitEntity> BuildStatusBits(
+        string axisId,
+        List<StatusBitConfig>? bits,
+        StatusBitType bitType)
+    {
+        var result = new List<StatusBitEntity>();
+        if (bits == null)
+        {
+            return result;
+        }
+
+        foreach (var bit in bits)
+        {
+            result.Add(new StatusBitEntity
+            {
+                EntityId = $"{axisId}.{(bitType == StatusBitType.AxisIO ? "status" : "servo")}.{bit.Id}",
+                ParentId = axisId,
+                Name = bit.Name,
+                Bit = bit.Bit,
+                Description = bit.Description,
+                BitType = bitType
+            });
+        }
+
+        return result;
     }
 
     private static AxisEntity CreateAxisEntity(string hardwareName, ushort cardNo, ClientConfig client)

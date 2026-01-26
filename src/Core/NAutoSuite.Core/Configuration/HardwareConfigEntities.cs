@@ -36,6 +36,94 @@ public sealed class AppConfig
 
 #endregion
 
+#region Minimal Config (Axis + Signals)
+
+/// <summary>
+/// Minimal config that focuses on axis and IO signals only.
+/// </summary>
+public sealed class HardwareMinimalConfig
+{
+    [YamlMember(Alias = "app")]
+    public AppConfig App { get; set; } = new();
+
+    [YamlMember(Alias = "axis")]
+    public List<AxisMinimalConfig> Axes { get; set; } = new();
+
+    [YamlMember(Alias = "signal")]
+    public SignalGroupConfig Signals { get; set; } = new();
+}
+
+/// <summary>
+/// Minimal axis config for motion and home.
+/// </summary>
+public sealed class AxisMinimalConfig
+{
+    [YamlMember(Alias = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "name")]
+    public string Name { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "node_id")]
+    public ushort NodeId { get; set; }
+
+    [YamlMember(Alias = "axis_no")]
+    public ushort AxisNo { get; set; }
+
+    [YamlMember(Alias = "config")]
+    public AxisMotionConfig? Config { get; set; }
+
+    [YamlMember(Alias = "home")]
+    public AxisHomeConfig? Home { get; set; }
+
+    [YamlMember(Alias = "status_bits")]
+    public List<StatusBitConfig>? StatusBits { get; set; }
+
+    [YamlMember(Alias = "servo_statusword")]
+    public List<StatusBitConfig>? ServoStatusword { get; set; }
+}
+
+/// <summary>
+/// Grouped signals for input/output.
+/// </summary>
+public sealed class SignalGroupConfig
+{
+    [YamlMember(Alias = "input")]
+    public List<SignalPointConfig> Inputs { get; set; } = new();
+
+    [YamlMember(Alias = "output")]
+    public List<SignalPointConfig> Outputs { get; set; } = new();
+}
+
+/// <summary>
+/// Minimal IO signal config.
+/// </summary>
+public sealed class SignalPointConfig
+{
+    [YamlMember(Alias = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "name")]
+    public string Name { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "node_id")]
+    public ushort NodeId { get; set; }
+
+    [YamlMember(Alias = "port_no")]
+    public ushort PortNo { get; set; }
+
+    [YamlMember(Alias = "bit")]
+    public int Bit { get; set; }
+
+    [YamlMember(Alias = "category")]
+    public string Category { get; set; } = "process";
+
+    [YamlMember(Alias = "default")]
+    public bool Default { get; set; }
+}
+
+#endregion
+
 #region Hardware Type Config
 
 /// <summary>
@@ -60,6 +148,9 @@ public sealed class CardConfig
 
     [YamlMember(Alias = "name")]
     public string Name { get; set; } = string.Empty;
+
+    [YamlMember(Alias = "cycle_time_ms")]
+    public string CycleTimeMs { get; set; } = string.Empty;
 
     [YamlMember(Alias = "clients")]
     public List<ClientConfig> Clients { get; set; } = new();

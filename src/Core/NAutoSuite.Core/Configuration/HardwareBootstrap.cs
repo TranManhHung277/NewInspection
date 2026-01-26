@@ -1,7 +1,6 @@
 using NAutoSuite.Core.Abstractions;
-using NAutoSuite.Core.Configuration;
 
-namespace NAutoApp.Configuration;
+namespace NAutoSuite.Core.Configuration;
 
 public sealed class HardwareBootstrap
 {
@@ -15,4 +14,3 @@ public sealed class HardwareBootstrap
 
     public HardwareProfileConfig Profile { get; }
 }
-

@@ -1,6 +1,7 @@
-﻿using EVIInspection.ViewModels;
+using EVIInspection.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NAutoSuite.Core.Abstractions;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Services;
 using NAutoSuite.UI.Controls.Services;
@@ -14,6 +15,7 @@ namespace EVIInspection
 {
     public partial class App : Application
     {
+        private const string HardwareConfigFileName = "hardware_config.yaml";
         private const string SingleInstanceMutexName = "NAutoSuite.EVIInspection.SingleInstance";
         private IHost? _host;
         private Mutex? _singleInstanceMutex;
@@ -25,33 +27,13 @@ namespace EVIInspection
             {
                 return;
             }
-            // Initialize logging with UI sink FIRST
+
             InitializeLogging("logs/eviinspection-.log");
-            // Build host with DI
-            _host = Host.CreateDefaultBuilder()
-                .UseSerilog() // Use the already configured Log.Logger
-                .ConfigureServices((context, services) =>
-                {
-                    Log.Information("Registering services in DI container...");
+            _host = BuildHost();
 
-                    // Register Serilog ILogger for injection
-                    services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
-
-                    // Load hardware configuration and register entities
-                    var configPath = Path.Combine(AppContext.BaseDirectory, "Configs", "hardware_config.yaml");
-                    services.AddHardwareConfig(configPath);
-
-                    // Register ViewModels
-                    services.AddSingleton<MainViewModel>();
-
-                    // Register MainWindow
-                    services.AddSingleton<MainWindow>();
-                })
-                .Build();
             await _host.StartAsync();
-            // Show main window
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            ForceLoadHardwareConfiguration(_host.Services);
+            ShowMainWindow(_host.Services);
         }
 
         /// <summary>
@@ -75,6 +57,123 @@ namespace EVIInspection
                 .CreateLogger();
 
             Log.Information("Logging initialized with UI sink");
+        }
+
+        private static string GetHardwareConfigPath()
+        {
+            return Path.Combine(AppContext.BaseDirectory, "Configs", HardwareConfigFileName);
+        }
+
+        private static IHost BuildHost()
+        {
+            return Host.CreateDefaultBuilder()
+                .UseSerilog() // Use the already configured Log.Logger
+                .ConfigureServices((context, services) =>
+                {
+                    Log.Information("Registering services in DI container...");
+                    RegisterCoreServices(services);
+                    RegisterHardwareServices(services);
+                    RegisterUiServices(services);
+                })
+                .Build();
+        }
+
+        private static void RegisterCoreServices(IServiceCollection services)
+        {
+            services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
+            services.AddSingleton(sp =>
+            {
+                var logger = sp.GetRequiredService<Serilog.ILogger>();
+                return new HardwareConfigLoader(logger);
+            });
+
+            services.AddSingleton(sp =>
+            {
+                var loader = sp.GetRequiredService<HardwareConfigLoader>();
+                return loader.LoadMinimalSafe(GetHardwareConfigPath());
+            });
+
+            services.AddSingleton(sp =>
+            {
+                var loader = sp.GetRequiredService<HardwareConfigLoader>();
+                return loader.LoadMinimalEntitiesSafe(GetHardwareConfigPath());
+            });
+        }
+
+        private static void RegisterHardwareServices(IServiceCollection services)
+        {
+            services.AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<HardwareMinimalConfig>();
+                return BuildHardwareBootstrap(config);
+            });
+
+            services.AddSingleton(sp => sp.GetRequiredService<HardwareBootstrap>().Profile);
+            services.AddSingleton(sp => sp.GetRequiredService<HardwareBootstrap>().Devices);
+        }
+
+        private static void RegisterUiServices(IServiceCollection services)
+        {
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<MainWindow>();
+        }
+
+        private static void ForceLoadHardwareConfiguration(IServiceProvider services)
+        {
+            _ = services.GetRequiredService<HardwareMinimalConfig>();
+            _ = services.GetRequiredService<HardwareEntityCollection>();
+            _ = services.GetRequiredService<HardwareBootstrap>();
+        }
+
+        private static void ShowMainWindow(IServiceProvider services)
+        {
+            var mainWindow = services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
+
+        private static HardwareBootstrap BuildHardwareBootstrap(HardwareMinimalConfig config)
+        {
+            var profile = new HardwareProfileConfig();
+            var devices = new List<IDevice>();
+
+            foreach (var axis in config.Axes)
+            {
+                profile.AddAxes(new[]
+                {
+                    new AxisDefinition
+                    {
+                        Id = axis.Id,
+                        Name = axis.Name,
+                        AxisIndex = axis.AxisNo
+                    }
+                });
+            }
+
+            var inputPoints = BuildIoPoints(config.Signals.Inputs, "Input");
+            var outputPoints = BuildIoPoints(config.Signals.Outputs, "Output");
+            profile.AddIoPoints("signal", inputPoints.Concat(outputPoints));
+
+            return new HardwareBootstrap(devices, profile);
+        }
+
+        private static IEnumerable<IoPointConfig> BuildIoPoints(IEnumerable<SignalPointConfig> signals, string direction)
+        {
+            foreach (var signal in signals)
+            {
+                var addressPrefix = string.Equals(direction, "Output", StringComparison.OrdinalIgnoreCase) ? "O" : "I";
+                var address = $"{addressPrefix}{signal.NodeId}:{signal.PortNo}:{signal.Bit}";
+                yield return new IoPointConfig
+                {
+                    Id = signal.Id,
+                    Name = signal.Name,
+                    Address = address,
+                    Direction = direction,
+                    NodeId = signal.NodeId,
+                    IoBit = signal.Bit,
+                    DataType = "bit",
+                    DefaultValue = signal.Default
+                };
+            }
         }
 
         protected override async void OnExit(ExitEventArgs e)

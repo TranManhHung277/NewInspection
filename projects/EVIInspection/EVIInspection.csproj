@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\NAutoSuite.Core\NAutoSuite.Core.csproj" />
+    <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Abstractions\NAutoSuite.Hardware.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Hardware\NAutoSuite.Hardware.Leadshine\NAutoSuite.Hardware.Leadshine.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Controls\NAutoSuite.UI.Controls.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Infrastructure\NAutoSuite.UI.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\UI\NAutoSuite.UI.Themes\NAutoSuite.UI.Themes.csproj" />
