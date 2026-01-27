@@ -10,9 +10,11 @@ This file documents how to use core UI controls in new WPF projects.
 ## 1) ShellHeaderControl
 
 ### Purpose
+
 Top header bar that shows machine info, project/model name, run mode, and status.
 
 ### XAML usage
+
 ```xml
 <Window
     xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls">
@@ -31,6 +33,7 @@ Top header bar that shows machine info, project/model name, run mode, and status
 ```
 
 ### Required ViewModel properties
+
 - `int MachineNumber`
 - `MachineState MachineState` (from `NAutoSuite.Core.Machine`)
 - `string ProjectName`
@@ -39,6 +42,7 @@ Top header bar that shows machine info, project/model name, run mode, and status
 - `HeaderStatusLevel HeaderStatusLevel` (from `NAutoSuite.UI.Controls`)
 
 ### Events
+
 - `HeaderClicked`: optional, typically used to jump to a default tab.
 - `MinimizeClicked`: minimize window.
 - `CloseClicked`: confirm exit.
@@ -46,9 +50,11 @@ Top header bar that shows machine info, project/model name, run mode, and status
 ## 2) ShellFooterControl
 
 ### Purpose
+
 Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and action buttons (Start/Stop/Reset/Home).
 
 ### XAML usage
+
 ```xml
 <controls:ShellFooterControl
     x:Name="FooterControl"
@@ -56,7 +62,9 @@ Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and a
 ```
 
 ### Required ViewModel commands
+
 Footer uses `DataContext` reflection to find these commands:
+
 - `ICommand StartCommand`
 - `ICommand StopCommand`
 - `ICommand ResetCommand`
@@ -64,6 +72,7 @@ Footer uses `DataContext` reflection to find these commands:
 - `ICommand HomeHoldEndCommand`
 
 ### Handling tab change
+
 ```csharp
 private void FooterControl_TabChanged(object? sender, string tabName)
 {
@@ -72,8 +81,9 @@ private void FooterControl_TabChanged(object? sender, string tabName)
 ```
 
 ### Wiring views to tabs (recommended pattern)
-1) Create the view classes (e.g., `AutoView`, `ManualView`, `DataView`, `CameraView`, `SettingView`, `LogView`).
-2) Instantiate them once in `MainWindow` and switch by tab name.
+
+1. Create the view classes (e.g., `AutoView`, `ManualView`, `DataView`, `CameraView`, `SettingView`, `LogView`).
+2. Instantiate them once in `MainWindow` and switch by tab name.
 
 ```csharp
 private readonly AutoView _autoView;
@@ -118,9 +128,11 @@ private void FooterControl_TabChanged(object? sender, string tabName)
 ## 3) InputField
 
 ### Purpose
+
 Validated input field with optional on-screen keyboard and numeric formatting.
 
 ### XAML usage
+
 ```xml
 <controls:InputField
     Text="{Binding OperatorName, UpdateSourceTrigger=PropertyChanged}"
@@ -137,6 +149,7 @@ Validated input field with optional on-screen keyboard and numeric formatting.
 ```
 
 ### Key properties
+
 - `Text` (string) or `Value` (object). Prefer `Value` for numeric types.
 - `ValueType`: `String`, `Int32`, `Float`, `Double`, `Decimal`.
 - `KeyboardType`: `Text` or `Numeric`.
@@ -148,9 +161,11 @@ Validated input field with optional on-screen keyboard and numeric formatting.
 ## 4) DisplayField
 
 ### Purpose
+
 Read-only value display with formatting and optional color zoning.
 
 ### XAML usage
+
 ```xml
 <controls:DisplayField
     Value="{Binding CurrentSpeed}"
@@ -172,11 +187,44 @@ Read-only value display with formatting and optional color zoning.
 ```
 
 ### Key properties
+
 - `Value` and `ValueType` (same enum as above but includes `DateTime`).
 - `DisplayDecimals` or `FormatString` for formatting.
 - `ColorZoneTarget`: `None`, `Border`, `Background`, `Text`.
 - `Threshold1/2/3` and `ZoneColor1/2/3/4` for zoning.
 
+## 5) ActionButton
+
+### Purpose
+
+Reusable button with normal/hover/pressed colors, optional blinking, icon placement, and click vs hold behavior.
+
+### XAML usage
+
+```xml
+<controls:ActionButton
+    Text="START"
+    Width="200"
+    Height="64"
+    NormalBackground="#4CAF50"
+    HoverBackground="#66BB6A"
+    PressedBackground="#388E3C"
+    BlinkBackground="#FFD54F"
+    IsBlinking="{Binding IsStartRequired}"
+    ClickCommand="{Binding StartCommand}"
+    HoldCommand="{Binding HomeHoldStartCommand}"
+    HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
+```
+
+### Key properties
+
+- Colors: `NormalBackground`, `HoverBackground`, `PressedBackground`, `BlinkBackground`.
+- Blink: `IsBlinking`, `BlinkIntervalMs`.
+- Hold: `HoldDelayMs`, `HoldCommand`, `HoldCompletedCommand`.
+- Icon: `Icon`, `IconPosition`, `IconSize`, `ShowIcon`, `ShowText`.
+- Layout: `ContentHorizontalAlignment`, `ContentVerticalAlignment`, `ContentPadding`, `CornerRadius`.
+
 ## Notes
+
 - Header and footer controls are designed for 1920x1080 layouts; they scale using `Viewbox`.
 - For new projects, keep bindings in a single main ViewModel to simplify onboarding.

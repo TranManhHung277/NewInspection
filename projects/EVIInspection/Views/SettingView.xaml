@@ -7,6 +7,13 @@
              xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <DrawingImage x:Key="ApplyIcon">
+            <DrawingImage.Drawing>
+                <GeometryDrawing Brush="#FFFFFF" Geometry="M3,10 L8,15 L21,2 L23,4 L8,19 L1,12 Z"/>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </UserControl.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -48,28 +55,37 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <controls:InputField Value="{Binding MachineNumber}"
-                                        Padding="0,10"
-                                        IsEnabled="False"
-                                        ValueType="Int32"
-                                        KeyboardType="Numeric"
-                                        AllowDecimal="False"
-                                        ShowKeyboardButton="True"/>
-                <controls:DisplayField Value="{Binding MachineNumber}"
-                                       Padding="0,10"
-                                       InputHeight="100"
-                                       InputFontSize="100"
-                                       HorizontalTextAlignment="Center"
-                                       InputFontWeight="Bold"
-                       ValueType="Int32"
-                       DisplayDecimals="2"/>
-                <controls:DisplayField Value="{Binding MachineNumber}" 
-                       ValueType="Int32"
-                       ColorZoneTarget="Border"
-                                       InputFontWeight="Bold"
-                       Threshold1="10" Threshold2="25" Threshold3="35"
-                       ZoneColor1="Blue" ZoneColor2="Green" 
-                       ZoneColor3="Orange" ZoneColor4="Red"/>
+                <controls:ActionButton
+                    Text="APPLY"
+                    Margin="0,16,0,0"
+                    Width="220"
+                    Height="64"
+                    FontSize="22"
+                    FontWeight="Bold"
+                    NormalBackground="#2196F3"
+                    HoverBackground="#42A5F5"
+                    PressedBackground="#1976D2"
+                    BlinkBackground="#FFD54F"
+                    IsBlinking="False"
+                    ContentHorizontalAlignment="Center"
+                    ContentVerticalAlignment="Center"
+                    ClickCommand="{Binding StartCommand}"/>
+
+                <controls:ActionButton
+                    Text="APPLY WITH ICON"
+                    Margin="0,12,0,0"
+                    Width="300"
+                    Height="64"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    NormalBackground="#455A64"
+                    HoverBackground="#546E7A"
+                    PressedBackground="#37474F"
+                    Icon="{StaticResource ApplyIcon}"
+                    IconPosition="Left"
+                    IconSize="22"
+                    ClickCommand="{Binding ResetCommand}"/>
+
 
             </StackPanel>
                
