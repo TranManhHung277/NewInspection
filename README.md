@@ -1,15 +1,20 @@
-# NAutoSuite UI Controls Guide
+# Huong Dan Su Dung NAutoSuite UI Controls
 
-This file documents how to use core UI controls in new WPF projects, including the ViewModel properties/commands you must add.
+Tai lieu nay huong dan cach dung cac control UI trong du an WPF moi, tap trung vao: can them bien/command gi trong ViewModel, va cach wiring cho ro rang, de de huong dan nguoi khac.
 
-## Prerequisites
+## 1) Chuan bi truoc khi dung
 
-- Add project reference to `src/UI/NAutoSuite.UI.Controls/NAutoSuite.UI.Controls.csproj`.
-- Merge the UI theme resources if your app does not already do so.
+Ban can:
+- Them project reference toi `src/UI/NAutoSuite.UI.Controls/NAutoSuite.UI.Controls.csproj`.
+- Cau hinh theme/resources neu du an cua ban chua merge cac resource chung.
 
-A common pattern is: one `MainViewModel` owns header/footer state and commands, and `MainWindow` switches views based on footer tab events.
+Mot pattern de quan ly ro rang:
+- Dung 1 `MainViewModel` de giu state cua header/footer + command.
+- `MainWindow` chi lam nhiem vu switch view theo tab.
 
-## Minimal MainViewModel template (recommended)
+## 2) Mau MainViewModel toi thieu (khuyen nghi)
+
+Copy mau nay roi them logic thuc te sau:
 
 ```csharp
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -27,10 +32,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private MachineRunMode _runMode = MachineRunMode.Auto;
     [ObservableProperty] private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
 
-    // Content navigation
+    // Noi dung dang hien thi
     [ObservableProperty] private object? _currentView;
 
-    // Footer commands (ShellFooterControl expects these names)
+    // Command cho footer (giu dung ten nay de binding de dang)
     public IRelayCommand StartCommand { get; }
     public IRelayCommand StopCommand { get; }
     public IRelayCommand ResetCommand { get; }
@@ -56,13 +61,21 @@ public partial class MainViewModel : ObservableObject
 }
 ```
 
-## 1) ShellHeaderControl
+## 3) ShellHeaderControl
 
-### Purpose
+### Muc dich
+Thanh header tren cung: so may, trang thai, ten du an/model, run mode, muc canh bao.
 
-Top header bar that shows machine info, project/model name, run mode, and status.
+### Cac bien can co trong ViewModel
+Ban can (toi thieu):
+- `int MachineNumber`
+- `MachineState MachineState`
+- `string ProjectName`
+- `string ModelName`
+- `MachineRunMode RunMode`
+- `HeaderStatusLevel HeaderStatusLevel`
 
-### XAML usage
+### Cach dung trong XAML
 
 ```xml
 <Window
@@ -81,30 +94,27 @@ Top header bar that shows machine info, project/model name, run mode, and status
 </Window>
 ```
 
-### Required ViewModel properties
+### Su kien
+- `HeaderClicked`: thuong dung de nhay ve tab mac dinh.
+- `MinimizeClicked`: thu nho cua so.
+- `CloseClicked`: dong chuong trinh (thuong co confirm).
 
-Add these to your ViewModel:
+## 4) ShellFooterControl (da chuan MVVM voi ICommand)
 
-- `int MachineNumber`
-- `MachineState MachineState` (from `NAutoSuite.Core.Machine`)
-- `string ProjectName`
-- `string ModelName`
-- `MachineRunMode RunMode` (from `NAutoSuite.Core.Machine`)
-- `HeaderStatusLevel HeaderStatusLevel` (from `NAutoSuite.UI.Controls`)
+### Muc dich
+Thanh dieu huong ben duoi + nut START/STOP/RESET/HOME.
 
-### Events
+### Quan trong: footer da dung DependencyProperty cho command
+Ban phai bind command mot cach ro rang trong XAML (khong nen trong cho DataContext tu tim).
 
-- `HeaderClicked`: optional, typically used to jump to a default tab.
-- `MinimizeClicked`: minimize window.
-- `CloseClicked`: confirm exit.
+### Cac command can co trong ViewModel
+- `ICommand StartCommand`
+- `ICommand StopCommand`
+- `ICommand ResetCommand`
+- `ICommand HomeHoldStartCommand`
+- `ICommand HomeHoldEndCommand`
 
-## 2) ShellFooterControl
-
-### Purpose
-
-Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and action buttons (Start/Stop/Reset/Home).
-
-### XAML usage
+### Cach dung trong XAML (khuyen nghi copy dung)
 
 ```xml
 <controls:ShellFooterControl
@@ -117,33 +127,21 @@ Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and a
     TabChanged="FooterControl_TabChanged"/>
 ```
 
-### Required ViewModel commands
-
-`ShellFooterControl` exposes command dependency properties. Bind them from your ViewModel using these exact names:
-
-- `ICommand StartCommand`
-- `ICommand StopCommand`
-- `ICommand ResetCommand`
-- `ICommand HomeHoldStartCommand`
-- `ICommand HomeHoldEndCommand`
-
-Using CommunityToolkit, define them as `IRelayCommand` like in the template above.
-
-Important: because commands are now dependency properties on the control, you should always bind them explicitly in XAML (as shown in the XAML usage block), not rely on implicit `DataContext` lookup.
-
-### Handling tab change
+### Xu ly chuyen tab
 
 ```csharp
 private void FooterControl_TabChanged(object? sender, string tabName)
 {
-    // tabName is one of: Auto, Manual, Data, Camera, Setting, Log
+    // tabName: Auto, Manual, Data, Camera, Setting, Log
 }
 ```
 
-### Wiring views to tabs (recommended pattern)
+### Wiring view theo tab (pattern ro rang, de day nguoi khac)
 
-1. Create the view classes (e.g., `AutoView`, `ManualView`, `DataView`, `CameraView`, `SettingView`, `LogView`).
-2. Instantiate them once in `MainWindow` and switch by tab name.
+Buoc 1: Tao cac view:
+- `AutoView`, `ManualView`, `DataView`, `CameraView`, `SettingView`, `LogView`
+
+Buoc 2: Tao 1 lan trong `MainWindow`, sau do switch theo tab:
 
 ```csharp
 private readonly AutoView _autoView;
@@ -185,18 +183,18 @@ private void FooterControl_TabChanged(object? sender, string tabName)
 }
 ```
 
-## 3) InputField
+## 5) InputField
 
-### Purpose
+### Muc dich
+O nhap co validate + ban phim ao + format so.
 
-Validated input field with optional on-screen keyboard and numeric formatting.
+### Bien can co trong ViewModel
+Vi du:
+- `string OperatorName`
+- `double TargetSpeed`
+- hoac `int`, `decimal`, ...
 
-### ViewModel properties to add
-
-- For text input: `string OperatorName`
-- For numeric input: `double TargetSpeed` (or `int`, etc.)
-
-### XAML usage
+### Cach dung
 
 ```xml
 <controls:InputField
@@ -213,27 +211,25 @@ Validated input field with optional on-screen keyboard and numeric formatting.
     CommitOnEnter="True"/>
 ```
 
-### Key properties
-
-- `Text` (string) or `Value` (object). Prefer `Value` for numeric types.
+### Thuoc tinh hay dung
+- `Text` (chuoi) hoac `Value` (so). Neu la so, uu tien `Value`.
 - `ValueType`: `String`, `Int32`, `Float`, `Double`, `Decimal`.
-- `KeyboardType`: `Text` or `Numeric`.
-- `ValidationMode`: `None`, `Uppercase`, `Phone`, `IpAddress`, `MacAddress`, `Email`.
-- `MinValue` / `MaxValue` for numeric range validation.
-- `CommitOnEnter`: if true, commits only when Enter is pressed.
-- `ShowKeyboardButton`: shows the keyboard button.
+- `ValidationMode`: `Uppercase`, `Phone`, `IpAddress`, ...
+- `MinValue` / `MaxValue`: rang buoc so.
+- `ShowKeyboardButton`: bat nut ban phim ao.
 
-## 4) DisplayField
+## 6) DisplayField
 
-### Purpose
+### Muc dich
+Hien thi du lieu read-only, co format va color-zone.
 
-Read-only value display with formatting and optional color zoning.
+### Bien can co trong ViewModel
+Vi du:
+- `double CurrentSpeed`
+- `double Temperature`
+- `DateTime LastUpdateTime`
 
-### ViewModel properties to add
-
-- Example: `double CurrentSpeed`, `double Temperature`, or `DateTime LastUpdateTime`
-
-### XAML usage
+### Cach dung
 
 ```xml
 <controls:DisplayField
@@ -255,43 +251,29 @@ Read-only value display with formatting and optional color zoning.
     ZoneColor4="#C62828"/>
 ```
 
-### Key properties
+## 7) ActionButton
 
-- `Value` and `ValueType` (same enum as above but includes `DateTime`).
-- `DisplayDecimals` or `FormatString` for formatting.
-- `ColorZoneTarget`: `None`, `Border`, `Background`, `Text`.
-- `Threshold1/2/3` and `ZoneColor1/2/3/4` for zoning.
+### Muc dich
+Nut nhan nang cao: mau theo state, blink, toggle, nhan giu, icon.
 
-## 5) ActionButton
-
-### Purpose
-
-Reusable button with normal/hover/pressed colors, optional blinking, icon placement, toggle mode, and click vs hold behavior.
-
-### ViewModel properties/commands to add
-
+### Bien/command can co trong ViewModel
+Tuy muc dich:
 - Click: `ICommand StartCommand`
 - Hold: `ICommand HomeHoldStartCommand`, `ICommand HomeHoldEndCommand`
-- Toggle: `bool IsAutoMode` (bind to `IsChecked`)
+- Toggle: `bool IsAutoMode`
 
-### XAML usage
+### Dung co ban
 
 ```xml
 <controls:ActionButton
     Text="START"
-    Width="200"
-    Height="64"
     NormalBackground="#4CAF50"
     HoverBackground="#66BB6A"
     PressedBackground="#388E3C"
-    BlinkBackground="#FFD54F"
-    IsBlinking="{Binding IsStartRequired}"
-    ClickCommand="{Binding StartCommand}"
-    HoldCommand="{Binding HomeHoldStartCommand}"
-    HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
+    ClickCommand="{Binding StartCommand}"/>
 ```
 
-### Toggle usage
+### Toggle + doi text khi toggle
 
 ```xml
 <controls:ActionButton
@@ -300,11 +282,10 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
     IsToggle="True"
     IsChecked="{Binding IsAutoMode}"
     NormalBackground="#37474F"
-    CheckedBackground="#1E88E5"
-    ClickCommand="{Binding ToggleAutoModeCommand}"/>
+    CheckedBackground="#1E88E5"/>
 ```
 
-### Hold usage (press and hold)
+### Nhan giu (co the set thoi gian giu)
 
 ```xml
 <controls:ActionButton
@@ -314,7 +295,7 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
     HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
 ```
 
-### Icon usage
+### Them icon
 
 ```xml
 <controls:ActionButton
@@ -325,28 +306,21 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
     ClickCommand="{Binding ResetCommand}"/>
 ```
 
-### Key properties
-
-- Colors: `NormalBackground`, `HoverBackground`, `PressedBackground`, `BlinkBackground`.
-- Toggle: `IsToggle`, `IsChecked`, `CheckedBackground`, `CheckedText`.
+### Cac thuoc tinh quan trong
+- Mau: `NormalBackground`, `HoverBackground`, `PressedBackground`, `BlinkBackground`.
 - Blink: `IsBlinking`, `BlinkIntervalMs`.
-- Hold: `HoldDelayMs` (milliseconds), `HoldCommand`, `HoldCompletedCommand`.
+- Toggle: `IsToggle`, `IsChecked`, `CheckedBackground`, `CheckedText`.
+- Hold: `HoldDelayMs`, `HoldCommand`, `HoldCompletedCommand`.
 - Icon: `Icon`, `IconPosition`, `IconSize`, `ShowIcon`, `ShowText`.
 - Layout: `ContentHorizontalAlignment`, `ContentVerticalAlignment`, `ContentPadding`, `CornerRadius`.
 
-## 6) LogPanel
+## 8) LogPanel
 
-### Purpose
-Reusable log viewer with filtering, search, export, and clear actions.
+### Muc dich
+Bang log co filter, search, export, clear.
 
-### Steps to use in a new project
-1) Configure Serilog to forward logs to the UI sink.
-2) Place the control in your view.
-3) (Optional) override the DataContext if you want to control logs manually.
-
-### 1) Serilog setup (required for automatic logs)
-
-In your app startup logging configuration:
+### Cach dung nhanh trong project
+Buoc 1 (quan trong): cau hinh Serilog day log len UI sink.
 
 ```csharp
 using NAutoSuite.UI.Controls.Services;
@@ -360,19 +334,17 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 ```
 
-### 2) XAML usage
+Buoc 2: dat control vao view:
 
 ```xml
 <controls:LogPanel Title="System Logs"/>
 ```
 
-### 3) ViewModel requirements
-- None by default. `LogPanel` creates and owns its own `LogPanelViewModel`.
-- If you want full control, set `DataContext` explicitly to your own `LogPanelViewModel`.
+### ViewModel can gi?
+- Mac dinh: khong can them gi. `LogPanel` tu co ViewModel rieng.
 
-### Manual logging (optional)
-
-You can log directly without Serilog:
+### Log thu cong (tuy chon)
+Neu ban dat ten x:Name cho panel:
 
 ```csharp
 MyLogPanel.LogInfo("Connected to device");
@@ -380,8 +352,7 @@ MyLogPanel.LogWarning("Pressure is low");
 MyLogPanel.LogError("Failed to start", ex.ToString());
 ```
 
-## Notes
+## Ghi chu cuoi
 
-- Header and footer controls are designed for 1920x1080 layouts; they scale using `Viewbox`.
-- For new projects, keep bindings in a single main ViewModel to simplify onboarding.
-
+- Header/Footer toi uu cho 1920x1080 va co scale bang `Viewbox`.
+- De de huong dan nguoi khac: giu tat ca binding va command trong 1 `MainViewModel`, va chi de `MainWindow` lam switch view.
