@@ -1,4 +1,4 @@
-<UserControl x:Class="NAutoSuite.UI.Controls.ShellFooterControl"
+﻿<UserControl x:Class="NAutoSuite.UI.Controls.ShellFooterControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -54,7 +54,7 @@
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
                             MouseLeftButtonDown="Tab_Click" Tag="Auto">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="▶" FontSize="28" Foreground="#2196F3"
+                            <TextBlock Text="▶" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#2196F3"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="AUTO" FontSize="28" Foreground="White" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -66,33 +66,33 @@
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
                             MouseLeftButtonDown="Tab_Click" Tag="Manual">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="🎮" FontSize="28" Foreground="#B0B0B0"
+                            <TextBlock Text="✋" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#B0B0B0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="MANUAL" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- IO Tab -->
-                    <Border x:Name="IOTab" Background="Transparent" BorderBrush="#3E3E42"
+                    <!-- Data Tab -->
+                    <Border x:Name="TeachTab" Background="Transparent" BorderBrush="#3E3E42"
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
-                            MouseLeftButtonDown="Tab_Click" Tag="IO">
+                            MouseLeftButtonDown="Tab_Click" Tag="Data">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="🔌" FontSize="28" Foreground="#B0B0B0"
+                            <TextBlock Text="▦" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#B0B0B0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="I/O" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                            <TextBlock Text="DATA" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Teach Tab -->
-                    <Border x:Name="TeachTab" Background="Transparent" BorderBrush="#3E3E42"
+                    <!-- Camera Tab -->
+                    <Border x:Name="CameraTab" Background="Transparent" BorderBrush="#3E3E42"
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
-                            MouseLeftButtonDown="Tab_Click" Tag="Teach">
+                            MouseLeftButtonDown="Tab_Click" Tag="Camera">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="📐" FontSize="28" Foreground="#B0B0B0"
+                            <TextBlock Text="📷" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#B0B0B0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="TEACH" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
+                            <TextBlock Text="CAMERA" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
@@ -102,7 +102,7 @@
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
                             MouseLeftButtonDown="Tab_Click" Tag="Setting">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="⚙" FontSize="28" Foreground="#B0B0B0"
+                            <TextBlock Text="⚙" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#B0B0B0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="SETTING" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -114,7 +114,7 @@
                             BorderThickness="0,0,1,0" Cursor="Hand" Width="200"
                             MouseLeftButtonDown="Tab_Click" Tag="Log">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Text="📝" FontSize="28" Foreground="#B0B0B0"
+                            <TextBlock Text="✎" FontFamily="Segoe UI Symbol" FontSize="28" Foreground="#B0B0B0"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="LOG" FontSize="28" Foreground="#B0B0B0" FontWeight="Bold"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -131,3 +131,4 @@
         </Grid>
     </Border>
 </UserControl>
+

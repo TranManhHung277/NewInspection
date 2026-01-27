@@ -46,7 +46,7 @@ Top header bar that shows machine info, project/model name, run mode, and status
 ## 2) ShellFooterControl
 
 ### Purpose
-Bottom navigation bar with tabs (Auto, Manual, IO, Teach, Setting, Log) and action buttons (Start/Stop/Reset/Home).
+Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and action buttons (Start/Stop/Reset/Home).
 
 ### XAML usage
 ```xml
@@ -67,7 +67,51 @@ Footer uses `DataContext` reflection to find these commands:
 ```csharp
 private void FooterControl_TabChanged(object? sender, string tabName)
 {
-    // tabName is one of: Auto, Manual, IO, Teach, Setting, Log
+    // tabName is one of: Auto, Manual, Data, Camera, Setting, Log
+}
+```
+
+### Wiring views to tabs (recommended pattern)
+1) Create the view classes (e.g., `AutoView`, `ManualView`, `DataView`, `CameraView`, `SettingView`, `LogView`).
+2) Instantiate them once in `MainWindow` and switch by tab name.
+
+```csharp
+private readonly AutoView _autoView;
+private readonly ManualView _manualView;
+private readonly DataView _dataView;
+private readonly CameraView _cameraView;
+private readonly SettingView _settingView;
+private readonly LogView _logView;
+
+public MainWindow(MainViewModel viewModel)
+{
+    InitializeComponent();
+    DataContext = viewModel;
+
+    _autoView = new AutoView { DataContext = viewModel };
+    _manualView = new ManualView { DataContext = viewModel };
+    _dataView = new DataView { DataContext = viewModel };
+    _cameraView = new CameraView { DataContext = viewModel };
+    _settingView = new SettingView { DataContext = viewModel };
+    _logView = new LogView();
+
+    viewModel.NavigateToView(_autoView);
+}
+
+private void FooterControl_TabChanged(object? sender, string tabName)
+{
+    object view = tabName switch
+    {
+        "Auto" => _autoView,
+        "Manual" => _manualView,
+        "Data" => _dataView,
+        "Camera" => _cameraView,
+        "Setting" => _settingView,
+        "Log" => _logView,
+        _ => _autoView
+    };
+
+    ((MainViewModel)DataContext).NavigateToView(view);
 }
 ```
 

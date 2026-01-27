@@ -28,6 +28,7 @@ namespace EVIInspection
         private readonly SettingView _settingView;
         private readonly LogView _logView;
         private readonly TeachView _teachView;
+        private readonly CameraView _cameraView;
         private string _lastTab = "Auto";
         public MainWindow(MainViewModel viewModel)
         {
@@ -41,6 +42,7 @@ namespace EVIInspection
             _manualView = new ManualView { DataContext = _viewModel };
             _ioView = new IOView { DataContext = _viewModel };
             _teachView = new TeachView { DataContext = _teachView };
+            _cameraView = new CameraView { DataContext = _viewModel };
             _settingView = new SettingView { DataContext = _viewModel };
             _logView = new LogView();
 
@@ -89,8 +91,8 @@ namespace EVIInspection
             {
                 "Auto" => (object)_autoView,
                 "Manual" => (object)_manualView,
-                "IO" => (object)_ioView,
-                "Teach" => (object)_teachView,
+                "Data" => (object)_teachView,
+                "Camera" => (object)_cameraView,
                 "Setting" => (object)_settingView,
                 "Log" => (object)_logView,
                 _ => (object)_autoView

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Machine;
 using NAutoSuite.UI.Controls;
@@ -24,8 +25,20 @@ namespace EVIInspection.ViewModels
         [ObservableProperty]
         private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
 
+        public IRelayCommand StartCommand { get; }
+        public IRelayCommand StopCommand { get; }
+        public IRelayCommand ResetCommand { get; }
+        public IRelayCommand HomeHoldStartCommand { get; }
+        public IRelayCommand HomeHoldEndCommand { get; }
+
         public MainViewModel(HardwareMinimalConfig config)
         {
+            StartCommand = new RelayCommand(OnStart);
+            StopCommand = new RelayCommand(OnStop);
+            ResetCommand = new RelayCommand(OnReset);
+            HomeHoldStartCommand = new RelayCommand(OnHomeHoldStart);
+            HomeHoldEndCommand = new RelayCommand(OnHomeHoldEnd);
+
             ApplyAppConfig(config?.App);
             UpdateHeaderStatusLevel();
         }
@@ -74,6 +87,26 @@ namespace EVIInspection.ViewModels
             {
                 MachineNumber = app.Machine;
             }
+        }
+
+        private void OnStart()
+        {
+        }
+
+        private void OnStop()
+        {
+        }
+
+        private void OnReset()
+        {
+        }
+
+        private void OnHomeHoldStart()
+        {
+        }
+
+        private void OnHomeHoldEnd()
+        {
         }
     }
 }
