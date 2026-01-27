@@ -4,9 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
-        xmlns:local="clr-namespace:EVIInspection"
+        xmlns:local="clr-namespace:EVIInspection" xmlns:viewmodels="clr-namespace:EVIInspection.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="EVI Inspection" Height="1080" Width="1920"
+        Title="EVI INSPECTION" Height="1080" Width="1920"
         WindowState="Maximized"
         WindowStyle="None">
 
@@ -39,6 +39,11 @@
 
         <!-- Footer Navigation -->
         <controls:ShellFooterControl Grid.Row="2" x:Name="FooterControl"
-                                    TabChanged="FooterControl_TabChanged"/>
+                                     StartCommand ="{Binding StartCommand}" 
+                                     StopCommand="{Binding StopCommand}" 
+                                     ResetCommand="{Binding ResetCommand}"
+                                     HomeHoldEndCommand="{Binding HomeHoldEndCommand}"
+                                     HomeHoldStartCommand="{Binding HomeHoldStartCommand}"
+                                     TabChanged="FooterControl_TabChanged"/>
     </Grid>
 </Window>

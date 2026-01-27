@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Machine;
@@ -93,6 +93,7 @@ namespace EVIInspection.ViewModels
 
         private void OnStart()
         {
+            ModernMessageBox.Show("bạn đã nhấn nút start!");
         }
 
         private void OnStop()

@@ -6,6 +6,14 @@
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
     <Grid Background="#1E1E1E">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"></ColumnDefinition>
+            <ColumnDefinition Width="10*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="12*"></RowDefinition>
+            <RowDefinition Height="4*"></RowDefinition>
+        </Grid.RowDefinitions>
         <TextBlock Text="CAMERA"
                    Foreground="#FFFFFF"
                    FontSize="32"
