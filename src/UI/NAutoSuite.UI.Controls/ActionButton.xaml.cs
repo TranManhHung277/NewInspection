@@ -18,7 +18,21 @@ public partial class ActionButton : UserControl
 {
     public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(ActionButton),
+            new PropertyMetadata(string.Empty, OnTextRelatedChanged));
+
+    public static readonly DependencyProperty CheckedTextProperty =
+        DependencyProperty.Register(nameof(CheckedText), typeof(string), typeof(ActionButton),
+            new PropertyMetadata(string.Empty, OnTextRelatedChanged));
+
+    public static readonly DependencyProperty UseCheckedTextProperty =
+        DependencyProperty.Register(nameof(UseCheckedText), typeof(bool), typeof(ActionButton),
+            new PropertyMetadata(true, OnTextRelatedChanged));
+
+    private static readonly DependencyPropertyKey DisplayTextPropertyKey =
+        DependencyProperty.RegisterReadOnly(nameof(DisplayText), typeof(string), typeof(ActionButton),
             new PropertyMetadata(string.Empty));
+
+    public static readonly DependencyProperty DisplayTextProperty = DisplayTextPropertyKey.DependencyProperty;
 
     public static readonly DependencyProperty IconProperty =
         DependencyProperty.Register(nameof(Icon), typeof(ImageSource), typeof(ActionButton),
@@ -75,6 +89,18 @@ public partial class ActionButton : UserControl
     public static readonly DependencyProperty BlinkBackgroundProperty =
         DependencyProperty.Register(nameof(BlinkBackground), typeof(Brush), typeof(ActionButton),
             new PropertyMetadata(Brushes.Orange, OnVisualChanged));
+
+    public static readonly DependencyProperty IsToggleProperty =
+        DependencyProperty.Register(nameof(IsToggle), typeof(bool), typeof(ActionButton),
+            new PropertyMetadata(false));
+
+    public static readonly DependencyProperty IsCheckedProperty =
+        DependencyProperty.Register(nameof(IsChecked), typeof(bool), typeof(ActionButton),
+            new PropertyMetadata(false, OnCheckedChanged));
+
+    public static readonly DependencyProperty CheckedBackgroundProperty =
+        DependencyProperty.Register(nameof(CheckedBackground), typeof(Brush), typeof(ActionButton),
+            new PropertyMetadata(Brushes.SteelBlue, OnVisualChanged));
 
     public static readonly DependencyProperty IsBlinkingProperty =
         DependencyProperty.Register(nameof(IsBlinking), typeof(bool), typeof(ActionButton),
@@ -142,6 +168,7 @@ public partial class ActionButton : UserControl
 
         Loaded += (_, _) => UpdateLayoutForIcon();
         Loaded += (_, _) => UpdateIconVisibility();
+        Loaded += (_, _) => UpdateDisplayText();
 
         MouseEnter += (_, _) => UpdateVisualState();
         MouseLeave += (_, _) =>
@@ -157,6 +184,24 @@ public partial class ActionButton : UserControl
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+
+    public string CheckedText
+    {
+        get => (string)GetValue(CheckedTextProperty);
+        set => SetValue(CheckedTextProperty, value);
+    }
+
+    public bool UseCheckedText
+    {
+        get => (bool)GetValue(UseCheckedTextProperty);
+        set => SetValue(UseCheckedTextProperty, value);
+    }
+
+    public string DisplayText
+    {
+        get => (string)GetValue(DisplayTextProperty);
+        private set => SetValue(DisplayTextPropertyKey, value);
     }
 
     public ImageSource? Icon
@@ -243,6 +288,24 @@ public partial class ActionButton : UserControl
         set => SetValue(BlinkBackgroundProperty, value);
     }
 
+    public bool IsToggle
+    {
+        get => (bool)GetValue(IsToggleProperty);
+        set => SetValue(IsToggleProperty, value);
+    }
+
+    public bool IsChecked
+    {
+        get => (bool)GetValue(IsCheckedProperty);
+        set => SetValue(IsCheckedProperty, value);
+    }
+
+    public Brush CheckedBackground
+    {
+        get => (Brush)GetValue(CheckedBackgroundProperty);
+        set => SetValue(CheckedBackgroundProperty, value);
+    }
+
     public bool IsBlinking
     {
         get => (bool)GetValue(IsBlinkingProperty);
@@ -323,6 +386,23 @@ public partial class ActionButton : UserControl
         }
     }
 
+    private static void OnCheckedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ActionButton control)
+        {
+            control.UpdateDisplayText();
+            control.UpdateVisualState();
+        }
+    }
+
+    private static void OnTextRelatedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ActionButton control)
+        {
+            control.UpdateDisplayText();
+        }
+    }
+
     private static void OnShowIconChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ActionButton control)
@@ -358,6 +438,17 @@ public partial class ActionButton : UserControl
         IconImage.Visibility = Icon == null ? Visibility.Collapsed : ShowIcon;
     }
 
+    private void UpdateDisplayText()
+    {
+        if (IsToggle && IsChecked && UseCheckedText && !string.IsNullOrWhiteSpace(CheckedText))
+        {
+            DisplayText = CheckedText;
+            return;
+        }
+
+        DisplayText = Text;
+    }
+
     private void UpdateBlink()
     {
         if (IsBlinking)
@@ -388,6 +479,12 @@ public partial class ActionButton : UserControl
         if (IsBlinking && _blinkOn)
         {
             RootBorder.Background = BlinkBackground;
+            return;
+        }
+
+        if (IsToggle && IsChecked)
+        {
+            RootBorder.Background = CheckedBackground;
             return;
         }
 
@@ -446,6 +543,11 @@ public partial class ActionButton : UserControl
 
     private void RaiseClicked()
     {
+        if (IsToggle)
+        {
+            IsChecked = !IsChecked;
+        }
+
         Clicked?.Invoke(this, new RoutedEventArgs());
         if (ClickCommand?.CanExecute(null) == true)
         {

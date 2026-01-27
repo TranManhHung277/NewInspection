@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.Core.Machine;
 using NAutoSuite.UI.Controls;
+using NAutoSuite.UI.Controls.Dialogs;
+using System.Windows;
 
 namespace EVIInspection.ViewModels
 {
@@ -107,6 +109,12 @@ namespace EVIInspection.ViewModels
 
         private void OnHomeHoldEnd()
         {
+            ModernMessageBox.Show(
+                "Ban da nhan giu du thoi gian.",
+                "Hold Completed",
+                ModernMessageBox.MessageBoxType.Success,
+                ModernMessageBox.MessageBoxButtons.OK,
+                ModernMessageBox.ButtonStyle.Primary);
         }
     }
 }

@@ -5,8 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:EVIInspection.Views"
              xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d" d:DesignWidth="800" Height="572">
     <UserControl.Resources>
         <DrawingImage x:Key="ApplyIcon">
             <DrawingImage.Drawing>
@@ -27,7 +26,7 @@
         <!-- Content -->
         <Grid Grid.Row="1">
             <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                
+
                 <controls:InputField x:Name="MachineNumberInput"
                                      Value="{Binding MachineNumber}"
                                      MaxValue="99"
@@ -86,11 +85,39 @@
                     IconSize="22"
                     ClickCommand="{Binding ResetCommand}"/>
 
+                <controls:ActionButton
+                    Text="AUTO MODE"
+                    CheckedText="MANUAL MODE"
+                    Margin="0,12,0,0"
+                    Width="260"
+                    Height="64"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    IsToggle="True"
+                    NormalBackground="#5D4037"
+                    HoverBackground="#6D4C41"
+                    PressedBackground="#4E342E"
+                    CheckedBackground="#2E7D32"/>
+
+                <controls:ActionButton
+                    Text="HOLD 1.5S"
+                    Margin="0,12,0,0"
+                    Width="260"
+                    Height="64"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    NormalBackground="#6A1B9A"
+                    HoverBackground="#7B1FA2"
+                    PressedBackground="#4A148C"
+                    HoldDelayMs="1500"
+                    HoldCommand="{Binding HomeHoldStartCommand}"
+                    HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
+
 
             </StackPanel>
-               
 
-                           
+
+
 
         </Grid>
     </Grid>

@@ -216,11 +216,34 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
     HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
 ```
 
+### Toggle usage
+
+```xml
+<controls:ActionButton
+    Text="AUTO MODE"
+    IsToggle="True"
+    IsChecked="{Binding IsAutoMode}"
+    NormalBackground="#37474F"
+    CheckedBackground="#1E88E5"
+    ClickCommand="{Binding ToggleAutoModeCommand}"/>
+```
+
+### Hold usage (press and hold)
+
+```xml
+<controls:ActionButton
+    Text="HOME (HOLD)"
+    HoldDelayMs="1500"
+    HoldCommand="{Binding HomeHoldStartCommand}"
+    HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
+```
+
 ### Key properties
 
 - Colors: `NormalBackground`, `HoverBackground`, `PressedBackground`, `BlinkBackground`.
+- Toggle: `IsToggle`, `IsChecked`, `CheckedBackground`.
 - Blink: `IsBlinking`, `BlinkIntervalMs`.
-- Hold: `HoldDelayMs`, `HoldCommand`, `HoldCompletedCommand`.
+- Hold: `HoldDelayMs` (milliseconds), `HoldCommand`, `HoldCompletedCommand`.
 - Icon: `Icon`, `IconPosition`, `IconSize`, `ShowIcon`, `ShowText`.
 - Layout: `ContentHorizontalAlignment`, `ContentVerticalAlignment`, `ContentPadding`, `CornerRadius`.
 

@@ -25,7 +25,7 @@
                        Stretch="Uniform"
                        Visibility="{Binding ShowIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                 <TextBlock x:Name="TextBlock"
-                           Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           Text="{Binding DisplayText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
                            FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
                            FontFamily="{Binding FontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
