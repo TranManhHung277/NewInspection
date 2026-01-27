@@ -1,11 +1,60 @@
 # NAutoSuite UI Controls Guide
 
-This file documents how to use core UI controls in new WPF projects.
+This file documents how to use core UI controls in new WPF projects, including the ViewModel properties/commands you must add.
 
 ## Prerequisites
 
 - Add project reference to `src/UI/NAutoSuite.UI.Controls/NAutoSuite.UI.Controls.csproj`.
 - Merge the UI theme resources if your app does not already do so.
+
+A common pattern is: one `MainViewModel` owns header/footer state and commands, and `MainWindow` switches views based on footer tab events.
+
+## Minimal MainViewModel template (recommended)
+
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using NAutoSuite.Core.Machine;
+using NAutoSuite.UI.Controls;
+
+public partial class MainViewModel : ObservableObject
+{
+    // Header bindings
+    [ObservableProperty] private int _machineNumber = 1;
+    [ObservableProperty] private string _projectName = "My Project";
+    [ObservableProperty] private string _modelName = "Default";
+    [ObservableProperty] private MachineState _machineState = MachineState.Uninitialized;
+    [ObservableProperty] private MachineRunMode _runMode = MachineRunMode.Auto;
+    [ObservableProperty] private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
+
+    // Content navigation
+    [ObservableProperty] private object? _currentView;
+
+    // Footer commands (ShellFooterControl expects these names)
+    public IRelayCommand StartCommand { get; }
+    public IRelayCommand StopCommand { get; }
+    public IRelayCommand ResetCommand { get; }
+    public IRelayCommand HomeHoldStartCommand { get; }
+    public IRelayCommand HomeHoldEndCommand { get; }
+
+    public MainViewModel()
+    {
+        StartCommand = new RelayCommand(OnStart);
+        StopCommand = new RelayCommand(OnStop);
+        ResetCommand = new RelayCommand(OnReset);
+        HomeHoldStartCommand = new RelayCommand(OnHomeHoldStart);
+        HomeHoldEndCommand = new RelayCommand(OnHomeHoldEnd);
+    }
+
+    public void NavigateToView(object view) => CurrentView = view;
+
+    private void OnStart() { }
+    private void OnStop() { }
+    private void OnReset() { }
+    private void OnHomeHoldStart() { }
+    private void OnHomeHoldEnd() { }
+}
+```
 
 ## 1) ShellHeaderControl
 
@@ -33,6 +82,8 @@ Top header bar that shows machine info, project/model name, run mode, and status
 ```
 
 ### Required ViewModel properties
+
+Add these to your ViewModel:
 
 - `int MachineNumber`
 - `MachineState MachineState` (from `NAutoSuite.Core.Machine`)
@@ -63,13 +114,15 @@ Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and a
 
 ### Required ViewModel commands
 
-Footer uses `DataContext` reflection to find these commands:
+`ShellFooterControl` uses the control `DataContext` and expects these command properties to exist with these exact names:
 
 - `ICommand StartCommand`
 - `ICommand StopCommand`
 - `ICommand ResetCommand`
 - `ICommand HomeHoldStartCommand`
 - `ICommand HomeHoldEndCommand`
+
+Using CommunityToolkit, define them as `IRelayCommand` like in the template above.
 
 ### Handling tab change
 
@@ -131,6 +184,11 @@ private void FooterControl_TabChanged(object? sender, string tabName)
 
 Validated input field with optional on-screen keyboard and numeric formatting.
 
+### ViewModel properties to add
+
+- For text input: `string OperatorName`
+- For numeric input: `double TargetSpeed` (or `int`, etc.)
+
 ### XAML usage
 
 ```xml
@@ -163,6 +221,10 @@ Validated input field with optional on-screen keyboard and numeric formatting.
 ### Purpose
 
 Read-only value display with formatting and optional color zoning.
+
+### ViewModel properties to add
+
+- Example: `double CurrentSpeed`, `double Temperature`, or `DateTime LastUpdateTime`
 
 ### XAML usage
 
@@ -197,7 +259,13 @@ Read-only value display with formatting and optional color zoning.
 
 ### Purpose
 
-Reusable button with normal/hover/pressed colors, optional blinking, icon placement, and click vs hold behavior.
+Reusable button with normal/hover/pressed colors, optional blinking, icon placement, toggle mode, and click vs hold behavior.
+
+### ViewModel properties/commands to add
+
+- Click: `ICommand StartCommand`
+- Hold: `ICommand HomeHoldStartCommand`, `ICommand HomeHoldEndCommand`
+- Toggle: `bool IsAutoMode` (bind to `IsChecked`)
 
 ### XAML usage
 
@@ -220,7 +288,8 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
 
 ```xml
 <controls:ActionButton
-    Text="AUTO MODE"
+    Text="AUTO OFF"
+    CheckedText="AUTO ON"
     IsToggle="True"
     IsChecked="{Binding IsAutoMode}"
     NormalBackground="#37474F"
@@ -238,10 +307,21 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
     HoldCompletedCommand="{Binding HomeHoldEndCommand}"/>
 ```
 
+### Icon usage
+
+```xml
+<controls:ActionButton
+    Text="APPLY"
+    Icon="{StaticResource ApplyIcon}"
+    IconPosition="Left"
+    IconSize="22"
+    ClickCommand="{Binding ResetCommand}"/>
+```
+
 ### Key properties
 
 - Colors: `NormalBackground`, `HoverBackground`, `PressedBackground`, `BlinkBackground`.
-- Toggle: `IsToggle`, `IsChecked`, `CheckedBackground`.
+- Toggle: `IsToggle`, `IsChecked`, `CheckedBackground`, `CheckedText`.
 - Blink: `IsBlinking`, `BlinkIntervalMs`.
 - Hold: `HoldDelayMs` (milliseconds), `HoldCommand`, `HoldCompletedCommand`.
 - Icon: `Icon`, `IconPosition`, `IconSize`, `ShowIcon`, `ShowText`.
