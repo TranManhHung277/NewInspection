@@ -123,9 +123,9 @@
                 </UniformGrid>
             </Viewbox>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="30,0,0,0">
-                <Button Content="START" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StartCommand}" Background="#4CAF50" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
-                <Button Content="STOP" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StopCommand}" Background="#F44336" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
-                <Button Content="RESET" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding ResetCommand}" Background="#FF9800" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="START" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Background="#4CAF50" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="STOP" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding StopCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Background="#F44336" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
+                <Button Content="RESET" Width="150" FontSize="32" FontWeight="Bold" Command="{Binding ResetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Background="#FF9800" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,0,5" Style="{StaticResource FooterActionButtonStyle}" />
                 <Button Content="HOME" Width="150" FontSize="32" FontWeight="Bold" Background="#2196F3" Foreground="#FFFFFF" Padding="12,6" Margin="10,5,10,5" Style="{StaticResource FooterActionButtonStyle}" PreviewMouseLeftButtonDown="HomeHoldStart" PreviewMouseLeftButtonUp="HomeHoldEnd" />
             </StackPanel>
         </Grid>

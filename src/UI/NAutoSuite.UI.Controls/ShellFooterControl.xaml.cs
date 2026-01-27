@@ -9,6 +9,21 @@ public partial class ShellFooterControl : UserControl
 {
     private Border? _selectedTab;
 
+    public static readonly DependencyProperty StartCommandProperty =
+        DependencyProperty.Register(nameof(StartCommand), typeof(ICommand), typeof(ShellFooterControl));
+
+    public static readonly DependencyProperty StopCommandProperty =
+        DependencyProperty.Register(nameof(StopCommand), typeof(ICommand), typeof(ShellFooterControl));
+
+    public static readonly DependencyProperty ResetCommandProperty =
+        DependencyProperty.Register(nameof(ResetCommand), typeof(ICommand), typeof(ShellFooterControl));
+
+    public static readonly DependencyProperty HomeHoldStartCommandProperty =
+        DependencyProperty.Register(nameof(HomeHoldStartCommand), typeof(ICommand), typeof(ShellFooterControl));
+
+    public static readonly DependencyProperty HomeHoldEndCommandProperty =
+        DependencyProperty.Register(nameof(HomeHoldEndCommand), typeof(ICommand), typeof(ShellFooterControl));
+
     public event EventHandler<string>? TabChanged;
 
     public ShellFooterControl()
@@ -74,21 +89,47 @@ public partial class ShellFooterControl : UserControl
 
     private void HomeHoldStart(object sender, MouseButtonEventArgs e)
     {
-        ExecuteCommand("HomeHoldStartCommand");
+        if (HomeHoldStartCommand?.CanExecute(null) == true)
+        {
+            HomeHoldStartCommand.Execute(null);
+        }
     }
 
     private void HomeHoldEnd(object sender, MouseButtonEventArgs e)
     {
-        ExecuteCommand("HomeHoldEndCommand");
+        if (HomeHoldEndCommand?.CanExecute(null) == true)
+        {
+            HomeHoldEndCommand.Execute(null);
+        }
     }
 
-    private void ExecuteCommand(string commandName)
+    public ICommand? StartCommand
     {
-        if (DataContext == null) return;
-        var property = DataContext.GetType().GetProperty(commandName);
-        if (property?.GetValue(DataContext) is ICommand command && command.CanExecute(null))
-        {
-            command.Execute(null);
-        }
+        get => (ICommand?)GetValue(StartCommandProperty);
+        set => SetValue(StartCommandProperty, value);
+    }
+
+    public ICommand? StopCommand
+    {
+        get => (ICommand?)GetValue(StopCommandProperty);
+        set => SetValue(StopCommandProperty, value);
+    }
+
+    public ICommand? ResetCommand
+    {
+        get => (ICommand?)GetValue(ResetCommandProperty);
+        set => SetValue(ResetCommandProperty, value);
+    }
+
+    public ICommand? HomeHoldStartCommand
+    {
+        get => (ICommand?)GetValue(HomeHoldStartCommandProperty);
+        set => SetValue(HomeHoldStartCommandProperty, value);
+    }
+
+    public ICommand? HomeHoldEndCommand
+    {
+        get => (ICommand?)GetValue(HomeHoldEndCommandProperty);
+        set => SetValue(HomeHoldEndCommandProperty, value);
     }
 }

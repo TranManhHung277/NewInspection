@@ -109,12 +109,17 @@ Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and a
 ```xml
 <controls:ShellFooterControl
     x:Name="FooterControl"
+    StartCommand="{Binding StartCommand}"
+    StopCommand="{Binding StopCommand}"
+    ResetCommand="{Binding ResetCommand}"
+    HomeHoldStartCommand="{Binding HomeHoldStartCommand}"
+    HomeHoldEndCommand="{Binding HomeHoldEndCommand}"
     TabChanged="FooterControl_TabChanged"/>
 ```
 
 ### Required ViewModel commands
 
-`ShellFooterControl` uses the control `DataContext` and expects these command properties to exist with these exact names:
+`ShellFooterControl` exposes command dependency properties. Bind them from your ViewModel using these exact names:
 
 - `ICommand StartCommand`
 - `ICommand StopCommand`
@@ -123,6 +128,8 @@ Bottom navigation bar with tabs (Auto, Manual, Data, Camera, Setting, Log) and a
 - `ICommand HomeHoldEndCommand`
 
 Using CommunityToolkit, define them as `IRelayCommand` like in the template above.
+
+Important: because commands are now dependency properties on the control, you should always bind them explicitly in XAML (as shown in the XAML usage block), not rely on implicit `DataContext` lookup.
 
 ### Handling tab change
 
@@ -327,7 +334,54 @@ Reusable button with normal/hover/pressed colors, optional blinking, icon placem
 - Icon: `Icon`, `IconPosition`, `IconSize`, `ShowIcon`, `ShowText`.
 - Layout: `ContentHorizontalAlignment`, `ContentVerticalAlignment`, `ContentPadding`, `CornerRadius`.
 
+## 6) LogPanel
+
+### Purpose
+Reusable log viewer with filtering, search, export, and clear actions.
+
+### Steps to use in a new project
+1) Configure Serilog to forward logs to the UI sink.
+2) Place the control in your view.
+3) (Optional) override the DataContext if you want to control logs manually.
+
+### 1) Serilog setup (required for automatic logs)
+
+In your app startup logging configuration:
+
+```csharp
+using NAutoSuite.UI.Controls.Services;
+
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.With<CallerTypeEnricher>()
+    .WriteTo.Console()
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.UISink()
+    .CreateLogger();
+```
+
+### 2) XAML usage
+
+```xml
+<controls:LogPanel Title="System Logs"/>
+```
+
+### 3) ViewModel requirements
+- None by default. `LogPanel` creates and owns its own `LogPanelViewModel`.
+- If you want full control, set `DataContext` explicitly to your own `LogPanelViewModel`.
+
+### Manual logging (optional)
+
+You can log directly without Serilog:
+
+```csharp
+MyLogPanel.LogInfo("Connected to device");
+MyLogPanel.LogWarning("Pressure is low");
+MyLogPanel.LogError("Failed to start", ex.ToString());
+```
+
 ## Notes
 
 - Header and footer controls are designed for 1920x1080 layouts; they scale using `Viewbox`.
 - For new projects, keep bindings in a single main ViewModel to simplify onboarding.
+
