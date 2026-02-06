@@ -5,20 +5,41 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <Style x:Key="FooterActionButtonStyle"></Style>
+    </UserControl.Resources> 
     <Grid Background="#1E1E1E">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"></ColumnDefinition>
-            <ColumnDefinition Width="10*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="12*"></RowDefinition>
-            <RowDefinition Height="4*"></RowDefinition>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock Text="CAMERA"
+                   Grid.Row="0" 
+                   Grid.Column="0"
                    Foreground="#FFFFFF"
                    FontSize="32"
                    FontWeight="Bold"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+                   VerticalAlignment="Top"
+                   Margin="10,10,10,10"/>
+        <Button Grid.Row="1" 
+                Grid.Column="0"
+                Content="OPEN IMAGE" 
+                Width="250" 
+                FontSize="32" 
+                FontWeight="Bold"
+                Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                Background="#4CAF50" 
+                Foreground="#FFFFFF" 
+                Padding="12,6" 
+                Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
     </Grid>
 </UserControl>
