@@ -34,7 +34,7 @@
 
         <!-- Content Area -->
         <Border Grid.Row="1" Background="#1E1E1E">
-            <ContentControl x:Name="ContentArea" Content="{Binding CurrentView}"/>
+            <ContentControl x:Name="ContentArea" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Content="{Binding CurrentView}"/>
         </Border>
 
         <!-- Footer Navigation -->
