@@ -32,6 +32,7 @@ namespace EVIInspection.ViewModels
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand HomeHoldStartCommand { get; }
         public IRelayCommand HomeHoldEndCommand { get; }
+        public IRelayCommand OpenImage { get; }
 
         public MainViewModel(HardwareMinimalConfig config)
         {
@@ -40,7 +41,7 @@ namespace EVIInspection.ViewModels
             ResetCommand = new RelayCommand(OnReset);
             HomeHoldStartCommand = new RelayCommand(OnHomeHoldStart);
             HomeHoldEndCommand = new RelayCommand(OnHomeHoldEnd);
-
+            OpenImage = new RelayCommand(OnOpenImage);
             ApplyAppConfig(config?.App);
             UpdateHeaderStatusLevel();
         }
@@ -109,6 +110,15 @@ namespace EVIInspection.ViewModels
         }
 
         private void OnHomeHoldEnd()
+        {
+            ModernMessageBox.Show(
+                "Ban da nhan giu du thoi gian.",
+                "Hold Completed",
+                ModernMessageBox.MessageBoxType.Success,
+                ModernMessageBox.MessageBoxButtons.OK,
+                ModernMessageBox.ButtonStyle.Primary);
+        }
+        private void OnOpenImage()
         {
             ModernMessageBox.Show(
                 "Ban da nhan giu du thoi gian.",

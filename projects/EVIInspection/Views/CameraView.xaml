@@ -38,7 +38,7 @@
                 
                 FontSize="32" 
                 FontWeight="Bold"
-                Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                Command="{Binding OpenImage, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                 Background="#4CAF50" 
                 Foreground="#FFFFFF" 
                 Padding="12,6" 
