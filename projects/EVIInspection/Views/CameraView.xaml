@@ -4,23 +4,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
+             Background="Red"
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
         <Style x:Key="FooterActionButtonStyle"></Style>
-    </UserControl.Resources> 
-    <Grid Background="#1E1E1E">
+    </UserControl.Resources>
+    <Grid Background="Red">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="0.3*"/>
+            <ColumnDefinition Width="0.7*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Image x:Name="imgDisplay" Grid.Row="1"  Grid.Column="1" Grid.RowSpan="4" Stretch="Uniform" Margin="0,0,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <TextBlock Text="CAMERA"
                    Grid.Row="0" 
                    Grid.Column="0"
@@ -33,8 +35,7 @@
         <Button Grid.Row="1" 
                 Grid.Column="0"
                 Content="OPEN IMAGE" 
-                Width="250"
-                Height="80"
+                
                 FontSize="32" 
                 FontWeight="Bold"
                 Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
@@ -45,8 +46,7 @@
         <Button Grid.Row="2" 
                 Grid.Column="0" 
                 Content="TRIGGER" 
-                Width="250" 
-                Height="80"
+                
                 FontSize="32" 
                 FontWeight="Bold"
                 Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
@@ -57,8 +57,7 @@
         <Button Grid.Row="3" 
                 Grid.Column="0" 
                 Content="TEACHING" 
-                Width="250" 
-                Height="80"
+                
                 FontSize="32" 
                 FontWeight="Bold"
                 Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
@@ -69,8 +68,6 @@
         <Button Grid.Row="4" 
                 Grid.Column="0" 
                 Content="PROCESS" 
-                Width="250" 
-                Height="80"
                 FontSize="32" 
                 FontWeight="Bold"
                 Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
@@ -78,61 +75,24 @@
                 Foreground="#FFFFFF" 
                 Padding="12,6" 
                 Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
-        <StackPanel Grid.Row="5"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <TextBlock Text="RESULT:"
-                               Foreground="#FFFFFF"
-                               FontSize="32"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               Margin="10,10,10,10"/>
-                    <TextBlock Text="X:"
-                               Foreground="#FFFFFF"
-                               FontSize="32"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               Margin="10,10,10,10"/>
-                    <TextBox Foreground="#FFFFFF"
-                             FontSize="32"
-                             Width="180"
-                             FontWeight="Bold"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Center"
-                             Margin="10,10,10,10"/>
-                    <TextBlock Text="Y:"
-                               Foreground="#FFFFFF"
-                               FontSize="32"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               Margin="10,10,10,10"/>
-                    <TextBox Foreground="#FFFFFF"
-                             FontSize="32"
-                             Width="180"
-                             FontWeight="Bold"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Center"
-                             Margin="10,10,10,10"/>
-                    <TextBlock Text="R:"
-                               Foreground="#FFFFFF"
-                               FontSize="32"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               Margin="10,10,10,10"/>
-                    <TextBox Foreground="#FFFFFF"
-                             FontSize="32"
-                             Width="180"
-                             FontWeight="Bold"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Center"
-                             Margin="10,10,10,10"/>
+        <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Background="Blue">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="RESULT:" Grid.Column="0" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            <TextBlock Text="X:" Grid.Column="1" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            <TextBox Grid.Column="2"  Foreground="Black"  FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBlock Text="Y:" Grid.Column="3" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            <TextBox  Foreground="Black"  Grid.Column="4" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBlock Text="R:" Grid.Column="5" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            <TextBox  Foreground="Black"   Grid.Column="6" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
-        </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
