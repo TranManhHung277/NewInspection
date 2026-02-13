@@ -5,6 +5,8 @@ using NAutoSuite.Core.Machine;
 using NAutoSuite.UI.Controls;
 using NAutoSuite.UI.Controls.Dialogs;
 using System.Windows;
+using System.Windows.Media.Imaging;
+using EVIInspection.Camera;
 
 namespace EVIInspection.ViewModels
 {
@@ -27,12 +29,14 @@ namespace EVIInspection.ViewModels
         [ObservableProperty]
         private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
 
+
         public IRelayCommand StartCommand { get; }
         public IRelayCommand StopCommand { get; }
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand HomeHoldStartCommand { get; }
         public IRelayCommand HomeHoldEndCommand { get; }
-        public IRelayCommand OpenImage { get; }
+     
+        public ImageViewModel ImageVM { get; } = new ImageViewModel();
 
         public MainViewModel(HardwareMinimalConfig config)
         {
@@ -41,7 +45,8 @@ namespace EVIInspection.ViewModels
             ResetCommand = new RelayCommand(OnReset);
             HomeHoldStartCommand = new RelayCommand(OnHomeHoldStart);
             HomeHoldEndCommand = new RelayCommand(OnHomeHoldEnd);
-            OpenImage = new RelayCommand(OnOpenImage);
+
+            
             ApplyAppConfig(config?.App);
             UpdateHeaderStatusLevel();
         }
@@ -118,14 +123,6 @@ namespace EVIInspection.ViewModels
                 ModernMessageBox.MessageBoxButtons.OK,
                 ModernMessageBox.ButtonStyle.Primary);
         }
-        private void OnOpenImage()
-        {
-            ModernMessageBox.Show(
-                "Ban da nhan giu du thoi gian.",
-                "Hold Completed",
-                ModernMessageBox.MessageBoxType.Success,
-                ModernMessageBox.MessageBoxButtons.OK,
-                ModernMessageBox.ButtonStyle.Primary);
-        }
+        
     }
 }

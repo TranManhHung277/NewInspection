@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
              mc:Ignorable="d"
              Background="Red"
              d:DesignHeight="600" d:DesignWidth="900">
@@ -22,7 +23,22 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Image x:Name="imgDisplay" Grid.Row="1"  Grid.Column="1" Grid.RowSpan="4" Stretch="Uniform" Margin="0,0,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Image x:Name="imgDisplay" Source="{Binding ImageVM.MyImage}" 
+               Grid.Row="1"  Grid.Column="1" Grid.RowSpan="4" Stretch="Uniform" Margin="0,0,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Canvas x:Name="SelectionCanvas" 
+            Background="Transparent"
+            MouseDown="{Binding ImageVM.OnMouseDownCommand}"
+            MouseMove="{Binding ImageVM.OnMouseMoveCommand}"
+            MouseUp="{Binding ImageVM.OnMouseUpCommand}">
+
+            <Rectangle Canvas.Left="{Binding ImageVM.RoiX}" 
+                   Canvas.Top="{Binding ImageVM.RoiY}"
+                   Width="{Binding ImageVM.RoiWidth}" 
+                   Height="{Binding ImageVM.RoiHeight}"
+                   Stroke="Yellow" StrokeThickness="2" StrokeDashArray="4 2"
+                   Visibility="{Binding ImageVM.IsSelecting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        </Canvas>
+
         <TextBlock Text="CAMERA"
                    Grid.Row="0" 
                    Grid.Column="0"
@@ -32,17 +48,21 @@
                    HorizontalAlignment="Center"
                    VerticalAlignment="Top"
                    Margin="10,10,10,10"/>
-        <Button Grid.Row="1" 
-                Grid.Column="0"
-                Content="OPEN IMAGE" 
-                
-                FontSize="32" 
-                FontWeight="Bold"
-                Command="{Binding OpenImage, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                Background="#4CAF50" 
-                Foreground="#FFFFFF" 
-                Padding="12,6" 
-                Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
+        <controls:ActionButton
+            Grid.Column="0" Grid.Row="1"
+    Text="OPEN IMAGE"
+    Width="AUTO"
+    Height="AUTO"
+    FontSize="32"
+    FontWeight="Bold"
+    NormalBackground="#2196F3"
+    HoverBackground="#42A5F5"
+    PressedBackground="#1976D2" 
+    BlinkBackground="#FFD54F"
+    IsBlinking="False"
+    ContentHorizontalAlignment="Center"
+    ContentVerticalAlignment="Center"
+    ClickCommand="{Binding ImageVM.ActionOpenImageCommand}"/>
         <Button Grid.Row="2" 
                 Grid.Column="0" 
                 Content="TRIGGER" 
@@ -54,27 +74,36 @@
                 Foreground="#FFFFFF" 
                 Padding="12,6" 
                 Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
-        <Button Grid.Row="3" 
-                Grid.Column="0" 
-                Content="TEACHING" 
-                
-                FontSize="32" 
-                FontWeight="Bold"
-                Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                Background="#4CAF50" 
-                Foreground="#FFFFFF" 
-                Padding="12,6" 
-                Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
-        <Button Grid.Row="4" 
-                Grid.Column="0" 
-                Content="PROCESS" 
-                FontSize="32" 
-                FontWeight="Bold"
-                Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                Background="#4CAF50" 
-                Foreground="#FFFFFF" 
-                Padding="12,6" 
-                Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
+        <controls:ActionButton
+        Grid.Column="0" Grid.Row="3"
+Text="TEACHING"
+Width="AUTO"
+Height="AUTO"
+FontSize="32"
+FontWeight="Bold"
+NormalBackground="#2196F3"
+HoverBackground="#42A5F5"
+PressedBackground="#1976D2" 
+BlinkBackground="#FFD54F"
+IsBlinking="False"
+ContentHorizontalAlignment="Center"
+ContentVerticalAlignment="Center"
+ClickCommand="{Binding ImageVM.TeachingCommand}"/>
+        <controls:ActionButton
+        Grid.Column="0" Grid.Row="4"
+Text="PROCESS"
+Width="AUTO"
+Height="AUTO"
+FontSize="32"
+FontWeight="Bold"
+NormalBackground="#2196F3"
+HoverBackground="#42A5F5"
+PressedBackground="#1976D2" 
+BlinkBackground="#FFD54F"
+IsBlinking="False"
+ContentHorizontalAlignment="Center"
+ContentVerticalAlignment="Center"
+ClickCommand="{Binding ImageVM.ProcessCommand}"/>
         <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Background="Blue">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
