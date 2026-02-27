@@ -28,11 +28,24 @@ namespace EVIInspection.Camera
         private double _roiX, _roiY, _roiWidth, _roiHeight;
         [ObservableProperty] 
         private bool _isSelecting;
+        public IRelayCommand OnMouseDownCommand { get; }
+        public IRelayCommand OnMouseMoveCommand { get; }
+        public IRelayCommand OnMouseUpCommand { get; }
+
 
         private System.Windows.Point _startPoint;
         private Mat? _originalMat;
         private Mat? _templateMat;
-
+        private bool _isDrawing = false;
+        public ImageViewModel()
+        {
+            // 2. Khởi tạo trong Constructor
+            OnMouseDownCommand = new RelayCommand<object>(OnMouseDown);
+            OnMouseMoveCommand = new RelayCommand<object>(OnMouseMove);
+            OnMouseUpCommand = new RelayCommand<object>(OnMouseUp);
+            // Tương tự cho MouseMove và MouseUp nếu chúng cũng bị lỗi
+        }
+       
         [RelayCommand]
         private void ActionOpenImage()
         {
@@ -41,32 +54,67 @@ namespace EVIInspection.Camera
 
             if (openFileDialog.ShowDialog() == true)
             {
-                using var mat = Cv2.ImRead(openFileDialog.FileName);
-                if (!mat.Empty())
+                _originalMat = Cv2.ImRead(openFileDialog.FileName);
+                if (!_originalMat.Empty() && !_originalMat.Empty())
                 {
                     // 2. Gán trực tiếp cho Property (viết hoa), bỏ .Source
                     // Sử dụng ToWriteableBitmap hoặc ToBitmapSource từ OpenCvSharp.WpfExtensions
-                    this.MyImage = mat.ToWriteableBitmap();
+                    this.MyImage = _originalMat.ToWriteableBitmap();
                 }
             }
         }
-        [RelayCommand]
-        private void OnMouseDown(MouseButtonEventArgs e)
+    
+        private void OnMouseDown(object? e)
         {
-            var canvas = e.Source as Canvas;
-            _startPoint = e.GetPosition(canvas);
-            IsSelecting = true;
-            RoiWidth = RoiHeight = 0;
+            if (e is System.Windows.Input.MouseEventArgs args)
+            {
+               // ModernMessageBox.Show("Mouse Down Triggered!");
+
+                // Dùng OriginalSource hoặc Source tùy vào cấu trúc UI
+                var canvas = args.Source as System.Windows.Controls.Canvas;
+                if (canvas == null) return;
+
+                if (!_isDrawing)
+                {
+                    // CLICK LẦN 1: Bắt đầu vẽ
+                    _startPoint = args.GetPosition(canvas);
+                    RoiX = _startPoint.X;
+                    RoiY = _startPoint.Y;
+                    RoiWidth = 0;
+                    RoiHeight = 0;
+
+                    IsSelecting = true;
+                    _isDrawing = true;
+
+                    // Chiếm quyền chuột để MouseMove mượt mà
+                  
+                }
+                else
+                {
+                    // CLICK LẦN 2: Kết thúc vẽ
+                    _isDrawing = false;
+                    IsSelecting = true; // Vẫn giữ true để Rectangle không bị ẩn đi ngay lập tức
+
+                    var canvasCapture = System.Windows.Input.Mouse.Captured as Canvas;
+                    canvasCapture?.ReleaseMouseCapture();
+
+                    ModernMessageBox.Show("Đã chọn xong vùng ROI. Nhấn TEACHING để xác nhận.");
+                }
+            }
         }
-        [RelayCommand]
-        private void OnMouseMove(MouseEventArgs e)
+
+        private void OnMouseMove(object? e)
         {
-            if (!IsSelecting) return;
-            var currentPoint = e.GetPosition(e.Source as Canvas);
+            
+            if (!IsSelecting || e is not System.Windows.Input.MouseEventArgs args) return;
+            //var canvas = args.Source as System.Windows.Controls.Canvas;
+            var canvas = args.Source as Canvas;
+            if (canvas == null) return;
+            var currentPoint = args.GetPosition(canvas);
 
             // Ràng buộc không cho lấn ra ngoài vùng Canvas (giả định Canvas khớp kích thước ảnh hiển thị)
-            double canvasWidth = (e.Source as Canvas).ActualWidth;
-            double canvasHeight = (e.Source as Canvas).ActualHeight;
+            double canvasWidth = canvas.ActualWidth;
+            double canvasHeight = canvas.ActualHeight;
 
             var endX = Math.Clamp(currentPoint.X, 0, canvasWidth);
             var endY = Math.Clamp(currentPoint.Y, 0, canvasHeight);
@@ -76,13 +124,25 @@ namespace EVIInspection.Camera
             RoiWidth = Math.Abs(_startPoint.X - endX);
             RoiHeight = Math.Abs(_startPoint.Y - endY);
         }
-        [RelayCommand]
-        private void OnMouseUp() => IsSelecting = false;
+
+        private void OnMouseUp(object? e)
+        {
+            //if (e is MouseEventArgs args)
+            //{
+            //    var canvas = args.Source as Canvas;
+
+            //    // GIẢI PHÓNG CHUỘT: Khi buông tay phải trả lại quyền cho hệ thống
+            //    canvas?.ReleaseMouseCapture();
+            //}
+            //IsSelecting = false;
+        }
 
         // --- Xử lý OpenCV ---
         [RelayCommand]
         private void Teaching()
         {
+           
+            
             if (_originalMat == null || RoiWidth <= 0) return;
 
             // Tính tỉ lệ giữa Pixel thật và UI để cắt ảnh chính xác

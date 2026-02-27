@@ -1,16 +1,18 @@
-<UserControl x:Class="EVIInspection.Views.CameraView"
+﻿    <UserControl 
+             x:Class="EVIInspection.Views.CameraView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls"
-             mc:Ignorable="d"
-             Background="Red"
+             xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    mc:Ignorable="d"
+             Background="Black"
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
         <Style x:Key="FooterActionButtonStyle"></Style>
-    </UserControl.Resources>
-    <Grid Background="Red">
+    </UserControl.Resources>    
+    <Grid Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.3*"/>
             <ColumnDefinition Width="0.7*"></ColumnDefinition>
@@ -26,23 +28,40 @@
         <Image x:Name="imgDisplay" Source="{Binding ImageVM.MyImage}" 
                Grid.Row="1"  Grid.Column="1" Grid.RowSpan="4" Stretch="Uniform" Margin="0,0,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Canvas x:Name="SelectionCanvas" 
-            Background="Transparent"
-            MouseDown="{Binding ImageVM.OnMouseDownCommand}"
-            MouseMove="{Binding ImageVM.OnMouseMoveCommand}"
-            MouseUp="{Binding ImageVM.OnMouseUpCommand}">
+        Background="#01000000"
+        Grid.Row="1" Grid.Column="1" Grid.RowSpan="4" Panel.ZIndex="99">
 
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseDownCommand}" 
+                                   PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+
+                <i:EventTrigger EventName="MouseMove">
+                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseMoveCommand}" 
+                                   PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+
+                <i:EventTrigger EventName="MouseUp">
+                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseUpCommand}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            
             <Rectangle Canvas.Left="{Binding ImageVM.RoiX}" 
-                   Canvas.Top="{Binding ImageVM.RoiY}"
-                   Width="{Binding ImageVM.RoiWidth}" 
-                   Height="{Binding ImageVM.RoiHeight}"
-                   Stroke="Yellow" StrokeThickness="2" StrokeDashArray="4 2"
-                   Visibility="{Binding ImageVM.IsSelecting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+           Canvas.Top="{Binding ImageVM.RoiY}"
+           Width="{Binding ImageVM.RoiWidth}" 
+           Height="{Binding ImageVM.RoiHeight}"
+           Stroke="Yellow" StrokeThickness="2" 
+           IsHitTestVisible="False" />
+            <!-- Cực kỳ quan trọng -->
+            
         </Canvas>
-
+        
         <TextBlock Text="CAMERA"
                    Grid.Row="0" 
                    Grid.Column="0"
                    Foreground="#FFFFFF"
+                   
                    FontSize="32"
                    FontWeight="Bold"
                    HorizontalAlignment="Center"
@@ -63,17 +82,21 @@
     ContentHorizontalAlignment="Center"
     ContentVerticalAlignment="Center"
     ClickCommand="{Binding ImageVM.ActionOpenImageCommand}"/>
-        <Button Grid.Row="2" 
-                Grid.Column="0" 
-                Content="TRIGGER" 
-                
-                FontSize="32" 
-                FontWeight="Bold"
-                Command="{Binding StartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                Background="#4CAF50" 
-                Foreground="#FFFFFF" 
-                Padding="12,6" 
-                Margin="10,10,10,10" Style="{StaticResource FooterActionButtonStyle}" />
+        <controls:ActionButton
+        Grid.Column="0" Grid.Row="2"
+Text="TRIGGER"
+Width="AUTO"
+Height="AUTO"
+FontSize="32"
+FontWeight="Bold"
+NormalBackground="#2196F3"
+HoverBackground="#42A5F5"
+PressedBackground="#1976D2" 
+BlinkBackground="#FFD54F"
+IsBlinking="False"
+ContentHorizontalAlignment="Center"
+ContentVerticalAlignment="Center"
+></controls:ActionButton>
         <controls:ActionButton
         Grid.Column="0" Grid.Row="3"
 Text="TEACHING"
