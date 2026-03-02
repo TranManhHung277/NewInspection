@@ -28,6 +28,10 @@ namespace EVIInspection.Camera
         private double _roiX, _roiY, _roiWidth, _roiHeight;
         [ObservableProperty] 
         private bool _isSelecting;
+        [ObservableProperty]
+        private double _currentCanvasWidth;
+        [ObservableProperty]
+        private double _currentCanvasHeight;
         public IRelayCommand OnMouseDownCommand { get; }
         public IRelayCommand OnMouseMoveCommand { get; }
         public IRelayCommand OnMouseUpCommand { get; }
@@ -82,7 +86,8 @@ namespace EVIInspection.Camera
                     RoiY = _startPoint.Y;
                     RoiWidth = 0;
                     RoiHeight = 0;
-
+                    CurrentCanvasWidth = canvas.ActualWidth;
+                    CurrentCanvasHeight = canvas.ActualHeight;
                     IsSelecting = true;
                     _isDrawing = true;
 
@@ -93,7 +98,7 @@ namespace EVIInspection.Camera
                 {
                     // CLICK LẦN 2: Kết thúc vẽ
                     _isDrawing = false;
-                    IsSelecting = true; // Vẫn giữ true để Rectangle không bị ẩn đi ngay lập tức
+                    IsSelecting = false; // Vẫn giữ true để Rectangle không bị ẩn đi ngay lập tức
 
                     var canvasCapture = System.Windows.Input.Mouse.Captured as Canvas;
                     canvasCapture?.ReleaseMouseCapture();
@@ -141,18 +146,23 @@ namespace EVIInspection.Camera
         [RelayCommand]
         private void Teaching()
         {
-           
-            
+
             if (_originalMat == null || RoiWidth <= 0) return;
 
+
             // Tính tỉ lệ giữa Pixel thật và UI để cắt ảnh chính xác
-            double ratioX = _originalMat.Width / 600.0; // 600 là Width của Grid/Canvas ở XAML
-            double ratioY = _originalMat.Height / 450.0;
+            double ratioX = _originalMat.Width / CurrentCanvasWidth;
+            double ratioY = _originalMat.Height / CurrentCanvasHeight;
 
             OpenCvSharp.Rect rect = new((int)(RoiX * ratioX), (int)(RoiY * ratioY),
                                         (int)(RoiWidth * ratioX), (int)(RoiHeight * ratioY));
-
+            rect.X = Math.Clamp(rect.X, 0, _originalMat.Width - 1);
+            rect.Y = Math.Clamp(rect.Y, 0, _originalMat.Height - 1);
+            rect.Width = Math.Clamp(rect.Width, 1, _originalMat.Width - rect.X);
+            rect.Height = Math.Clamp(rect.Height, 1, _originalMat.Height - rect.Y);
             _templateMat = new Mat(_originalMat, rect).Clone();
+            Cv2.ImShow("Template Check", _templateMat);
+
             ModernMessageBox.Show("Teaching Successful!");
         }
         [RelayCommand]
