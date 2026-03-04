@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Configuration;
 using NAutoSuite.UI.Controls.Dialogs;
 using OpenCvSharp;
@@ -163,29 +164,40 @@ namespace EVIInspection.Camera
             _templateMat = new Mat(_originalMat, rect).Clone();
             Cv2.ImShow("Template Check", _templateMat);
 
-            ModernMessageBox.Show("Teaching Successful!");
+            ModernMessageBox.Show("Teaching Successful!");  
         }
         [RelayCommand]
         private void Process()
         {
             if (_originalMat == null || _templateMat == null) return;
-
+            using var graySrc = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+            using var grayTpl = _templateMat.CvtColor(ColorConversionCodes.BGR2GRAY);
             using var res = new Mat();
-            Cv2.MatchTemplate(_originalMat, _templateMat, res, TemplateMatchModes.CCoeffNormed);
+            Cv2.MatchTemplate(graySrc, grayTpl, res, TemplateMatchModes.CCoeffNormed);
             Cv2.MinMaxLoc(res, out _, out double maxVal, out _, out var maxLoc);
 
             if (maxVal > 0.8)
             {
-                // Tọa độ tâm (Pixel thực)
+                // 1. Tính toán tâm vật thể (Pixel thực)
                 int centerX = maxLoc.X + (_templateMat.Width / 2);
                 int centerY = maxLoc.Y + (_templateMat.Height / 2);
 
-                // Vẽ kết quả lên UI
+                // 2. CẬP NHẬT KẾT QUẢ LÊN TEXTBOX (X, Y, R)
+                //ResultX = centerX.ToString();
+                //ResultY = centerY.ToString();
+                //ResultR = "0"; // Hiện tại chưa tính góc xoay
+
+                // 3. VẼ KHUNG ĐỎ (Phải dùng đúng kích thước của ảnh mẫu _templateMat)
                 using var debugMat = _originalMat.Clone();
-                debugMat.Rectangle(new OpenCvSharp.Rect(maxLoc, _templateMat.Size()), Scalar.Red, 3);
+
+                // Vẽ hình chữ nhật có kích thước BẰNG HỆT ảnh mẫu đã Teach
+                OpenCvSharp.Rect resultRect = new OpenCvSharp.Rect(maxLoc, _templateMat.Size());
+                debugMat.Rectangle(resultRect, Scalar.Red, 3);
+
+                // Cập nhật lại ảnh hiển thị
                 MyImage = debugMat.ToWriteableBitmap();
 
-                ModernMessageBox.Show($"Found! Center: {centerX},{centerY} Score: {maxVal:F2}");
+                ModernMessageBox.Show($"Tìm thấy vật thể!\nĐộ khớp: {maxVal:P0}");
             }
         }
     }

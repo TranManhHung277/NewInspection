@@ -25,39 +25,48 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Image x:Name="imgDisplay" Source="{Binding ImageVM.MyImage}" 
-               Grid.Row="1"  Grid.Column="1" Grid.RowSpan="4" Stretch="Uniform" Margin="0,0,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <Canvas x:Name="SelectionCanvas" 
-        Background="#01000000"
-        Grid.Row="1" Grid.Column="1" Grid.RowSpan="4" Panel.ZIndex="99">
+        <Border Grid.Row="1" Grid.Column="1" Grid.RowSpan="4" 
+                BorderBrush="Red" 
+                BorderThickness="2"
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Margin="0,0,0,10">
+            <Grid>
+                <Image x:Name="imgDisplay"
+                       Source="{Binding ImageVM.MyImage}"
+                       Stretch="Uniform">
+                </Image>
+                <Canvas x:Name="SelectionCanvas" Background="#01000000"
+                        Width="{Binding ElementName=imgDisplay, Path=ActualWidth}"
+                        Height="{Binding ElementName=imgDisplay, Path=ActualHeight}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDown">
+                            <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseDownCommand}" PassEventArgsToCommand="True" />
+                        </i:EventTrigger>
 
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseDown">
-                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseDownCommand}" 
-                                   PassEventArgsToCommand="True" />
-                </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseMove">
+                            <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseMoveCommand}" PassEventArgsToCommand="True" />
+                        </i:EventTrigger>
 
-                <i:EventTrigger EventName="MouseMove">
-                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseMoveCommand}" 
-                                   PassEventArgsToCommand="True" />
-                </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseUp">
+                            <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseUpCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <Rectangle Canvas.Left="{Binding ImageVM.RoiX}" 
+                       Canvas.Top="{Binding ImageVM.RoiY}"
+                       Width="{Binding ImageVM.RoiWidth}" 
+                       Height="{Binding ImageVM.RoiHeight}"
+                       Stroke="Yellow" StrokeThickness="2" IsHitTestVisible="False"
+                       Visibility="{Binding ImageVM.IsSelecting, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        
+                    </Rectangle>
 
-                <i:EventTrigger EventName="MouseUp">
-                    <i:InvokeCommandAction Command="{Binding ImageVM.OnMouseUpCommand}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-            
-            <Rectangle Canvas.Left="{Binding ImageVM.RoiX}" 
-           Canvas.Top="{Binding ImageVM.RoiY}"
-           Width="{Binding ImageVM.RoiWidth}" 
-           Height="{Binding ImageVM.RoiHeight}"
-           Stroke="Yellow" StrokeThickness="2" 
-           IsHitTestVisible="False" />
-            <!-- Cực kỳ quan trọng -->
-            
-        </Canvas>
-        
-        <TextBlock Text="CAMERA"
+                </Canvas>
+            </Grid>
+        </Border>
+
+
+            <TextBlock Text="CAMERA"
                    Grid.Row="0" 
                    Grid.Column="0"
                    Foreground="#FFFFFF"
