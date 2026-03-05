@@ -24,16 +24,23 @@
                        Margin="{Binding IconMargin, RelativeSource={RelativeSource AncestorType=UserControl}}"
                        Stretch="Uniform"
                        Visibility="{Binding ShowIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                <TextBlock x:Name="TextBlock"
-                           Text="{Binding DisplayText, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           FontFamily="{Binding FontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           FontWeight="{Binding FontWeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           TextAlignment="{Binding TextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           VerticalAlignment="Center"
-                           Margin="{Binding TextMargin, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                           Visibility="{Binding ShowText, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" VerticalAlignment="Center">
+                    <TextBlock x:Name="TextBlock"
+                               Text="{Binding DisplayText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               FontFamily="{Binding FontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               FontWeight="{Binding FontWeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               TextAlignment="{Binding TextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Margin="{Binding TextMargin, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Visibility="{Binding ShowText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               TextWrapping="Wrap"
+                               
+                               MaxWidth="{Binding ActualWidth, ElementName=RootBorder}"/>
+                </Viewbox>
+                    
+              
+                
             </DockPanel>
         </Grid>
     </Border>

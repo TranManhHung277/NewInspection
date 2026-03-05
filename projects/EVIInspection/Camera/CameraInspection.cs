@@ -33,6 +33,14 @@ namespace EVIInspection.Camera
         private double _currentCanvasWidth;
         [ObservableProperty]
         private double _currentCanvasHeight;
+        [ObservableProperty]
+        private string _resultX = "0";
+
+        [ObservableProperty]
+        private string _resultY = "0";
+
+        [ObservableProperty]
+        private string _resultR = "0";
         public IRelayCommand OnMouseDownCommand { get; }
         public IRelayCommand OnMouseMoveCommand { get; }
         public IRelayCommand OnMouseUpCommand { get; }
@@ -183,9 +191,9 @@ namespace EVIInspection.Camera
                 int centerY = maxLoc.Y + (_templateMat.Height / 2);
 
                 // 2. CẬP NHẬT KẾT QUẢ LÊN TEXTBOX (X, Y, R)
-                //ResultX = centerX.ToString();
-                //ResultY = centerY.ToString();
-                //ResultR = "0"; // Hiện tại chưa tính góc xoay
+                ResultX = centerX.ToString();
+                ResultY = centerY.ToString();
+                ResultR = "0"; // Hiện tại chưa tính góc xoay
 
                 // 3. VẼ KHUNG ĐỎ (Phải dùng đúng kích thước của ảnh mẫu _templateMat)
                 using var debugMat = _originalMat.Clone();

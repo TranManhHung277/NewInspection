@@ -14,7 +14,7 @@
     </UserControl.Resources>    
     <Grid Background="Black">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.3*"/>
+            <ColumnDefinition Width="0.2*"/>
             <ColumnDefinition Width="0.7*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -65,77 +65,79 @@
             </Grid>
         </Border>
 
+        <Viewbox Grid.Row="0" Grid.Column="0" Margin="10">
+            <TextBlock Text="CAMERA" 
+                       Foreground="#FFFFFF" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       Margin="10,10,10,10"/>
+        </Viewbox>
 
-            <TextBlock Text="CAMERA"
-                   Grid.Row="0" 
-                   Grid.Column="0"
-                   Foreground="#FFFFFF"
-                   
-                   FontSize="32"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Top"
-                   Margin="10,10,10,10"/>
-        <controls:ActionButton
-            Grid.Column="0" Grid.Row="1"
-    Text="OPEN IMAGE"
-    Width="AUTO"
-    Height="AUTO"
-    FontSize="32"
-    FontWeight="Bold"
-    NormalBackground="#2196F3"
-    HoverBackground="#42A5F5"
-    PressedBackground="#1976D2" 
-    BlinkBackground="#FFD54F"
-    IsBlinking="False"
-    ContentHorizontalAlignment="Center"
-    ContentVerticalAlignment="Center"
-    ClickCommand="{Binding ImageVM.ActionOpenImageCommand}"/>
-        <controls:ActionButton
-        Grid.Column="0" Grid.Row="2"
-Text="TRIGGER"
-Width="AUTO"
-Height="AUTO"
-FontSize="32"
-FontWeight="Bold"
-NormalBackground="#2196F3"
-HoverBackground="#42A5F5"
-PressedBackground="#1976D2" 
-BlinkBackground="#FFD54F"
-IsBlinking="False"
-ContentHorizontalAlignment="Center"
-ContentVerticalAlignment="Center"
-></controls:ActionButton>
-        <controls:ActionButton
-        Grid.Column="0" Grid.Row="3"
-Text="TEACHING"
-Width="AUTO"
-Height="AUTO"
-FontSize="32"
-FontWeight="Bold"
-NormalBackground="#2196F3"
-HoverBackground="#42A5F5"
-PressedBackground="#1976D2" 
-BlinkBackground="#FFD54F"
-IsBlinking="False"
-ContentHorizontalAlignment="Center"
-ContentVerticalAlignment="Center"
-ClickCommand="{Binding ImageVM.TeachingCommand}"/>
-        <controls:ActionButton
-        Grid.Column="0" Grid.Row="4"
-Text="PROCESS"
-Width="AUTO"
-Height="AUTO"
-FontSize="32"
-FontWeight="Bold"
-NormalBackground="#2196F3"
-HoverBackground="#42A5F5"
-PressedBackground="#1976D2" 
-BlinkBackground="#FFD54F"
-IsBlinking="False"
-ContentHorizontalAlignment="Center"
-ContentVerticalAlignment="Center"
-ClickCommand="{Binding ImageVM.ProcessCommand}"/>
+        <controls:ActionButton Grid.Row="1" 
+                               Grid.Column="0"
+                               Text="OPEN IMAGE"
+                               Width="AUTO"
+                               FontSize="20"
+                               Height="AUTO"
+                               FontWeight="Bold"
+                               NormalBackground="#4CAF50"
+                               HoverBackground="#42A5F5"
+                               PressedBackground="#1976D2" 
+                               BlinkBackground="#FFD54F"
+                               IsBlinking="False"
+                               ContentHorizontalAlignment="Center"
+                               ContentVerticalAlignment="Center"
+                               ClickCommand="{Binding ImageVM.ActionOpenImageCommand}"
+                               Margin="5,5,5,5">
+
+        </controls:ActionButton>
+        <controls:ActionButton Grid.Column="0" 
+                               Grid.Row="2"
+                               Text="TRIGGER ON/OF"
+                               Width="AUTO"
+                               FontSize="20"
+                               Height="AUTO"
+                               FontWeight="Bold"
+                               NormalBackground="#4CAF50"
+                               HoverBackground="#42A5F5"
+                               PressedBackground="#1976D2"
+                               BlinkBackground="#FFD54F"
+                               IsBlinking="False"
+                               ContentHorizontalAlignment="Center"
+                               ContentVerticalAlignment="Center"
+                               Margin="5,5,5,5">
+        </controls:ActionButton>
+        <controls:ActionButton Grid.Column="0" Grid.Row="3"
+                            Text="TEACHING"
+                            Width="AUTO"
+                            Height="AUTO"
+                            FontSize="20"
+                            FontWeight="Bold"
+                            NormalBackground="#4CAF50"
+                            HoverBackground="#42A5F5"
+                            PressedBackground="#1976D2" 
+                            BlinkBackground="#FFD54F"
+                            IsBlinking="False"
+                            ContentHorizontalAlignment="Center"
+                            ContentVerticalAlignment="Center"
+                            ClickCommand="{Binding ImageVM.TeachingCommand}"
+                            Margin="5,5,5,5"/>      
+        <controls:ActionButton Grid.Column="0" Grid.Row="4"
+                               Text="PROCESS"
+                                Width="AUTO"
+                                Height="AUTO"
+                                FontSize="20" 
+                                FontWeight="Bold"
+                                NormalBackground="#4CAF50"
+                                HoverBackground="#42A5F5"
+                                PressedBackground="#1976D2" 
+                                BlinkBackground="#FFD54F"
+                                IsBlinking="False"
+                                ContentHorizontalAlignment="Center"
+                                ContentVerticalAlignment="Center"
+                                ClickCommand="{Binding ImageVM.ProcessCommand}"
+                               Margin="5,5,5,5"/>
         <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Background="Blue">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -146,13 +148,13 @@ ClickCommand="{Binding ImageVM.ProcessCommand}"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="RESULT:" Grid.Column="0" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            <TextBlock Text="RESULT" Grid.Column="0" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
             <TextBlock Text="X:" Grid.Column="1" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
-            <TextBox Grid.Column="2"  Foreground="Black"  FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBox Grid.Column="2" Text="{Binding ImageVM.ResultX}" Foreground="Black"  FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             <TextBlock Text="Y:" Grid.Column="3" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
-            <TextBox  Foreground="Black"  Grid.Column="4" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBox  Foreground="Black" Text="{Binding ImageVM.ResultY}" Grid.Column="4" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             <TextBlock Text="R:" Grid.Column="5" Foreground="#FFFFFF" FontSize="32" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,10,10,10"/>
-            <TextBox  Foreground="Black"   Grid.Column="6" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBox  Foreground="Black" Text="{Binding ImageVM.ResultR}"  Grid.Column="6" FontSize="32" FontWeight="Bold" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
         </Grid>
     </Grid>
