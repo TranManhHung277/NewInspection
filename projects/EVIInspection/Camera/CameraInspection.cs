@@ -178,35 +178,89 @@ namespace EVIInspection.Camera
         private void Process()
         {
             if (_originalMat == null || _templateMat == null) return;
-            using var graySrc = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            using var grayTpl = _templateMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            using var res = new Mat();
-            Cv2.MatchTemplate(graySrc, grayTpl, res, TemplateMatchModes.CCoeffNormed);
-            Cv2.MinMaxLoc(res, out _, out double maxVal, out _, out var maxLoc);
+            using var gray = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+            // 1. Khử nhiễu và Nhị phân hóa (Có thể dùng Canny hoặc Threshold)
+            using var blurred = gray.GaussianBlur(new Size(5, 5), 0);
+            using var thresh = blurred.Threshold(127, 255, ThresholdTypes.Binary);
+            // 2. Tìm tất cả các đường bao (Contours)
+            Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+            using var debugMat = _originalMat.Clone();
+            bool found = false;
 
-            if (maxVal > 0.8)
+
+            //using var graySrc = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+            //using var grayTpl = _templateMat.CvtColor(ColorConversionCodes.BGR2GRAY);
+            //using var res = new Mat();
+            //Cv2.MatchTemplate(graySrc, grayTpl, res, TemplateMatchModes.CCoeffNormed);
+            //Cv2.MinMaxLoc(res, out _, out double maxVal, out _, out var maxLoc);
+
+
+            foreach (var contour in contours)
             {
-                // 1. Tính toán tâm vật thể (Pixel thực)
-                int centerX = maxLoc.X + (_templateMat.Width / 2);
-                int centerY = maxLoc.Y + (_templateMat.Height / 2);
+                // 3. Lọc bỏ các vật thể quá nhỏ (nhiễu)
+                double area = Cv2.ContourArea(contour);
+                if (area < 500) continue; // Điều chỉnh giá trị này tùy kích thước vật thể
 
-                // 2. CẬP NHẬT KẾT QUẢ LÊN TEXTBOX (X, Y, R)
+                found = true;
+
+                // 4. Tính toán Tâm (X, Y) bằng Moments
+                var moments = Cv2.Moments(contour);
+                int centerX = (int)(moments.M10 / moments.M00);
+                int centerY = (int)(moments.M01 / moments.M00);
+
+                // 5. Tính toán Góc (R) bằng MinAreaRect (Hình chữ nhật bao quanh tối ưu)
+                RotatedRect minRect = Cv2.MinAreaRect(contour);
+                float angle = minRect.Angle;
+
+                /* Lưu ý về góc của MinAreaRect: 
+                   OpenCV thường trả về góc từ -90 đến 0. 
+                   Nếu Width < Height, bạn có thể cần điều chỉnh: angle -= 90; */
+                if (minRect.Size.Width < minRect.Size.Height)
+                {
+                    angle -= 90;
+                }
+
+                // 6. Cập nhật Binding dữ liệu
                 ResultX = centerX.ToString();
                 ResultY = centerY.ToString();
-                ResultR = "0"; // Hiện tại chưa tính góc xoay
+                ResultR = angle.ToString("F1");
 
-                // 3. VẼ KHUNG ĐỎ (Phải dùng đúng kích thước của ảnh mẫu _templateMat)
-                using var debugMat = _originalMat.Clone();
+                // 7. Vẽ minh họa (Vẽ hình chữ nhật xoay)
+                Point2f[] vertices = minRect.Points();
+                for (int j = 0; j < 4; j++)
+                {
+                    debugMat.Line((Point)vertices[j], (Point)vertices[(j + 1) % 4], Scalar.Red, 2);
+                }
+                debugMat.Circle(new Point(centerX, centerY), 5, Scalar.Green, -1);
 
-                // Vẽ hình chữ nhật có kích thước BẰNG HỆT ảnh mẫu đã Teach
-                OpenCvSharp.Rect resultRect = new OpenCvSharp.Rect(maxLoc, _templateMat.Size());
-                debugMat.Rectangle(resultRect, Scalar.Red, 3);
-
-                // Cập nhật lại ảnh hiển thị
-                MyImage = debugMat.ToWriteableBitmap();
-
-                ModernMessageBox.Show($"Tìm thấy vật thể!\nĐộ khớp: {maxVal:P0}");
+                break; // Lấy vật thể đầu tiên thỏa mãn rồi thoát
             }
+            MyImage = debugMat.ToWriteableBitmap();
+            if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
+
+            //if (maxVal > 0.8)
+            //{
+            //    // 1. Tính toán tâm vật thể (Pixel thực)
+            //    int centerX = maxLoc.X + (_templateMat.Width / 2);
+            //    int centerY = maxLoc.Y + (_templateMat.Height / 2);
+
+            //    // 2. CẬP NHẬT KẾT QUẢ LÊN TEXTBOX (X, Y, R)
+            //    ResultX = centerX.ToString();
+            //    ResultY = centerY.ToString();
+            //    ResultR = "0"; // Hiện tại chưa tính góc xoay
+
+            //    // 3. VẼ KHUNG ĐỎ (Phải dùng đúng kích thước của ảnh mẫu _templateMat)
+            //    using var debugMat = _originalMat.Clone();
+
+            //    // Vẽ hình chữ nhật có kích thước BẰNG HỆT ảnh mẫu đã Teach
+            //    OpenCvSharp.Rect resultRect = new OpenCvSharp.Rect(maxLoc, _templateMat.Size());
+            //    debugMat.Rectangle(resultRect, Scalar.Red, 3);
+
+            //    // Cập nhật lại ảnh hiển thị
+            //    MyImage = debugMat.ToWriteableBitmap();
+
+            //    ModernMessageBox.Show($"Tìm thấy vật thể!\nĐộ khớp: {maxVal:P0}");
+            //}
         }
     }
 }
