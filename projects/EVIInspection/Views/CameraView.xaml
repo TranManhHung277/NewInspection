@@ -6,7 +6,7 @@
             
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:NAutoSuite.UI.Controls;assembly=NAutoSuite.UI.Controls" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    mc:Ignorable="d"
+             mc:Ignorable="d"
              Background="Black"
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>

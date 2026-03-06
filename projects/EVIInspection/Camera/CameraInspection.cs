@@ -49,6 +49,7 @@ namespace EVIInspection.Camera
         private System.Windows.Point _startPoint;
         private Mat? _originalMat;
         private Mat? _templateMat;
+        private Mat? _grayMat;
         private bool _isDrawing = false;
         public ImageViewModel()
         {
