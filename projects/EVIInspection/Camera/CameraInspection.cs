@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EVIInspection.Views;
 using Microsoft.Win32;
 using NAutoSuite.Core.Common;
 using NAutoSuite.Core.Configuration;
@@ -41,6 +42,8 @@ namespace EVIInspection.Camera
 
         [ObservableProperty]
         private string _resultR = "0";
+        [ObservableProperty]
+        private CameraTeaching _teachingVM;
         public IRelayCommand OnMouseDownCommand { get; }
         public IRelayCommand OnMouseMoveCommand { get; }
         public IRelayCommand OnMouseUpCommand { get; }
@@ -51,6 +54,8 @@ namespace EVIInspection.Camera
         private Mat? _templateMat;
         private Mat? _grayMat;
         private bool _isDrawing = false;
+        private double finalThresh;
+        private int finalBlur;
         public ImageViewModel()
         {
             // 2. Khởi tạo trong Constructor
@@ -110,10 +115,30 @@ namespace EVIInspection.Camera
                     _isDrawing = false;
                     IsSelecting = false; // Vẫn giữ true để Rectangle không bị ẩn đi ngay lập tức
 
-                    var canvasCapture = System.Windows.Input.Mouse.Captured as Canvas;
-                    canvasCapture?.ReleaseMouseCapture();
 
-                    ModernMessageBox.Show("Đã chọn xong vùng ROI. Nhấn TEACHING để xác nhận.");
+                    // hiển thị ngay vùng đã chọn
+                    if (_originalMat == null || RoiWidth <= 0) return;
+                    double ratioX = _originalMat.Width / CurrentCanvasWidth;
+                    double ratioY = _originalMat.Height / CurrentCanvasHeight;
+                    OpenCvSharp.Rect rect = new((int)(RoiX * ratioX), (int)(RoiY * ratioY),
+                                       (int)(RoiWidth * ratioX), (int)(RoiHeight * ratioY));
+                    rect.X = Math.Clamp(rect.X, 0, _originalMat.Width - 1);
+                    rect.Y = Math.Clamp(rect.Y, 0, _originalMat.Height - 1);
+                    rect.Width = Math.Clamp(rect.Width, 1, _originalMat.Width - rect.X);
+                    rect.Height = Math.Clamp(rect.Height, 1, _originalMat.Height - rect.Y);
+                    _templateMat = new Mat(_originalMat, rect).Clone();
+
+                    // 2. Mở cửa sổ phụ và truyền roiMat sang
+                    TeachingVM = new CameraTeaching(_templateMat);
+
+                    var teachingWin = new TeachingWindow { DataContext = TeachingVM };
+                    teachingWin.Show(); // Dùng Show() để người dùng vừa chỉnh vừa bấm nút bên Main được
+
+
+                    //var canvasCapture = System.Windows.Input.Mouse.Captured as Canvas;
+                    //canvasCapture?.ReleaseMouseCapture();
+
+                    //ModernMessageBox.Show("Đã chọn xong vùng ROI. Nhấn TEACHING để xác nhận.");
                 }
             }
         }
@@ -157,23 +182,33 @@ namespace EVIInspection.Camera
         private void Teaching()
         {
 
-            if (_originalMat == null || RoiWidth <= 0) return;
+            //if (_originalMat == null || RoiWidth <= 0) return;
 
 
-            // Tính tỉ lệ giữa Pixel thật và UI để cắt ảnh chính xác
-            double ratioX = _originalMat.Width / CurrentCanvasWidth;
-            double ratioY = _originalMat.Height / CurrentCanvasHeight;
+            //// Tính tỉ lệ giữa Pixel thật và UI để cắt ảnh chính xác
+            //double ratioX = _originalMat.Width / CurrentCanvasWidth;
+            //double ratioY = _originalMat.Height / CurrentCanvasHeight;
 
-            OpenCvSharp.Rect rect = new((int)(RoiX * ratioX), (int)(RoiY * ratioY),
-                                        (int)(RoiWidth * ratioX), (int)(RoiHeight * ratioY));
-            rect.X = Math.Clamp(rect.X, 0, _originalMat.Width - 1);
-            rect.Y = Math.Clamp(rect.Y, 0, _originalMat.Height - 1);
-            rect.Width = Math.Clamp(rect.Width, 1, _originalMat.Width - rect.X);
-            rect.Height = Math.Clamp(rect.Height, 1, _originalMat.Height - rect.Y);
-            _templateMat = new Mat(_originalMat, rect).Clone();
-            Cv2.ImShow("Template Check", _templateMat);
+            //OpenCvSharp.Rect rect = new((int)(RoiX * ratioX), (int)(RoiY * ratioY),
+            //                            (int)(RoiWidth * ratioX), (int)(RoiHeight * ratioY));
+            //rect.X = Math.Clamp(rect.X, 0, _originalMat.Width - 1);
+            //rect.Y = Math.Clamp(rect.Y, 0, _originalMat.Height - 1);
+            //rect.Width = Math.Clamp(rect.Width, 1, _originalMat.Width - rect.X);
+            //rect.Height = Math.Clamp(rect.Height, 1, _originalMat.Height - rect.Y);
+            //_templateMat = new Mat(_originalMat, rect).Clone();
+            if (TeachingVM == null) return;
 
-            ModernMessageBox.Show("Teaching Successful!");  
+            // Lấy thông số "nóng" từ cửa sổ phụ
+            finalThresh = TeachingVM.ThresholdValue;
+            finalBlur = TeachingVM.BlurValue;
+
+            // Thực hiện logic Process hoặc lưu thông số
+            
+
+            ModernMessageBox.Show($"Đã học xong với Thresh: {finalThresh}, Blur: {finalBlur}");
+            //Cv2.ImShow("Template Check", _templateMat);
+
+            //ModernMessageBox.Show("Teaching Successful!");  
         }
         [RelayCommand]
         private void Process()
@@ -181,8 +216,11 @@ namespace EVIInspection.Camera
             if (_originalMat == null || _templateMat == null) return;
             using var gray = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
             // 1. Khử nhiễu và Nhị phân hóa (Có thể dùng Canny hoặc Threshold)
-            using var blurred = gray.GaussianBlur(new Size(5, 5), 0);
-            using var thresh = blurred.Threshold(127, 255, ThresholdTypes.Binary);
+            using var blurred = gray.GaussianBlur(new Size(finalBlur, finalBlur), 0);
+            using var thresh = blurred.Threshold(finalThresh, 255, ThresholdTypes.Binary);
+
+
+            Cv2.ImShow("Debug Thresh", thresh);
             // 2. Tìm tất cả các đường bao (Contours)
             Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
             using var debugMat = _originalMat.Clone();
@@ -230,13 +268,15 @@ namespace EVIInspection.Camera
                 Point2f[] vertices = minRect.Points();
                 for (int j = 0; j < 4; j++)
                 {
-                    debugMat.Line((Point)vertices[j], (Point)vertices[(j + 1) % 4], Scalar.Red, 2);
+                    debugMat.Line(new Point((int)vertices[j].X, (int)vertices[j].Y),
+                         new Point((int)vertices[(j + 1) % 4].X, (int)vertices[(j + 1) % 4].Y),
+                         Scalar.Red, 2);
                 }
                 debugMat.Circle(new Point(centerX, centerY), 5, Scalar.Green, -1);
 
                 break; // Lấy vật thể đầu tiên thỏa mãn rồi thoát
             }
-            MyImage = debugMat.ToWriteableBitmap();
+            this.MyImage = debugMat.ToWriteableBitmap();
             if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
 
             //if (maxVal > 0.8)
@@ -263,5 +303,7 @@ namespace EVIInspection.Camera
             //    ModernMessageBox.Show($"Tìm thấy vật thể!\nĐộ khớp: {maxVal:P0}");
             //}
         }
+
     }
+   
 }

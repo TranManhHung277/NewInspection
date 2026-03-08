@@ -23,7 +23,7 @@
                 VerticalAlignment="Center"
                 Margin="0,0,0,10">
                 <Image x:Name="imgTeaching"
-                       Source="{Binding ImageVM.PreviewImage}"
+                       Source="{Binding PreviewImage}"
                        Stretch="Uniform">   
                 </Image>
         </Border>
