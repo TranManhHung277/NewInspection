@@ -215,69 +215,58 @@ namespace EVIInspection.Camera
         {
             if (_originalMat == null || _templateMat == null) return;
             using var gray = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            // 1. Khử nhiễu và Nhị phân hóa (Có thể dùng Canny hoặc Threshold)
             using var blurred = gray.GaussianBlur(new Size(finalBlur, finalBlur), 0);
-            using var thresh = blurred.Threshold(finalThresh, 255, ThresholdTypes.Binary);
-
-
+            using var thresh = blurred.Threshold(finalThresh, 255, ThresholdTypes.BinaryInv);
             Cv2.ImShow("Debug Thresh", thresh);
-            // 2. Tìm tất cả các đường bao (Contours)
             Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
             using var debugMat = _originalMat.Clone();
             bool found = false;
+            var mainContour = contours
+        .OrderByDescending(c => Cv2.ContourArea(c))
+        .FirstOrDefault(c => Cv2.ContourArea(c) > 500);
 
-
-            //using var graySrc = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            //using var grayTpl = _templateMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            //using var res = new Mat();
-            //Cv2.MatchTemplate(graySrc, grayTpl, res, TemplateMatchModes.CCoeffNormed);
-            //Cv2.MinMaxLoc(res, out _, out double maxVal, out _, out var maxLoc);
-
-
-            foreach (var contour in contours)
-            {
-                // 3. Lọc bỏ các vật thể quá nhỏ (nhiễu)
-                double area = Cv2.ContourArea(contour);
-                if (area < 500) continue; // Điều chỉnh giá trị này tùy kích thước vật thể
-
-                found = true;
-
-                // 4. Tính toán Tâm (X, Y) bằng Moments
-                var moments = Cv2.Moments(contour);
-                int centerX = (int)(moments.M10 / moments.M00);
-                int centerY = (int)(moments.M01 / moments.M00);
-
-                // 5. Tính toán Góc (R) bằng MinAreaRect (Hình chữ nhật bao quanh tối ưu)
-                RotatedRect minRect = Cv2.MinAreaRect(contour);
-                float angle = minRect.Angle;
-
-                /* Lưu ý về góc của MinAreaRect: 
-                   OpenCV thường trả về góc từ -90 đến 0. 
-                   Nếu Width < Height, bạn có thể cần điều chỉnh: angle -= 90; */
-                if (minRect.Size.Width < minRect.Size.Height)
+                if (mainContour != null)
                 {
-                    angle -= 90;
-                }
-
-                // 6. Cập nhật Binding dữ liệu
-                ResultX = centerX.ToString();
-                ResultY = centerY.ToString();
-                ResultR = angle.ToString("F1");
-
-                // 7. Vẽ minh họa (Vẽ hình chữ nhật xoay)
-                Point2f[] vertices = minRect.Points();
-                for (int j = 0; j < 4; j++)
+                    // 4. Tính toán Tâm (X, Y) bằng Moments
+                    var moments = Cv2.Moments(mainContour);
+                if (moments.M00 != 0)
                 {
-                    debugMat.Line(new Point((int)vertices[j].X, (int)vertices[j].Y),
-                         new Point((int)vertices[(j + 1) % 4].X, (int)vertices[(j + 1) % 4].Y),
-                         Scalar.Red, 2);
+                    int centerX = (int)(moments.M10 / moments.M00);
+                    int centerY = (int)(moments.M01 / moments.M00);
+                    // 5. Tính toán Góc (R) bằng MinAreaRect (Hình chữ nhật bao quanh tối ưu)
+                    RotatedRect minRect = Cv2.MinAreaRect(mainContour);
+                    float angle = minRect.Angle;
+                    Point2f[] vertices = minRect.Points();
+                    for (int j = 0; j < 4; j++)
+                    {
+                        debugMat.Line(new Point((int)vertices[j].X, (int)vertices[j].Y),
+                             new Point((int)vertices[(j + 1) % 4].X, (int)vertices[(j + 1) % 4].Y),
+                             Scalar.Red, 2);
+                    }
+                    debugMat.Circle(new Point(centerX, centerY), 5, Scalar.Green, -1);
+                    // 6. Cập nhật Binding dữ liệu
+                    if (minRect.Size.Width < minRect.Size.Height)
+                    {
+                        angle -= 90;
+                    }
+                    ResultX = centerX.ToString();
+                    ResultY = centerY.ToString();
+                    ResultR = angle.ToString("F1");
+                    if (debugMat != null && !debugMat.Empty() && debugMat.Width > 0)
+                    {
+                        this.MyImage = debugMat.ToWriteableBitmap();
+                    }
                 }
-                debugMat.Circle(new Point(centerX, centerY), 5, Scalar.Green, -1);
-
-                break; // Lấy vật thể đầu tiên thỏa mãn rồi thoát
+                else
+                {
+                    this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
+                    ModernMessageBox.Show("Không tìm thấy ngôi sao! Thử chỉnh lại Threshold.");
+                }
             }
-            this.MyImage = debugMat.ToWriteableBitmap();
-            if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
+                    
+            }
+            //this.MyImage = debugMat.ToWriteableBitmap();
+            //if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
 
             //if (maxVal > 0.8)
             //{
@@ -306,4 +295,4 @@ namespace EVIInspection.Camera
 
     }
    
-}
+
