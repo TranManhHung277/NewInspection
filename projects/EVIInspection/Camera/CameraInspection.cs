@@ -223,12 +223,17 @@ namespace EVIInspection.Camera
             bool found = false;
             var mainContour = contours
         .OrderByDescending(c => Cv2.ContourArea(c))
-        .FirstOrDefault(c => Cv2.ContourArea(c) > 500);
-
-                if (mainContour != null)
-                {
-                    // 4. Tính toán Tâm (X, Y) bằng Moments
-                    var moments = Cv2.Moments(mainContour);
+        .FirstOrDefault(c => Cv2.ContourArea(c) > 5000);
+            if (mainContour==null || Cv2.ContourArea(mainContour) <= 500)
+            {
+                this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
+                ModernMessageBox.Show("Không tìm thấy đối tượng!");
+                return;
+            }
+            else if (mainContour != null)
+            {
+                // 4. Tính toán Tâm (X, Y) bằng Moments
+                var moments = Cv2.Moments(mainContour);
                 if (moments.M00 != 0)
                 {
                     int centerX = (int)(moments.M10 / moments.M00);
@@ -255,16 +260,23 @@ namespace EVIInspection.Camera
                     if (debugMat != null && !debugMat.Empty() && debugMat.Width > 0)
                     {
                         this.MyImage = debugMat.ToWriteableBitmap();
+                        
                     }
                 }
+
                 else
                 {
                     this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
-                    ModernMessageBox.Show("Không tìm thấy ngôi sao! Thử chỉnh lại Threshold.");
+                    ModernMessageBox.Show("Không tìm thấy đối tượng!");
                 }
             }
-                    
+            else
+            {
+                this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
+                ModernMessageBox.Show("Không tìm thấy đối tượng!");
             }
+                    
+        }
             //this.MyImage = debugMat.ToWriteableBitmap();
             //if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
 
