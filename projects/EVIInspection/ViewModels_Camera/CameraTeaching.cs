@@ -41,7 +41,7 @@ namespace EVIInspection.Camera
                 using var gray = _roiMat.CvtColor(ColorConversionCodes.BGR2GRAY);
                 using var blurred = gray.GaussianBlur(new OpenCvSharp.Size(kSize, kSize), 0);
                 using var thresh = blurred.Threshold(ThresholdValue, 255, ThresholdTypes.Binary);
-
+                
                 PreviewImage = thresh.ToWriteableBitmap();
             }
             catch (Exception ex)

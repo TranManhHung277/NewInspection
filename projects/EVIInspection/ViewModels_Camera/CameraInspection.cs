@@ -9,6 +9,7 @@ using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -17,8 +18,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using EVIInspection.Services;
+using System.Windows;
+using Point = OpenCvSharp.Point;
 
 
+//ver 23032026
+//ver 26032026
 namespace EVIInspection.Camera
 {
 
@@ -42,11 +48,19 @@ namespace EVIInspection.Camera
 
         [ObservableProperty]
         private string _resultR = "0";
+
+        [ObservableProperty]
+        private string _resultScore = "0";
+
         [ObservableProperty]
         private CameraTeaching _teachingVM;
         public IRelayCommand OnMouseDownCommand { get; }
         public IRelayCommand OnMouseMoveCommand { get; }
         public IRelayCommand OnMouseUpCommand { get; }
+        public ObservableCollection<List_Object> ListResults { get; set; } = new ObservableCollection<List_Object>();
+
+        private readonly IVisionService _visionService;
+       
 
 
         private System.Windows.Point _startPoint;
@@ -57,15 +71,25 @@ namespace EVIInspection.Camera
         private double finalThresh;
         private int finalBlur;
         private float templateAngle, currentAngle, finalAngle;
-        public ImageViewModel()
+       
+        public ImageViewModel(IVisionService visionService)
         {
-            // 2. Khởi tạo trong Constructor
+            _visionService = visionService ?? throw new ArgumentNullException(nameof(visionService));
             OnMouseDownCommand = new RelayCommand<object>(OnMouseDown);
             OnMouseMoveCommand = new RelayCommand<object>(OnMouseMove);
             OnMouseUpCommand = new RelayCommand<object>(OnMouseUp);
-            // Tương tự cho MouseMove và MouseUp nếu chúng cũng bị lỗi
+
+            if (_visionService == null)
+            {
+                MessageBox.Show("DI thất bại: VisionService truyền vào bị null!");
+            }
+            else
+            {
+                // Nếu hiện cái này khi chạy app là DI đã thành công
+                System.Diagnostics.Debug.WriteLine("DI thành công!");
+            }
         }
-       
+
         [RelayCommand]
         private void ActionOpenImage()
         {
@@ -222,13 +246,15 @@ namespace EVIInspection.Camera
                 // Giả sử đối tượng cần học là contour lớn nhất
                 var templateContour = contours.OrderByDescending(c => Cv2.ContourArea(c)).First();
                 double area = Cv2.ContourArea(templateContour);
+                var rect = Cv2.BoundingRect(templateContour);
+                double aspectRatio = (double)rect.Width / rect.Height;
                 // 4. Lưu lại góc máy (Template Angle)
                 // Lưu ý: FitEllipse yêu cầu contour phải có ít nhất 5 điểm
                 if (templateContour.Length >= 5 && area > 10)
                 {
                     templateAngle = Cv2.FitEllipse(templateContour).Angle;
 
-                    ModernMessageBox.Show($"Học thành công!\nThresh: {finalThresh}\nAngle: {templateAngle:F2}");
+                    ModernMessageBox.Show($"Học thành công!\nThresh: {finalThresh}\nAngle: {templateAngle:F2}\nArea: {area:F2}\nRatio: {aspectRatio:F2}");
                 }
                 else
                 {
@@ -243,189 +269,52 @@ namespace EVIInspection.Camera
 
         }
         [RelayCommand]
-        //private void Process()
-        //{
-        //    if (_originalMat == null || _templateMat == null) return;
-        //    using var gray = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-        //    using var blurred = gray.GaussianBlur(new Size(finalBlur, finalBlur), 0);
-        //    using var thresh = blurred.Threshold(finalThresh, 255, ThresholdTypes.BinaryInv);
-        //    Cv2.ImShow("Debug Thresh", thresh);
-        //    Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-        //    using var debugMat = _originalMat.Clone();
-        //    bool found = false;
-        //    var mainContour = contours
-        //.OrderByDescending(c => Cv2.ContourArea(c))
-        //.FirstOrDefault(c => Cv2.ContourArea(c) > 5000);
-        //    if (mainContour==null || Cv2.ContourArea(mainContour) <= 500)
-        //    {
-        //        this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
-        //        ModernMessageBox.Show("Không tìm thấy đối tượng!");
-        //        return;
-        //    }
-        //    else if (mainContour != null)
-        //    {
-        //        // 4. Tính toán Tâm (X, Y) bằng Moments
-        //        var moments = Cv2.Moments(mainContour);
-        //        if (moments.M00 != 0)
-        //        {
-        //            int centerX = (int)(moments.M10 / moments.M00);
-        //            int centerY = (int)(moments.M01 / moments.M00);
-        //            // 5. Tính toán Góc (R) bằng MinAreaRect (Hình chữ nhật bao quanh tối ưu)
-        //            RotatedRect minRect = Cv2.MinAreaRect(mainContour);
-        //            float angle = minRect.Angle;
-        //            Point2f[] vertices = minRect.Points();
-        //            for (int j = 0; j < 4; j++)
-        //            {
-        //                debugMat.Line(new Point((int)vertices[j].X, (int)vertices[j].Y),
-        //                     new Point((int)vertices[(j + 1) % 4].X, (int)vertices[(j + 1) % 4].Y),
-        //                     Scalar.Red, 2);
-        //            }
-        //            debugMat.Circle(new Point(centerX, centerY), 5, Scalar.Green, -1);
-        //            // 6. Cập nhật Binding dữ liệu
-        //            if (minRect.Size.Width < minRect.Size.Height)
-        //            {
-        //                angle -= 90;
-        //            }
-        //            ResultX = centerX.ToString();
-        //            ResultY = centerY.ToString();
-        //            ResultR = angle.ToString("F1");
-        //            if (debugMat != null && !debugMat.Empty() && debugMat.Width > 0)
-        //            {
-        //                this.MyImage = debugMat.ToWriteableBitmap();
 
-        //            }
-        //        }
-
-        //        else
-        //        {
-        //            this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
-        //            ModernMessageBox.Show("Không tìm thấy đối tượng!");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        this.MyImage = _originalMat.ToWriteableBitmap(); // Hiện ảnh gốc nếu không tìm thấy
-        //        ModernMessageBox.Show("Không tìm thấy đối tượng!");
-        //    }
-
-        //}
-        //    //this.MyImage = debugMat.ToWriteableBitmap();
-        //    //if (!found) ModernMessageBox.Show("Không tìm thấy vật thể!");
-
-        //    //if (maxVal > 0.8)
-        //    //{
-        //    //    // 1. Tính toán tâm vật thể (Pixel thực)
-        //    //    int centerX = maxLoc.X + (_templateMat.Width / 2);
-        //    //    int centerY = maxLoc.Y + (_templateMat.Height / 2);
-
-        //    //    // 2. CẬP NHẬT KẾT QUẢ LÊN TEXTBOX (X, Y, R)
-        //    //    ResultX = centerX.ToString();
-        //    //    ResultY = centerY.ToString();
-        //    //    ResultR = "0"; // Hiện tại chưa tính góc xoay
-
-        //    //    // 3. VẼ KHUNG ĐỎ (Phải dùng đúng kích thước của ảnh mẫu _templateMat)
-        //    //    using var debugMat = _originalMat.Clone();
-
-        //    //    // Vẽ hình chữ nhật có kích thước BẰNG HỆT ảnh mẫu đã Teach
-        //    //    OpenCvSharp.Rect resultRect = new OpenCvSharp.Rect(maxLoc, _templateMat.Size());
-        //    //    debugMat.Rectangle(resultRect, Scalar.Red, 3);
-
-        //    //    // Cập nhật lại ảnh hiển thị
-        //    //    MyImage = debugMat.ToWriteableBitmap();
-
-        //    //    ModernMessageBox.Show($"Tìm thấy vật thể!\nĐộ khớp: {maxVal:P0}");
-        //    //}
-        //}
-
-        private void Process()
+        private async Task ProcessAsync()
         {
-            if (_originalMat == null || _templateMat == null) return;
+            if (MyImage == null) return;
 
-            // 1. Lấy Contour chuẩn từ Template (nên làm sẵn 1 lần để tối ưu)
-            using var tGray = _templateMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            using var tThresh = tGray.Threshold(finalThresh, 255, ThresholdTypes.BinaryInv);
-            Cv2.FindContours(tThresh, out var tContours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-            var templateContour = tContours.OrderByDescending(c => Cv2.ContourArea(c)).FirstOrDefault();
-            if (templateContour == null) return;
-
-            // 2. Xử lý ảnh Camera
-            using var gray = _originalMat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            using var blurred = gray.GaussianBlur(new Size(finalBlur, finalBlur), 0);
-            using var thresh = blurred.Threshold(finalThresh, 255, ThresholdTypes.BinaryInv);
-
-            Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
-
-            Point[] bestContour = null;
-            double minDiff = double.MaxValue;
-            int imgW = thresh.Width;
-            int imgH = thresh.Height;
-
-            foreach (var col in contours)
+            if (MyImage is BitmapSource bitmapSource)
             {
-                var rect = Cv2.BoundingRect(col);
-
-                // CHIẾN THUẬT 1: Loại bỏ nhiễu mép ảnh (Đường kẻ trắng bạn đang bị dính)
-                // Nếu contour chạm sát mép trên hoặc mép dưới quá nhiều -> bỏ qua
-                if (rect.Y <= 2 || (rect.Y + rect.Height) >= imgH - 2) continue;
-
-                double area = Cv2.ContourArea(col);
-                if (area < 1000) continue; // Bỏ qua nhiễu nhỏ
-
-                // CHIẾN THUẬT 2: So khớp hình dạng (Bất biến góc xoay)
-                // MatchShapes trả về giá trị càng thấp càng giống (0 là giống hệt)
-                double diff = Cv2.MatchShapes(templateContour, col, ShapeMatchModes.I1, 0);
-
-                if (diff < minDiff && diff < 0.3) // Ngưỡng 0.3 thường là đủ tốt cho Penguin
-                {
-                    minDiff = diff;
-                    bestContour = col;
-                }
+                // 1. Chuyển đổi ImageSource (giao diện) sang Mat (OpenCV)
+                // Lưu ý: Bạn cần dùng thư viện OpenCvSharp.WpfExtensions
+                using var currentMat = bitmapSource.ToMat();
             }
-
-            if (bestContour != null)
+            if (_templateMat == null||_originalMat==null) return;
+            if (_visionService == null)
             {
-                // 3. Tính toán và vẽ kết quả (Giống code cũ của bạn)
-                using var debugMat = _originalMat.Clone();
-                var moments = Cv2.Moments(bestContour);
-                int centerX = (int)(moments.M10 / moments.M00);
-                int centerY = (int)(moments.M01 / moments.M00);
+                MessageBox.Show("Vision Service chưa được khởi tạo. Vui lòng kiểm tra cấu hình.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+                
+            }
+            var result = await Task.Run(() => _visionService.ExecuteInspection(_originalMat,
+            _templateMat,
+            finalThresh,
+            finalBlur,
+            templateAngle));
 
+            if (result.IsSuccess)
+            {
+                ResultX = result.X.ToString();
+                ResultY = result.Y.ToString();
+                ResultR = result.Angle.ToString();
+                ResultScore = result.Score.ToString();
 
-                if (bestContour.Length >= 5) // FitEllipse yêu cầu ít nhất 5 điểm
+                // Hiển thị ảnh đã vẽ khung/điểm trung tâm lên màn hình
+                if (result.ProcessedMat != null)
                 {
-                    RotatedRect ellipse = Cv2.FitEllipse(bestContour);
-                    currentAngle = ellipse.Angle;
-
-                    // Hiệu chỉnh để vật thể đứng thẳng (0 độ)
-                    // FitEllipse trả về góc từ 0-180. 
-                    // Nếu con chim đang đứng thẳng mà nó báo 90 hoặc 180, bạn chỉ cần cộng/trừ offset.
-
-                    // Giả sử ảnh mẫu của bạn đang đứng thẳng là 0 độ:
-                    // Bạn cần lưu góc của ảnh mẫu (TemplateAngle) lại để trừ đi.
-                    // float finalAngle = angle - templateAngle; 
-                    finalAngle = currentAngle - templateAngle;
-                    
+                    MyImage = result.ProcessedMat.ToWriteableBitmap();
+                    result.ProcessedMat.Dispose(); // Giải phóng vùng nhớ ảnh debug
                 }
-                //RotatedRect minRect = Cv2.MinAreaRect(bestContour);
-                //float angle = minRect.Angle;
-                //if (minRect.Size.Width < minRect.Size.Height) angle -= 90;
-
-                // Vẽ để kiểm tra
-                debugMat.DrawContours(new[] { bestContour }, -1, Scalar.Yellow, 2); // Vẽ đường viền thực tế
-                debugMat.Circle(centerX, centerY, 5, Scalar.Green, -1);
-
-                ResultX = centerX.ToString();
-                ResultY = centerY.ToString();
-                ResultR = finalAngle.ToString("F1");
-                this.MyImage = debugMat.ToWriteableBitmap();
             }
             else
             {
-                App.Current.Dispatcher.Invoke(() =>
-                {
-                    this.MyImage = _originalMat.ToWriteableBitmap();
-                    ModernMessageBox.Show("Không tìm thấy!");
-                });
+                // Xử lý khi không tìm thấy đối tượng
+                ResultX = "N/A";
+                ResultY = "N/A";
+                ResultR = "N/A";
+                ResultScore = "N/A";
+                ModernMessageBox.Show("không tìm thấy");
             }
         }
 

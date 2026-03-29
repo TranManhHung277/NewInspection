@@ -28,18 +28,21 @@ namespace EVIInspection.ViewModels
         private MachineRunMode _runMode = MachineRunMode.Auto;
         [ObservableProperty]
         private HeaderStatusLevel _headerStatusLevel = HeaderStatusLevel.Ok;
-
+        
 
         public IRelayCommand StartCommand { get; }
         public IRelayCommand StopCommand { get; }
         public IRelayCommand ResetCommand { get; }
         public IRelayCommand HomeHoldStartCommand { get; }
         public IRelayCommand HomeHoldEndCommand { get; }
-     
-        public ImageViewModel ImageVM { get; } = new ImageViewModel();
+        [ObservableProperty]
+        private ImageViewModel _imageVM;
 
-        public MainViewModel(HardwareMinimalConfig config)
+
+
+        public MainViewModel(HardwareMinimalConfig config, EVIInspection.Camera.ImageViewModel imageVM)
         {
+            _imageVM = imageVM;
             StartCommand = new RelayCommand(OnStart);
             StopCommand = new RelayCommand(OnStop);
             ResetCommand = new RelayCommand(OnReset);

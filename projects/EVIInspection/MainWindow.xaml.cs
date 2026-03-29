@@ -35,7 +35,7 @@ namespace EVIInspection
             InitializeComponent();
 
             _viewModel = viewModel;
-            DataContext = _viewModel;
+            this.DataContext = _viewModel;
 
             // Create all views
             _autoView = new AutoView { DataContext = _viewModel };

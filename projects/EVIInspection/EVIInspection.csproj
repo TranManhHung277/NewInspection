@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Folder Include="Machine\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
   <ItemGroup>

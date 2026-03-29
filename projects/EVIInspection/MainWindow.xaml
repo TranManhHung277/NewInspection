@@ -9,6 +9,7 @@
         Title="EVI INSPECTION" Height="1080" Width="1920"
         WindowState="Maximized"
         WindowStyle="None">
+   
 
     <Grid>
         <Grid.RowDefinitions>

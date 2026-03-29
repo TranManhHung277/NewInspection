@@ -1,3 +1,5 @@
+using EVIInspection.Camera;
+using EVIInspection.Services;
 using EVIInspection.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,7 +21,25 @@ namespace EVIInspection
         private const string SingleInstanceMutexName = "NAutoSuite.EVIInspection.SingleInstance";
         private IHost? _host;
         private Mutex? _singleInstanceMutex;
-
+        public static new App Current => (App)Application.Current;
+        public App()
+        {
+            Services = ConfigureServices();
+        }
+        public IServiceProvider Services { get; }
+        private static IServiceProvider ConfigureServices()
+        {
+            var services = new ServiceCollection();
+            var hardwareConfig = new HardwareMinimalConfig(); // Hoặc hàm load config của bạn
+            services.AddSingleton(hardwareConfig);
+            // Đăng ký Service ở đây
+            services.AddSingleton<IVisionService, VisionService>();
+            services.AddTransient<EVIInspection.Camera.ImageViewModel>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<MainWindow>();
+           
+            return services.BuildServiceProvider();
+        }
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -98,6 +118,7 @@ namespace EVIInspection
                 var loader = sp.GetRequiredService<HardwareConfigLoader>();
                 return loader.LoadMinimalEntitiesSafe(GetHardwareConfigPath());
             });
+            services.AddSingleton<IVisionService, VisionService>();
         }
 
         private static void RegisterHardwareServices(IServiceCollection services)
@@ -116,6 +137,7 @@ namespace EVIInspection
         {
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
+            services.AddTransient<ImageViewModel>();
         }
 
         private static void ForceLoadHardwareConfiguration(IServiceProvider services)
